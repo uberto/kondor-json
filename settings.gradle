@@ -1,0 +1,4 @@
+rootProject.name = 'kondor'
+include 'kondor-core'
+include 'kondor-examples'
+

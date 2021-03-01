@@ -1,0 +1,42 @@
+plugins {
+    id "org.jetbrains.kotlin.jvm" version  "${kotlin_version}"
+}
+
+
+allprojects{
+
+    wrapper {
+        gradleVersion = "6.7"
+    }
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+}
+
+subprojects {
+
+    group 'com.ubertob.kondor'
+    version '1.0-SNAPSHOT'
+
+    ext {
+        junitVersion = "5.6.1"
+        junitLauncherVersion = "1.6.1"
+        striktVersion = "0.25.0"
+    }
+
+    test {
+        useJUnitPlatform()
+//        testLogging.showStandardStreams = true
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+
+}
