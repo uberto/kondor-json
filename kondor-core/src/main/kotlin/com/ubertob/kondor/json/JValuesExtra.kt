@@ -106,12 +106,10 @@ class JMap<T : Any>(private val valueConverter: JsonAdjunction<T, *>) : JObject<
         }
 
     override fun getWriters(value: Map<String, T>): Set<NodeWriter<Map<String, T>>> =
-        value.entries.map { (key, value) ->
+        value.entries.map { (key, mapValue)  ->
             { jno: JsonNodeObject, _: Map<String, T> ->
-                jno.copy(
-                    fieldMap = jno.fieldMap +
-                            (key to valueConverter.toJsonNode(value, Node(key, jno.path)))
-                )
+                jno.copy(fieldMap = jno.fieldMap +
+                        (key to valueConverter.toJsonNode(mapValue, Node(key, jno.path))))
             }
         }.toSet()
 

@@ -25,6 +25,7 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
         getWriters(value)
+            .sortedBy { it.hashCode() }
             .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
                 writer(acc, value)
             }
