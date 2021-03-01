@@ -19,7 +19,7 @@ allprojects{
 subprojects {
 
     group 'com.ubertob.kondor'
-    version '1.0.0'
+    version '1.1.0-SNAPSHOT'
 
     ext {
         junitVersion = "5.6.1"
