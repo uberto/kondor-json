@@ -17,5 +17,5 @@ Maven
 
 Gradle
 ```
-testImplementation 'com.ubertob.kondor:kondor-core:1.0.0'
+implementation 'com.ubertob.kondor:kondor-core:1.0.0'
 ```
