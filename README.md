@@ -4,6 +4,8 @@
 # KondorJson
 A library to serialize/deserialize Json fast and safely without reflection or generators.
 
+Loosely inspired by the concept of functional adjunctions,
+
 ## Dependency declaration
 Maven
 ```
@@ -111,7 +113,9 @@ The possibile solution we examined were:
 
 - KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based on reflection. 
   
-So we did several progressive improvements over the idea of defining bidirectional converter explicitely using a simple DSL.
+So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple DSL.
+
+The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the adjuntion--that is the converter--for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
 
 This is the result:
 
