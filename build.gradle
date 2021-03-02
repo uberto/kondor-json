@@ -6,7 +6,7 @@ plugins {
 allprojects{
 
     wrapper {
-        gradleVersion = "6.7"
+        gradleVersion = "6.8.3"
     }
 
     repositories {
@@ -19,12 +19,12 @@ allprojects{
 subprojects {
 
     group 'com.ubertob.kondor'
-    version '1.1.0'
+    version '1.2.0-SNAPSHOT'
 
     ext {
-        junitVersion = "5.6.1"
-        junitLauncherVersion = "1.6.1"
-        striktVersion = "0.25.0"
+        junitVersion = "5.7.1"
+        junitLauncherVersion = "1.7.1"
+        striktVersion = "0.29.0"
     }
 
     test {
