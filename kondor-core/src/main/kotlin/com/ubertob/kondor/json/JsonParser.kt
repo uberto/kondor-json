@@ -88,7 +88,7 @@ fun parseJsonNodeArray(
                 tokens.next()//consume it
             val nodes = mutableListOf<JsonNode>()
             var currNode = 0
-            while (currToken != "]") {
+            while (currToken != "]") { //todo: use fold/recursion here
                 nodes.add(
                     parseNewNode(tokens, Node("${currNode++}", path)).onFailure { return it.asFailure() })
                 currToken = tokens.peek()
@@ -117,7 +117,7 @@ fun parseJsonNodeObject(
                 tokens.next()//consume it
 
             val fields = mutableMapOf<String, JsonNode>()
-            while (currToken != "}") {
+            while (currToken != "}") { //todo: use fold/recursion here
                 val fieldName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
 
                 val colon = tokens.next()

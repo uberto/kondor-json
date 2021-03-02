@@ -21,7 +21,7 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
             )
         }
 
-    fun getWriters(value: T): List<NodeWriter<T>>
+    fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
 
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
         getWriters(value)

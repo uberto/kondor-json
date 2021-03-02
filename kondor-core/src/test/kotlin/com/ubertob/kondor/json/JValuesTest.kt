@@ -205,7 +205,9 @@ class JValuesTest {
 // add null/skipField option
 // add parseJson from Reader
 // add tests for concurrency reuse
+// add tests for Outcome
 // measure performance against other libs
 // module for integration with Http4k (Jconverters + Lens)
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)
+// random generators ??
