@@ -8,7 +8,7 @@ Loosely inspired by the concept of functional adjunctions,
 
 ## Dependency declaration
 Maven
-```
+```xml
 <dependency>
   <groupId>com.ubertob.kondor</groupId>
   <artifactId>kondor-core</artifactId>
@@ -24,7 +24,7 @@ implementation 'com.ubertob.kondor:kondor-core:1.0.0'
 ## Quick Start
 
 To transform a value (string in this case) into and from Json:
-```
+```kotlin
 val jsonString = JString.toJson("my string is here")
 val value = JString.fromJson(jsonStr).orThrow()  //"my string is here"
 ```
@@ -32,7 +32,7 @@ val value = JString.fromJson(jsonStr).orThrow()  //"my string is here"
 `JString` is the Json decoder, there are others for all primitive types
 
 To transform an object we need to write the decoder first with a simple DSL:
-```
+```kotlin
 data class Customer(val id: Int, val name: String)
 
 object JCustomer : JAny<Customer>() {
@@ -53,10 +53,10 @@ Each field (id,name) need to be associated to a decoder and a field in the mappe
 ## Do We Need another Json Parser?
 
 We wrote this library to solve a specific problem.
-It was useful for us there could be other people that would find this beneficial.
+It was useful for us, so there could be other people that could find this beneficial.
 
 To describe the problem, let's say you need to map a Json like this:
-```
+```json
  {
   "id": "1001",
   "vat-to-pay": true,
@@ -81,8 +81,8 @@ To describe the problem, let's say you need to map a Json like this:
 }
 ```
 
-to your domain objects:
-```
+To your own domain objects:
+```kotlin
 data class Customer(val id: Int, val name: String)
 
 data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?)
@@ -104,10 +104,12 @@ The Json format is quite similar to the domain objects but there are some differ
 - nullable fields are optional in Json.
 
 We also used the same domain classes inside other Json format, with slightly different field mappings, moreover we have to handle different versions of the Json format.
-Another big requirement for us was avoid reflection on domain classes, we all got bad experiences with refactors that broke Json api.
-Finally we general prefer to avoid annotating domain classes with serialization details.
 
-The possibile solution we examined were:
+Another big requirement for us was not having reflection on our domain classes, we all got bad experiences with refactors that broke Json api.
+
+Finally, we prefer to avoid annotating domain classes with serialization details.
+
+The possible solutions we examined were:
 
 - Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our types with fields heavily annotated.
 
@@ -115,11 +117,11 @@ The possibile solution we examined were:
   
 So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple DSL.
 
-The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the adjuntion--that is the converter--for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
+The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the adjuntion (aka the converter) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
 
 This is the result:
 
-```
+```kotlin
 object JProduct : JAny<Product>() {
 
     val id by JField(Product::id, JInt)
@@ -168,7 +170,7 @@ error at parsing: Expected a Double at position 55 but found '"' while parsing <
 
 It's very easy to create new converters to follow your team conventions.
 
-Converters are defined using `JsonNode`, so you don't have to handle the parsing and the serializing separately (which can be a source of bugs). They are easier to write than other libraries custom serialisers.
+Converters are defined using `JsonNode`, so you don't have to handle the parsing, and the serializing separately (which can be a source of bugs). They are easier to write than other libraries custom serialisers.
 
 There are some converters in Kondor ready-to-use:
 
