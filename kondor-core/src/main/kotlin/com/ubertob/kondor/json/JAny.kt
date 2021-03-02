@@ -21,11 +21,10 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
             )
         }
 
-    fun getWriters(value: T): Set<NodeWriter<T>>
+    fun getWriters(value: T): List<NodeWriter<T>>
 
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
         getWriters(value)
-            .sortedBy { it.hashCode() }
             .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
                 writer(acc, value)
             }
@@ -37,12 +36,12 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 
 abstract class JAny<T : Any> : JObject<T> {
 
-    private val nodeWriters: AtomicReference<Set<NodeWriter<T>>> = AtomicReference(emptySet())
+    private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
 
-    override fun getWriters(value: T): Set<NodeWriter<T>> = nodeWriters.get()
+    override fun getWriters(value: T): List<NodeWriter<T>> = nodeWriters.get()
 
     private fun registerSetter(nodeWriter: NodeWriter<T>) {
-        nodeWriters.getAndUpdate { set -> set + nodeWriter }
+        nodeWriters.getAndUpdate { list -> list + nodeWriter }
     }
 
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {

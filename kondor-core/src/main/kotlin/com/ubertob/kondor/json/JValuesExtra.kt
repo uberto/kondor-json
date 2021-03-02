@@ -86,7 +86,7 @@ interface JSealed<T : Any> : JObject<T> {
     }
 
 
-    override fun getWriters(value: T): Set<NodeWriter<T>> =
+    override fun getWriters(value: T) =
         extractTypeName(value).let { typeName ->
             findSubTypeBiDi(typeName)
                 ?.getWriters(value)
@@ -105,13 +105,13 @@ class JMap<T : Any>(private val valueConverter: JsonAdjunction<T, *>) : JObject<
             valueConverter.fromJsonNodeBase(entry.value).orThrow()
         }
 
-    override fun getWriters(value: Map<String, T>): Set<NodeWriter<Map<String, T>>> =
-        value.entries.map { (key, mapValue)  ->
+    override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =
+        value.entries.toList().sortedBy {it.key}.map { (key, value)  ->
             { jno: JsonNodeObject, _: Map<String, T> ->
                 jno.copy(fieldMap = jno.fieldMap +
-                        (key to valueConverter.toJsonNode(mapValue, Node(key, jno.path))))
+                        (key to valueConverter.toJsonNode(value, Node(key, jno.path))))
             }
-        }.toSet()
+        }
 
 }
 
