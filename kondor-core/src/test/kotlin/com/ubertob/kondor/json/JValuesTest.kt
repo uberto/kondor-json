@@ -199,11 +199,13 @@ class JValuesTest {
 
 
 //todo
+// add Converters for all java.time, GUUID, URI, etc.
 // add test example with Java
 // add prettyPrint/compactPrint options
 // add null/skipField option
 // add parseJson from Reader
 // add tests for concurrency reuse
 // measure performance against other libs
+// module for integration with Http4k (Jconverters + Lens)
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)

@@ -165,6 +165,42 @@ Finally in case of errors, the messages are very friendly and precise:
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
 ```
+## How It Works
+
+To you Kondor you need to define a Converter for each type (or class of types).
+
+Let's analyze an example in details:
+
+```kotlin
+data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?) // 1
+
+object JProduct: JAny<Product>() { // 2
+
+    val id by JField(Product::id, JInt) // 3
+    val long_description by JField(Product::longDesc, JString) // 4
+    val `short-desc` by JField(Product::shortDesc, JString) // 5
+    val price by JFieldMaybe(Product::price, JDouble) // 6
+
+    override fun JsonNodeObject.deserializeOrThrow() = // 7
+        Product( // 8
+            id = +id, //9 
+            shortDesc = +`short-desc`,
+            longDesc = +long_description,
+            price = +price
+        )
+}
+```
+
+1. This is the class we want to serialize/deserialize
+2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection we can start from `JList` or `JSet` and so on, we can also create new abstract converters. 
+3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify the getter for the serialization and the specific converter needed for its type. If the converter or the getter is not correct it won't compile.
+4. The name of the field is taken from the variable name, `long_description` in this case
+5. Using ticks we can also use names illegal for variables in Kotlin
+6. For nullable/optional fields we use `JFieldMaybe`, otherwise it won't compile.
+7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty.
+8. Here we use the class constructor, but we could have used any function that return a `Product`
+9. To get the value from the fields we use the `unaryplus` operator. Since we match the name of parameter with the fields it will be easy to spot any mistake.
+
 
 ## Custom Converters
 
@@ -181,6 +217,11 @@ There are some converters in Kondor ready-to-use:
 - String wrappers: simplify json for IDs and other types that wrap over a string
 
 and so on
+
+You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the constructor.
+
+TODO: example of class with private constructor and custom serializer/deserializer
+
 
 ## Other Advantages
 
@@ -200,11 +241,11 @@ Doesn't throw any Exception.
 - KotlinSerializer
 - Moshi
 
-TBA: examples of annotations vs Kondor converters
+TODO: examples of annotations vs Kondor converters
 
-TBA: comparison of handling errors
+TODO: comparison of handling errors
 
-TBA: comparison of performance
+TODO: comparison of performance
 
 ## Future Ideas
 

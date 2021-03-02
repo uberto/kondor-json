@@ -60,7 +60,7 @@ class ParserFailuresTest {
   "items": [
     {
       "id": 1001,
-      "short_desc": "toothpaste",
+      "short-desc": "toothpaste",
       "long_description": "toothpaste \"whiter than white\"",
       "price": 125
     },
@@ -93,13 +93,13 @@ class ParserFailuresTest {
   "items": [
     {
       "id": 1001,
-      "short_desc": "toothpaste",
+      "short-desc": "toothpaste",
       "long_description": "toothpaste \"whiter than white\"",
       "price": "a string"
     },
     {
       "id": 10001,
-      "short_desc": "special offer"
+      "short-desc": "special offer"
     }
   ],
   "total": "123.45"

@@ -75,13 +75,13 @@ object JProduct : JAny<Product>() {
 
     private val id by JField(Product::id, JInt)
     private val long_description by JField(Product::longDesc, JString)
-    private val short_desc by JField(Product::shortDesc, JString)
+    private val `short-desc` by JField(Product::shortDesc, JString)
     private val price by JFieldMaybe(Product::price, JDouble)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Product(
             id = +id,
-            shortDesc = +short_desc,
+            shortDesc = +`short-desc`,
             longDesc = +long_description,
             price = +price
         )
@@ -195,3 +195,4 @@ object JNotes : JAny<Notes>() {
             thingsToDo = +things_to_do
         )
 }
+
