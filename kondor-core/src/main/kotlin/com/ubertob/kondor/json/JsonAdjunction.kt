@@ -28,6 +28,9 @@ parse : JSON -> JsonOutcome<T>
 JSON here can be either the Json string or the JsonNode
  */
 
+typealias JConverter<T> = JsonAdjunction<T, *>
+
+
 interface JsonAdjunction<T, JN : JsonNode> {
 
     val nodeType: NodeKind<JN>
