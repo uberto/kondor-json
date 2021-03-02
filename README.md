@@ -199,7 +199,9 @@ Doesn't throw any Exception.
 - Moshi
 
 TBA: examples of annotations vs Kondor converters
+
 TBA: comparison of handling errors
+
 TBA: comparison of performance
 
 ## Future Ideas
