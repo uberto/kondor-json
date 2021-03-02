@@ -8,6 +8,8 @@ import com.ubertob.kondor.json.JsonNode
 
 data class JsonError(val path: NodePath, val reason: String) : OutcomeError {
     override val msg = "error on <${path.getPath()}> $reason"
+
+    override fun toString(): String = msg
 }
 
 typealias JsonOutcome<T> = Outcome<JsonError, T>

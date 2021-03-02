@@ -4,7 +4,6 @@ import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.Outcome.Companion.tryThis
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.onFailure
-import com.ubertob.kondor.json.*
 import java.math.BigDecimal
 
 inline fun <T> tryParse(expected: String, position: Int, path: NodePath, f: () -> T): Outcome<JsonError, T> =
@@ -85,6 +84,8 @@ fun parseJsonNodeArray(
         if (openBraket != "[") return parsingFailure("'['", openBraket, tokens.position(), path)
         else {
             var currToken = tokens.peek()
+            if (currToken == "]")
+                tokens.next()//consume it
             val nodes = mutableListOf<JsonNode>()
             var currNode = 0
             while (currToken != "]") {
@@ -111,9 +112,12 @@ fun parseJsonNodeObject(
         val openCurly = tokens.next()
         if (openCurly != "{") return parsingFailure("'{'", openCurly, tokens.position(), path)
         else {
-            var curr = tokens.peek()
+            var currToken = tokens.peek()
+            if (currToken == "}")
+                tokens.next()//consume it
+
             val fields = mutableMapOf<String, JsonNode>()
-            while (curr != "}") {
+            while (currToken != "}") {
                 val fieldName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
 
                 val colon = tokens.next()
@@ -121,8 +125,8 @@ fun parseJsonNodeObject(
                 val value = parseNewNode(tokens, Node(fieldName, path)).onFailure { return it.asFailure() }
                 fields.put(fieldName, value)
 
-                curr = tokens.peek()
-                if (curr != "," && curr != "}") return parsingFailure("'}' or ','", curr, tokens.position(), path)
+                currToken = tokens.peek()
+                if (currToken != "," && currToken != "}") return parsingFailure("'}' or ','", currToken, tokens.position(), path)
                 tokens.next()
             }
             JsonNodeObject(fields, path)
