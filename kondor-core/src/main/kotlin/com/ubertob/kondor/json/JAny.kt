@@ -131,7 +131,7 @@ sealed class JFieldBase<T, PT : Any>
 
 class JField<T : Any, PT : Any>(
     override val binder: (PT) -> T,
-    private val jsonAdjunction: JsonAdjunction<T, *>,
+    private val jsonAdjunction: JConverter<T>,
     private val jsonFieldName: String? = null
 ) : JFieldBase<T, PT>() {
 
@@ -142,7 +142,7 @@ class JField<T : Any, PT : Any>(
 
 class JFieldMaybe<T : Any, PT : Any>(
     override val binder: (PT) -> T?,
-    private val jsonAdjunction: JsonAdjunction<T, *>,
+    private val jsonAdjunction: JConverter<T>,
     private val jsonFieldName: String? = null
 ) : JFieldBase<T?, PT>() {
 

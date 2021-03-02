@@ -98,10 +98,10 @@ class JValuesTest {
     }
 
     @Test
-    fun `json array of Strings`() {
+    fun `json array for a List of Strings`() {
 
         repeat(10) {
-            val jsonStringArray = JArray(JString)
+            val jsonStringArray = JList(JString)
 
             val value = randomList(0, 5) { randomString(text, 1, 10) }
 
@@ -137,12 +137,12 @@ class JValuesTest {
 
 
     @Test
-    fun `json array of Customers`() {
+    fun `json array for a Set of Customers`() {
 
         repeat(10) {
-            val jsonUserArray = JArray(JPerson)
+            val jsonUserArray = JSet(JPerson)
 
-            val value = randomList(0, 10) { randomPerson() }
+            val value = randomList(0, 10) { randomPerson() }.toSet()
 
             val node = jsonUserArray.toJsonNode(value, NodeRoot)
 

@@ -99,7 +99,7 @@ interface JSealed<T : Any> : JObject<T> {
 
 }
 
-class JMap<T : Any>(private val valueConverter: JsonAdjunction<T, *>) : JObject<Map<String, T>> {
+class JMap<T : Any>(private val valueConverter: JConverter<T>) : JObject<Map<String, T>> {
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.mapValues { entry ->
             valueConverter.fromJsonNodeBase(entry.value).orThrow()

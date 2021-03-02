@@ -73,21 +73,33 @@ abstract class JStringRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeStrin
 }
 
 
-data class JArray<T : Any>(val helper: JsonAdjunction<T, *>) : JsonAdjunction<List<T>, JsonNodeArray> {
+abstract class JArray<T : Any, CT: Iterable<T>>() : JsonAdjunction<CT, JsonNodeArray> {
 
-    override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, List<T>> =
-        mapFrom(node) { jn -> helper.fromJsonNodeBase(jn) }
+    abstract val helper: JConverter<T>
 
-    override fun toJsonNode(value: List<T>, path: NodePath): JsonNodeArray =
+    abstract fun convertToCollection(from: Iterable<T>): CT
+
+    override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, CT> =
+        mapFromArray(node) { jn -> helper.fromJsonNodeBase(jn) }.transform { convertToCollection(it) }
+
+    override fun toJsonNode(value: CT, path: NodePath): JsonNodeArray =
         mapToJson(value, helper::toJsonNode, path)
 
-    private fun <T : Any> mapToJson(objs: List<T>, f: (T, NodePath) -> JsonNode, path: NodePath): JsonNodeArray =
+    private fun <T : Any> mapToJson(objs: Iterable<T>, f: (T, NodePath) -> JsonNode, path: NodePath): JsonNodeArray =
         JsonNodeArray(objs.map { f(it, path) }, path)
 
-    private fun <T : Any> mapFrom(
+    private fun <T : Any> mapFromArray(
         node: JsonNodeArray,
         f: (JsonNode) -> JsonOutcome<T>
-    ): JsonOutcome<List<T>> = node.values.map(f).extract()
+    ): JsonOutcome<Iterable<T>> = node.values.map(f).extract()
 
     override val nodeType = ArrayNode
+}
+
+data class JList<T: Any>(override val helper: JConverter<T>): JArray<T, List<T>>(){
+    override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
+}
+
+data class JSet<T: Any>(override val helper: JConverter<T>): JArray<T, Set<T>>(){
+    override fun convertToCollection(from: Iterable<T>): Set<T>  = from.toSet()
 }

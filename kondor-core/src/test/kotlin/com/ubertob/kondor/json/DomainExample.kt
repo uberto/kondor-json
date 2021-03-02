@@ -136,7 +136,7 @@ object JInvoice : JAny<Invoice>() {
     val id by JField(Invoice::id, JStringWrapper(::InvoiceId))
     val vat by JField(Invoice::vat, JBoolean, jsonFieldName = "vat-to-pay")
     val customer by JField(Invoice::customer, JCustomer)
-    val items by JField(Invoice::items, JArray(JProduct))
+    val items by JField(Invoice::items, JList(JProduct))
     val total by JField(Invoice::total, JBigDecimal)
     val created_date by JField(Invoice::created, JLocalDate)
     val paid_datetime by JFieldMaybe(Invoice::paid, JInstant)

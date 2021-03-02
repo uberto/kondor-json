@@ -75,7 +75,7 @@ inline fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean,
             is Failure<E> -> this
         }
 
-fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extract(): Outcome<E, List<T>> =
+fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extract(): Outcome<E, Iterable<T>> =
     fold(emptyList<T>().asSuccess()) { acc: Outcome<E, Iterable<T>>, e: Outcome<E, T> ->
         acc.bind { list -> e.transform { list + it } }
     }
