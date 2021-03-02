@@ -149,23 +149,32 @@ object JInvoice : JAny<Invoice>() {
         )
 }
 ```
-Comparing with writing DTO there is less code here, even without DTO the time needed to write the converters is similar to annotate the classes one by one.
+Comparing with a solution involving writing DTOs, you need to write less code using converters. Even without considering DTOs, the time needed to write the converters is roughly the same than to annotate the classes one by one, but it's easier and more IDE friendly to create the converter. For example if you attach `JField` to a nullable field of your domain class, it will not compile. 
+
+No need to browse StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write new ones.
 
 It's very easy to define different converters for same class in different api.
 
-Moreover in case of errors, the messages are very friendly and precise:
+Finally in case of errors, the messages are very friendly and precise:
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
 ```
 
-## Available Types
+## Custom Converters
 
-- Maps
-- Instant
-- BigDecimal
-- Sealed classes
-- String wrappers
-etc.
+It's very easy to create new converters to follow your team conventions.
+
+Converters are defined using `JsonNode`, so you don't have to handle the parsing and the serializing separately (which can be a source of bugs). They are easier to write than other libraries custom serialisers.
+
+There are some converters in Kondor ready-to-use:
+
+- Sealed classes: automatically converting your sealed classes in polymorphic json
+- Maps: converting a `Map<String, *>` into a Json object
+- Instant: both using epoch or date format
+- BigDecimal: you can use numbers of any lenght
+- String wrappers: simplify json for IDs and other types that wrap over a string
+
+and so on
 
 ## Other Advantages
 
@@ -184,6 +193,10 @@ Doesn't throw any Exception.
 - Jackson
 - KotlinSerializer
 - Moshi
+
+TBA: examples of annotations vs Kondor converters
+TBA: comparison of handling errors
+TBA: comparison of performance
 
 ## Future Ideas
 
