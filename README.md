@@ -40,7 +40,7 @@ object JCustomer : JAny<Customer>() {
     val id by JField(Customer::id, JInt)
     val name by JField(Customer::name, JString)
 
-    override fun JsonNodeObject.tryDeserialize() =
+    override fun JsonNodeObject.deserializeOrThrow() =
         Customer(
             id = +id,
             name = +name
@@ -129,7 +129,7 @@ object JProduct : JAny<Product>() {
     val short_desc by JField(Product::shortDesc, JString)
     val price by JFieldMaybe(Product::price, JDouble)
 
-    override fun JsonNodeObject.tryDeserialize() =
+    override fun JsonNodeObject.deserializeOrThrow() =
         Product(
             id = +id,
             shortDesc = +short_desc,
@@ -145,7 +145,7 @@ object JInvoice : JAny<Invoice>() {
     val items by JField(Invoice::items, JArray(JProduct))
     val total by JField(Invoice::total, JDouble)
 
-    override fun JsonNodeObject.tryDeserialize(): Invoice =
+    override fun JsonNodeObject.deserializeOrThrow(): Invoice =
         Invoice(
             id = +id,
             vat = +vat,
