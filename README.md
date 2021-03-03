@@ -247,8 +247,16 @@ TODO: comparison of handling errors
 
 TODO: comparison of performance
 
-## Future Ideas
+## Ideas for Future Features
 
 - Generate Json schema and automatically validate
 
 - A DSL for Java
+
+- Generating random values from the converters
+
+- Add some converters that use Jackson for simplify the adopting
+
+- Add integration with Http4k for Lens
+
+- Add integration with Snodge for fuzzy testing

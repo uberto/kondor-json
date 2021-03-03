@@ -66,6 +66,9 @@ class JsonLexer(val jsonStr: CharSequence) {
         currWord.clear()
     }
 
+    companion object {
+        fun tokenize(jsonString: CharSequence): TokensStream = JsonLexer(jsonString).tokenize()
+    }
 }
 
 operator fun StringBuilder.plusAssign(c: Char) {

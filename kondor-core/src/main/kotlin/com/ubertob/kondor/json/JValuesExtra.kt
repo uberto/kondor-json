@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
@@ -88,14 +87,14 @@ interface JSealed<T : Any> : JObject<T> {
 
     override fun getWriters(value: T) =
         extractTypeName(value).let { typeName ->
-            findSubTypeBiDi(typeName)
+            findSubTypeConverter(typeName)
                 ?.getWriters(value)
                 ?.plus(::typeWriter)
                 ?: error("subtype not known $typeName")
         }
 
-    @Suppress("UNCHECKED_CAST")
-    fun findSubTypeBiDi(typeName: String): JObject<T>? = subtypesJObject[typeName] as? JObject<T>
+    @Suppress("UNCHECKED_CAST") //todo: add tests for this
+    fun findSubTypeConverter(typeName: String): JObject<T>? = subtypesJObject[typeName] as? JObject<T>
 
 }
 

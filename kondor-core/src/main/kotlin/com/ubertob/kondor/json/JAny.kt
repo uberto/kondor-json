@@ -55,7 +55,6 @@ sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): (JsonNodeObject) -> JsonNodeObject
     abstract fun getter(wrapped: JsonNodeObject): JsonOutcome<T>
-    abstract fun parser(tokensStream: TokensStream, path: NodePath): JsonOutcome<JsonNode>
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -73,9 +72,6 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: Stri
         { wrapped ->
             wrapped.copy(fieldMap = wrapped.fieldMap + (propName to jf.toJsonNode(value, Node(propName, wrapped.path))))
         }
-
-    override fun parser(tokensStream: TokensStream, path: NodePath): JsonOutcome<JsonNode> =
-        jf.parseToNode(tokensStream, path)
 
 }
 
@@ -101,14 +97,6 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: Strin
                 )
             } ?: wrapped
         }
-
-    override fun parser(tokensStream: TokensStream, path: NodePath): JsonOutcome<JsonNode> =
-        tokensStream.run {
-            if (peek() == "null") parseJsonNodeNull(tokensStream, path)
-            else
-                jf.parseToNode(tokensStream, path)
-        }
-
 
 }
 
