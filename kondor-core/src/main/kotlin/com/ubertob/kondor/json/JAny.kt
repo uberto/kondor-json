@@ -17,7 +17,7 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
         tryFromNode(node) {
             node.deserializeOrThrow() ?: throw JsonParsingException(
-                JsonError(node.path, "tryDeserialize returned null!")
+                JsonError(node.path, "deserializeOrThrow returned null!")
             )
         }
 

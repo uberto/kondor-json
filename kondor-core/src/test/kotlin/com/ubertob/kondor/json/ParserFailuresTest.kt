@@ -110,5 +110,23 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("error on </items/0/price> expected a Number but found String")
     }
 
+    object JPersonIncomplete : JAny<Person>() {
+
+        private val id by JField(Person::id, JInt)
+        private val name by JField(Person::name, JString)
+
+        override fun JsonNodeObject.deserializeOrThrow() = TODO("not finished yet!")
+    }
+
+    @Test
+    fun `error in parsing Json is reported`() {
+
+        val error = JPersonIncomplete.fromJson(JPerson.toJson(randomPerson())).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> Caught exception: kotlin.NotImplementedError: An operation is not implemented: not finished yet!")
+    }
+
+
+
     //add tests for... wrong enum, jmap with mixed node types, Double instead of Long
 }
