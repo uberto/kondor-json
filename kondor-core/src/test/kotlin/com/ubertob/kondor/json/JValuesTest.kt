@@ -199,6 +199,7 @@ class JValuesTest {
 
 
 //todo
+// add support for calculated fields
 // add Converters for all java.time, GUUID, URI, etc.
 // add test example with Java
 // add prettyPrint/compactPrint options

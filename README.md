@@ -192,21 +192,108 @@ object JProduct: JAny<Product>() { // 2
 ```
 
 1. This is the class we want to serialize/deserialize
-2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection we can start from `JList` or `JSet` and so on, we can also create new abstract converters. 
-3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify the getter for the serialization and the specific converter needed for its type. If the converter or the getter is not correct it won't compile.
+2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection
+   we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
+3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify
+   the getter for the serialization and the specific converter needed for its type. If the converter or the getter is
+   not correct it won't compile.
 4. The name of the field is taken from the variable name, `long_description` in this case
 5. Using ticks we can also use names illegal for variables in Kotlin
 6. For nullable/optional fields we use `JFieldMaybe`, otherwise it won't compile.
-7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty.
+7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization
+   we can leave the method empty.
 8. Here we use the class constructor, but we could have used any function that return a `Product`
-9. To get the value from the fields we use the `unaryplus` operator. Since we match the name of parameter with the fields it will be easy to spot any mistake.
+9. To get the value from the fields we use the `unaryplus` operator. Since we match the name of parameter with the
+   fields it will be easy to spot any mistake.
 
+## Difficult Cases
+
+With Kondor is easy to solve difficult Json mappings, for example:
+
+### Sealed classes and polymorphic Json
+
+To store in Json a sealed class, or an interface with known implementation:
+
+```kotlin
+sealed class Customer()
+data class Person(val id: Int, val name: String) : Customer()
+data class Company(val name: String, val taxType: TaxType) : Customer()
+```
+
+You just need to map them to a string type:
+
+```kotlin
+object JCustomer : JSealed<Customer> {
+    override val subtypesJObject: Map<String, JObject<out Customer>> =
+        mapOf(
+            "private" to JPerson,
+            "company" to JCompany
+        )
+
+    override fun extractTypeName(obj: Customer): String =
+        when (obj) {
+            is Person -> "private"
+            is Company -> "company"
+        }
+}
+```
+
+### Storing a Map as Json
+
+If you have a field which is a map and you want to save it as a Json object:
+
+```kotlin
+data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
+```
+
+You just need to use the `JMap` converter:
+
+```kotlin
+object JNotes : JAny<Notes>() {
+    private val updated by JField(Notes::updated, JInstantD)
+    private val things_to_do by JField(Notes::thingsToDo, JMap(JString))
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        Notes(
+            updated = +updated,
+            thingsToDo = +things_to_do
+        )
+}
+```
+
+### Custom collections
+
+If you have a custom collection:
+
+```kotlin
+class Products : ArrayList<Product>() {
+    fun total(): Double = sumOf { it.price ?: 0.0 }
+
+    companion object {
+        fun fromIterable(from: Iterable<Product>): Products =
+            from.fold(Products()) { acc, p -> acc.apply { add(p) } }
+    }
+}
+```
+
+You can easily create a converter for it:
+
+```kotlin
+object JProducts : JArray<Product, Products>() {
+    override val helper = JProduct
+
+    override fun convertToCollection(from: Iterable<Product>) =
+        Products.fromIterable(from)
+
+}
+```
 
 ## Custom Converters
 
 It's very easy to create new converters to follow your team conventions.
 
-Converters are defined using `JsonNode`, so you don't have to handle the parsing, and the serializing separately (which can be a source of bugs). They are easier to write than other libraries custom serialisers.
+Converters are defined using `JsonNode`, so you don't have to handle the parsing, and the serializing separately (which
+can be a source of bugs). They are easier to write than other libraries custom serialisers.
 
 There are some converters in Kondor ready-to-use:
 
