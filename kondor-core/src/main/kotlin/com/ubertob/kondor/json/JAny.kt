@@ -119,23 +119,21 @@ sealed class JFieldBase<T, PT : Any>
 
 class JField<T : Any, PT : Any>(
     override val binder: (PT) -> T,
-    private val jsonAdjunction: JConverter<T>,
-    private val jsonFieldName: String? = null
+    private val converter: JConverter<T>
 ) : JFieldBase<T, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T> =
-        JsonPropMandatory(jsonFieldName ?: property.name, jsonAdjunction)
+        JsonPropMandatory(property.name, converter)
 
 }
 
 class JFieldMaybe<T : Any, PT : Any>(
     override val binder: (PT) -> T?,
-    private val jsonAdjunction: JConverter<T>,
-    private val jsonFieldName: String? = null
+    private val converter: JConverter<T>
 ) : JFieldBase<T?, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T?> =
-        JsonPropOptional(jsonFieldName ?: property.name, jsonAdjunction)
+        JsonPropOptional(property.name, converter)
 
 }
 

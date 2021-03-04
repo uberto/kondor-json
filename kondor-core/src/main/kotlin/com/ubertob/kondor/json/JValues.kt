@@ -3,7 +3,6 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.extract
-import com.ubertob.kondor.json.*
 import java.math.BigDecimal
 
 
@@ -76,15 +75,15 @@ abstract class JStringRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeStrin
 
 abstract class JArray<T : Any, CT: Iterable<T>>() : JsonAdjunction<CT, JsonNodeArray> {
 
-    abstract val helper: JConverter<T>
+    abstract val converter: JConverter<T>
 
     abstract fun convertToCollection(from: Iterable<T>): CT
 
     override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, CT> =
-        mapFromArray(node) { jn -> helper.fromJsonNodeBase(jn) }.transform { convertToCollection(it) }
+        mapFromArray(node) { jn -> converter.fromJsonNodeBase(jn) }.transform { convertToCollection(it) }
 
     override fun toJsonNode(value: CT, path: NodePath): JsonNodeArray =
-        mapToJson(value, helper::toJsonNode, path)
+        mapToJson(value, converter::toJsonNode, path)
 
     private fun <T : Any> mapToJson(objs: Iterable<T>, f: (T, NodePath) -> JsonNode, path: NodePath): JsonNodeArray =
         JsonNodeArray(objs.map { f(it, path) }, path)
@@ -97,10 +96,10 @@ abstract class JArray<T : Any, CT: Iterable<T>>() : JsonAdjunction<CT, JsonNodeA
     override val nodeType = ArrayNode
 }
 
-data class JList<T: Any>(override val helper: JConverter<T>): JArray<T, List<T>>(){
+data class JList<T: Any>(override val converter: JConverter<T>): JArray<T, List<T>>(){
     override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
 }
 
-data class JSet<T: Any>(override val helper: JConverter<T>): JArray<T, Set<T>>(){
+data class JSet<T: Any>(override val converter: JConverter<T>): JArray<T, Set<T>>(){
     override fun convertToCollection(from: Iterable<T>): Set<T>  = from.toSet()
 }

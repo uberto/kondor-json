@@ -206,7 +206,7 @@ class Products: ArrayList<Product>(){
 }
 
 object JProducts: JArray<Product, Products>(){
-    override val helper = JProduct
+    override val converter = JProduct
 
     override fun convertToCollection(from: Iterable<Product>) =
         Products.fromIterable(from)
