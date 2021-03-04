@@ -206,6 +206,70 @@ object JProduct: JAny<Product>() { // 2
 9. To get the value from the fields we use the `unaryplus` operator. Since we match the name of parameter with the
    fields it will be easy to spot any mistake.
 
+## No Exceptions
+
+When failing to parse a Json, Kondor is not throwing any exception, instead `fromJson` and `fromJsonNode` methods return
+an `Outcome<T>` instead of a simple `T`. Why is that?
+
+`Outcome` is an example of the *Either* monad for error handling pattern, if you are not familiar with it, here is how
+to use it.
+
+There are 5 ways to handle errors depending on the case:
+
+1. orThrow()
+
+```kotlin
+JCustomer.parseJson(jsonString).orThrow()
+```
+
+this throw an exception if there is an error.
+
+1. orNull()
+
+```kotlin
+JCustomer.parseJson(jsonString).orNull()
+   ?.let { customer ->
+      //do something only if successful
+   }
+
+```
+
+this return null if there is an error, not great because the error is lost but it can be convenient sometime.
+
+1. onFailure{}
+
+```kotlin
+val customer = JCustomer.parseJson(jsonString)
+   .onFailure { error ->
+      log(error)
+      return
+   }
+```
+
+using `onFailure` we can return from the calling function (non-local return) in case of errors.
+
+1. transform{} + recover{}
+
+```kotlin
+val htmlPage = JCustomer.parseJson(jsonString)
+   .transform { customer ->
+      display(customer)
+   }.recover { error ->
+      display(error)
+   }
+```
+
+using `transform` we can convert the `Outcome<Customer>` to something else, for example a `Outcome<HtmlPage>`, then
+using `recover` we can convert the error result to the same type and remove the `Outcome`.
+
+This is my favorite way to handle errors.
+
+There are many other implementations of the Either monad in Kotlin (Result4k, Arrows, Kotlin-Result etc...) if you
+already are using one of these, you can easily convert Kondor `Outcome` to your specific result type. As for me, I
+choose a different name to avoid clashing with `Result` in the Kotlin library which work differently but it will always
+be imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when
+using a collection of results it becomes very confusing.
+
 ## Difficult Cases
 
 With Kondor is easy to solve difficult Json mappings, for example:
@@ -308,7 +372,6 @@ and so on
 You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the constructor.
 
 TODO: example of class with private constructor and custom serializer/deserializer
-
 
 ## Other Advantages
 
