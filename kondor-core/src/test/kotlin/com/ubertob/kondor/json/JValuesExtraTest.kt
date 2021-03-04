@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondor.randomList
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -80,6 +81,26 @@ class JValuesExtraTest {
 //            println(jsonStr)
 
             expectThat(JNotes.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json Products`() {
+
+        repeat(10) {
+
+            val value = Products.fromIterable( randomList(0, 10){ randomProduct()})
+            val json = JProducts.toJsonNode(value, NodeRoot)
+
+            val actual = JProducts.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JProducts.toJson(value)
+
+//            println(jsonStr)
+
+            expectThat(JProducts.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
