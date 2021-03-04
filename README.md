@@ -11,14 +11,14 @@ Maven
 ```xml
 <dependency>
   <groupId>com.ubertob.kondor</groupId>
-  <artifactId>kondor-core</artifactId>
-  <version>1.1.0</version>
+   <artifactId>kondor-core</artifactId>
+   <version>1.2.0</version>
 </dependency>
 ```
 
 Gradle
 ```
-implementation 'com.ubertob.kondor:kondor-core:1.1.0'
+implementation 'com.ubertob.kondor:kondor-core:1.2.0'
 ```
 
 ## Quick Start
