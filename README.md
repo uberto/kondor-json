@@ -26,7 +26,7 @@ implementation 'com.ubertob.kondor:kondor-core:1.2.0'
 To transform a value (string in this case) into and from Json:
 ```kotlin
 val jsonString = JString.toJson("my string is here")
-val value = JString.fromJson(jsonStr).orThrow()  //"my string is here"
+val value = JString.fromJson(jsonString).orThrow()  //"my string is here"
 ```
 
 `JString` is the Json decoder, there are others for all primitive types
