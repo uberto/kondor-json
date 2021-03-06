@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.*
-import com.ubertob.kondor.json.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
@@ -118,7 +117,10 @@ object JCompany : JAny<Company>() {
 }
 
 object JCustomer : JSealed<Customer> {
-    override val subtypesJObject: Map<String, JObject<out Customer>> =
+
+    override val discriminatorFieldName = "type"
+
+    override val subConverters: Map<String, ObjectNodeConverter<out Customer>> =
         mapOf(
             "private" to JPerson,
             "company" to JCompany

@@ -57,30 +57,30 @@ data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
 }
 
 
-interface JSealed<T : Any> : JObject<T> {
+interface JSealed<T : Any> : ObjectNodeConverter<T> {
 
-    val typeFieldName: String
+    val discriminatorFieldName: String
         get() = "_type"
 
 
     fun extractTypeName(obj: T): String
 
-    val subtypesJObject: Map<String, JObject<out T>>
+    val subConverters: Map<String, ObjectNodeConverter<out T>>
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
-            fieldMap = jno.fieldMap + (typeFieldName to JsonNodeString(
+            fieldMap = jno.fieldMap + (discriminatorFieldName to JsonNodeString(
                 extractTypeName(obj),
-                Node(typeFieldName, jno.path)
+                Node(discriminatorFieldName, jno.path)
             ))
         )
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
         val typeName = JString.fromJsonNodeBase(
-            fieldMap[typeFieldName]
-                ?: error("expected field $typeFieldName not found!")
+            fieldMap[discriminatorFieldName]
+                ?: error("expected field $discriminatorFieldName not found!")
         ).orThrow()
-        val bidiJson = subtypesJObject[typeName] ?: error("subtype not known $typeName")
+        val bidiJson = subConverters[typeName] ?: error("subtype not known $typeName")
         return bidiJson.fromJsonNode(this).orThrow()
     }
 
@@ -94,21 +94,24 @@ interface JSealed<T : Any> : JObject<T> {
         }
 
     @Suppress("UNCHECKED_CAST") //todo: add tests for this
-    fun findSubTypeConverter(typeName: String): JObject<T>? = subtypesJObject[typeName] as? JObject<T>
+    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
+        subConverters[typeName] as? ObjectNodeConverter<T>
 
 }
 
-class JMap<T : Any>(private val valueConverter: JConverter<T>) : JObject<Map<String, T>> {
+class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>> {
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.mapValues { entry ->
             valueConverter.fromJsonNodeBase(entry.value).orThrow()
         }
 
     override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =
-        value.entries.toList().sortedBy {it.key}.map { (key, value)  ->
+        value.entries.toList().sortedBy { it.key }.map { (key, value) ->
             { jno: JsonNodeObject, _: Map<String, T> ->
-                jno.copy(fieldMap = jno.fieldMap +
-                        (key to valueConverter.toJsonNode(value, Node(key, jno.path))))
+                jno.copy(
+                    fieldMap = jno.fieldMap +
+                            (key to valueConverter.toJsonNode(value, Node(key, jno.path)))
+                )
             }
         }
 

@@ -10,7 +10,7 @@ import kotlin.reflect.KProperty
 
 typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
 
-interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
+interface ObjectNodeConverter<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 
     fun JsonNodeObject.deserializeOrThrow(): T?
 
@@ -34,7 +34,7 @@ interface JObject<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 }
 
 
-abstract class JAny<T : Any> : JObject<T> {
+abstract class JAny<T : Any> : ObjectNodeConverter<T> {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
 

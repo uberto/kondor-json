@@ -288,6 +288,9 @@ You just need to map them to a string type:
 
 ```kotlin
 object JCustomer : JSealed<Customer> {
+
+    override val discriminatorFieldName = "type"
+   
     override val subtypesJObject: Map<String, JObject<out Customer>> =
         mapOf(
             "private" to JPerson,
