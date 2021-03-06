@@ -14,7 +14,7 @@ data class JsonError(val path: NodePath, val reason: String) : OutcomeError {
 typealias JsonOutcome<T> = Outcome<JsonError, T>
 
 /*
-a couple parser/printer form an adjunction (https://en.wikipedia.org/wiki/Adjoint_functors)
+a couple parser/render form an adjunction (https://en.wikipedia.org/wiki/Adjoint_functors)
 
 The laws are (no id because we cannot reconstruct a wrong json from the error):
 

@@ -4,7 +4,7 @@
 # KondorJson
 A library to serialize/deserialize Json fast and safely without reflection or generators.
 
-Loosely inspired by the concept of functional adjunctions,
+Loosely inspired by the concept of functional adjunctions (*)
 
 ## Dependency declaration
 Maven
@@ -429,3 +429,15 @@ TODO: comparison of performance
 - Add integration with Http4k for Lens
 
 - Add integration with Snodge for fuzzy testing
+
+## Adjunctions
+
+(*) Adjunctions are a fascinating part of Category Theory, you can find some more materials about them here:
+
+https://en.wikipedia.org/wiki/Adjoint_functors
+
+https://bartoszmilewski.com/2016/04/18/adjunctions/
+
+https://www.youtube.com/watch?v=TNtntlVo4LY
+
+https://www.youtube.com/watch?v=TnV9SQGPcLY
