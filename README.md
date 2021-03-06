@@ -279,6 +279,8 @@ With Kondor is easy to solve difficult Json mappings, for example:
 To store in Json a sealed class, or an interface with known implementation:
 
 ```kotlin
+enum class TaxType { Domestic, Exempt, EU, US, Other }
+
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()

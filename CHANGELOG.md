@@ -3,10 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### trunk
+### v1.3.0 - 6 Mar 2021
 
 Renamed JObject to ObjectNodeConverter and in JSealed typeFieldName to discriminatorFieldName and subtypesJObject to
-subConverters
+subConverters Experimental new syntax `by binding`
 
 ### v1.2.0 - 4 Mar 2021
 

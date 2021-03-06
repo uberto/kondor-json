@@ -57,8 +57,8 @@ data class Company(val name: String, val taxType: TaxType) : Customer()
 
 object JPerson : JAny<Person>() {
 
-    private val id by JField(Person::id, JInt)
-    private val name by JField(Person::name, JString)
+    private val id by binding(Person::id) // JField(Person::id, JInt)
+    private val name by binding(Person::name) //JField(Person::name, JString)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Person(
@@ -72,6 +72,14 @@ data class Product(val id: Int, val shortDesc: String, val longDesc: String, val
 
 object JProduct : JAny<Product>() {
 
+    /* experimental
+
+    private val id by binding(Product::id)
+    private val long_description by binding(Product::longDesc )
+    private val `short-desc` by binding(Product::shortDesc )
+    private val price by binding(Product::price)
+
+     */
     private val id by JField(Product::id, JInt)
     private val long_description by JField(Product::longDesc, JString)
     private val `short-desc` by JField(Product::shortDesc, JString)
@@ -198,16 +206,16 @@ object JNotes : JAny<Notes>() {
         )
 }
 
-class Products: ArrayList<Product>(){
-    fun total(): Double = sumOf{ it.price ?: 0.0 }
+class Products : ArrayList<Product>() {
+    fun total(): Double = sumOf { it.price ?: 0.0 }
 
     companion object {
         fun fromIterable(from: Iterable<Product>): Products =
-            from.fold(Products()){ acc, p -> acc.apply { add(p) }}
+            from.fold(Products()) { acc, p -> acc.apply { add(p) } }
     }
 }
 
-object JProducts: JArray<Product, Products>(){
+object JProducts : JArray<Product, Products>() {
     override val converter = JProduct
 
     override fun convertToCollection(from: Iterable<Product>) =
