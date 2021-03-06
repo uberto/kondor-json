@@ -60,7 +60,7 @@ interface JsonAdjunction<T, JN : JsonNode> {
                 .bind { fromJsonNode(it) }
                 .bind {
                     if (hasNext())
-                        parsingFailure("EOF", next(), position(), NodeRoot)
+                        parsingFailure("EOF", next(), position(), NodeRoot, "json continue after end")
                     else
                         it.asSuccess()
                 }

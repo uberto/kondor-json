@@ -6,9 +6,15 @@ import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
-inline fun <T> tryParse(expected: String, position: Int, path: NodePath, f: () -> T): Outcome<JsonError, T> =
+inline fun <T> tryParse(
+    expected: String,
+    actual: String,
+    position: Int,
+    path: NodePath,
+    f: () -> T
+): Outcome<JsonError, T> =
     tryThis(f).transformFailure {
-        parsingError(expected, it.msg, position, path)
+        parsingError(expected, actual, position, path, it.msg)
     }
 
 
@@ -17,24 +23,24 @@ data class TokensStream(private val tracer: () -> Int, private val iterator: Pee
     fun position(): Int = tracer()
 }
 
-fun parsingError(expected: String, actual: String, position: Int, path: NodePath) = JsonError(
-    path, "at position $position: expected $expected but found '$actual'"
+fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) = JsonError(
+    path, "at position $position: expected $expected but found '$actual' - $details"
 )
 
-fun parsingFailure(expected: String, actual: String, position: Int, path: NodePath) =
-    parsingError(expected, actual, position, path).asFailure()
+fun parsingFailure(expected: String, actual: String, position: Int, path: NodePath, details: String) =
+    parsingError(expected, actual, position, path, details).asFailure()
 
 
 fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeBoolean> =
-    tryParse("Boolean", tokens.position(), path) {
+    tryParse("Boolean", tokens.peek(), tokens.position(), path) {
         tokens.next().let {
             when (it) {
                 "true" -> true
                 "false" -> false
-                else -> return parsingFailure("a Boolean", it, tokens.position(), path)
+                else -> return parsingFailure("a Boolean", it, tokens.position(), path, "valid values: false, true")
             }.let { JsonNodeBoolean(it, path) }
         }
     }
@@ -43,7 +49,7 @@ fun parseJsonNodeNum(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNumber> =
-    tryParse("a Number", tokens.position(), path) {
+    tryParse("a Number", tokens.peek(), tokens.position(), path) {
         val t = tokens.next()
         JsonNodeNumber(BigDecimal(t), path)
     }
@@ -53,11 +59,11 @@ fun parseJsonNodeNull(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNull> =
-    tryParse("Null", tokens.position(), path) {
+    tryParse("Null", tokens.peek(), tokens.position(), path) {
         tokens.next()
             .let {
                 if (it == "null") JsonNodeNull(path) else
-                    return parsingFailure("null", it, tokens.position(), path)
+                    return parsingFailure("null", it, tokens.position(), path, "valid values: null")
             }
     }
 
@@ -65,12 +71,24 @@ fun parseJsonNodeString(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeString> =
-    tryParse("a String", tokens.position(), path) {
+    tryParse("a String", tokens.peek(), tokens.position(), path) {
         val openQuote = tokens.next()
         val text = tokens.next()
         val endQuote = tokens.next()
-        if (openQuote != "\"") return parsingFailure("'\"'", openQuote, tokens.position(), path)
-        if (endQuote != "\"") return parsingFailure("'\"'", endQuote, tokens.position(), path)
+        if (openQuote != "\"") return parsingFailure(
+            "'\"'",
+            openQuote,
+            tokens.position(),
+            path,
+            "missing opening double quotes"
+        )
+        if (endQuote != "\"") return parsingFailure(
+            "'\"'",
+            endQuote,
+            tokens.position(),
+            path,
+            "missing closing double quotes"
+        )
         JsonNodeString(text, path)
     }
 
@@ -79,9 +97,15 @@ fun parseJsonNodeArray(
     tokens: TokensStream,
     path: NodePath
 ): JsonOutcome<JsonNodeArray> =
-    tryParse("an Array", tokens.position(), path) {
+    tryParse("an Array", tokens.peek(), tokens.position(), path) {
         val openBraket = tokens.next()
-        if (openBraket != "[") return parsingFailure("'['", openBraket, tokens.position(), path)
+        if (openBraket != "[") return parsingFailure(
+            "'['",
+            openBraket,
+            tokens.position(),
+            path,
+            "missing opening bracket"
+        )
         else {
             var currToken = tokens.peek()
             if (currToken == "]")
@@ -96,7 +120,8 @@ fun parseJsonNodeArray(
                     "',' or ':'",
                     currToken,
                     tokens.position(),
-                    path
+                    path,
+                    "missing closing bracket"
                 )
                 tokens.next()
             }
@@ -108,9 +133,9 @@ fun parseJsonNodeObject(
     tokens: TokensStream,
     path: NodePath   //todo add more context to NodePath? like the field type, expected values...
 ): Outcome<JsonError, JsonNodeObject> =
-    tryParse("an Object", tokens.position(), path) {
+    tryParse("an Object", tokens.peek(), tokens.position(), path) {
         val openCurly = tokens.next()
-        if (openCurly != "{") return parsingFailure("'{'", openCurly, tokens.position(), path)
+        if (openCurly != "{") return parsingFailure("'{'", openCurly, tokens.position(), path, "missing opening curly")
         else {
             var currToken = tokens.peek()
             if (currToken == "}")
@@ -121,12 +146,24 @@ fun parseJsonNodeObject(
                 val fieldName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
 
                 val colon = tokens.next()
-                if (colon != ":") return parsingFailure("':'", colon, tokens.position(), path)
+                if (colon != ":") return parsingFailure(
+                    "':'",
+                    colon,
+                    tokens.position(),
+                    path,
+                    "missing colon between field name and value"
+                )
                 val value = parseNewNode(tokens, Node(fieldName, path)).onFailure { return it.asFailure() }
                 fields.put(fieldName, value)
 
                 currToken = tokens.peek()
-                if (currToken != "," && currToken != "}") return parsingFailure("'}' or ','", currToken, tokens.position(), path)
+                if (currToken != "," && currToken != "}") return parsingFailure(
+                    "'}' or ','",
+                    currToken,
+                    tokens.position(),
+                    path,
+                    "missing closing curly"
+                )
                 tokens.next()
             }
             JsonNodeObject(fields, path)
@@ -143,7 +180,7 @@ fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode> =
         else ->
             when (first.get(0)) { //regex -?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?
                 in '0'..'9', '-' -> parseJsonNodeNum(tokens, path)
-                else -> parsingFailure("a valid json value", first, tokens.position(), path)
+                else -> parsingFailure("a valid json value", first, tokens.position(), path, "invalid json")
             }
     }
 

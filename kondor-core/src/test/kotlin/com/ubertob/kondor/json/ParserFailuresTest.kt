@@ -13,7 +13,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected EOF but found 'b'")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected EOF but found 'b' - json continue after end")
     }
 
     @Test
@@ -22,7 +22,7 @@ class ParserFailuresTest {
 
         val error = JBoolean.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected a Boolean but found 'False'")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected a Boolean but found 'False' - valid values: false, true")
     }
 
     @Test
@@ -33,7 +33,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 0: expected a String but found 'EOF'")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found '\"' - unexpected end of file")
     }
 
     @Test
@@ -42,7 +42,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 0: expected a Number but found 'Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.'")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
 
@@ -74,7 +74,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </customer> expected field _type not found!")
+        expectThat(error.msg).isEqualTo("error on </customer> expected discriminator field \"type\" not found")
     }
 
 
@@ -86,7 +86,7 @@ class ParserFailuresTest {
   "id": "1001",
   "vat-to-pay": true,
   "customer": {
-    "_type": "private",
+    "type": "private",
     "id": 1,
     "name": "ann"
   },

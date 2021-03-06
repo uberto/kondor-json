@@ -18,7 +18,8 @@ class PeekingIteratorWrapper<T>(val innerIterator: Iterator<T>) : PeekingIterato
 
     override fun next(): T = (next ?: advanceIterator()).also { next = null }
 
-    private fun advanceIterator(): T = if (innerIterator.hasNext()) innerIterator.next() else error("EOF")
+    private fun advanceIterator(): T =
+        if (innerIterator.hasNext()) innerIterator.next() else error("unexpected end of file")
 }
 
 fun <T> Sequence<T>.peekingIterator(): PeekingIterator<T> = PeekingIteratorWrapper(iterator())

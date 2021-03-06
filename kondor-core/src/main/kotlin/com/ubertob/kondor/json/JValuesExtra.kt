@@ -78,7 +78,7 @@ interface JSealed<T : Any> : ObjectNodeConverter<T> {
     override fun JsonNodeObject.deserializeOrThrow(): T? {
         val typeName = JString.fromJsonNodeBase(
             fieldMap[discriminatorFieldName]
-                ?: error("expected field $discriminatorFieldName not found!")
+                ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
         ).orThrow()
         val bidiJson = subConverters[typeName] ?: error("subtype not known $typeName")
         return bidiJson.fromJsonNode(this).orThrow()

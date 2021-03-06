@@ -284,7 +284,7 @@ data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
 ```
 
-You just need to map them to a string type:
+You just need to map each converter to a string and (optionally) specifiy the name of the discriminator field:
 
 ```kotlin
 object JCustomer : JSealed<Customer> {
@@ -297,13 +297,27 @@ object JCustomer : JSealed<Customer> {
             "company" to JCompany
         )
 
-    override fun extractTypeName(obj: Customer): String =
-        when (obj) {
-            is Person -> "private"
-            is Company -> "company"
-        }
+   override fun extractTypeName(obj: Customer): String =
+      when (obj) {
+         is Person -> "private"
+         is Company -> "company"
+      }
 }
 ```
+
+It will be rendered in a Json like this:
+
+```json
+...
+"customer": {
+"type": "private",
+"id": 1,
+"name": "ann"
+},
+...
+```
+
+Where "type" here is the discriminator field.
 
 ### Storing a Map as Json
 
