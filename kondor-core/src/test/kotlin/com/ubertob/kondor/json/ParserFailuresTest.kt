@@ -69,7 +69,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 19: expected '\"' but found ',' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 18: expected '\"' but found ',' - missing opening double quotes")
     }
 
     @Test
