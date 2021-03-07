@@ -99,13 +99,8 @@ fun parseJsonNodeArray(
 ): JsonOutcome<JsonNodeArray> =
     tryParse("an Array", tokens.peek(), tokens.position(), path) {
         val openBraket = tokens.next()
-        if (openBraket != "[") return parsingFailure(
-            "'['",
-            openBraket,
-            tokens.position(),
-            path,
-            "missing opening bracket"
-        )
+        if (openBraket != "[")
+            return parsingFailure("'['", openBraket, tokens.position(), path, "missing opening bracket")
         else {
             var currToken = tokens.peek()
             if (currToken == "]")
@@ -114,15 +109,11 @@ fun parseJsonNodeArray(
             var currNode = 0
             while (currToken != "]") { //todo: use fold/recursion here
                 nodes.add(
-                    parseNewNode(tokens, Node("${currNode++}", path)).onFailure { return it.asFailure() })
+                    parseNewNode(tokens, Node("[${currNode++}]", path))
+                        .onFailure { return it.asFailure() })
                 currToken = tokens.peek()
-                if (currToken != "," && currToken != "]") return parsingFailure(
-                    "',' or ':'",
-                    currToken,
-                    tokens.position(),
-                    path,
-                    "missing closing bracket"
-                )
+                if (currToken != "," && currToken != "]")
+                    return parsingFailure("',' or ':'", currToken, tokens.position(), path, "missing closing bracket")
                 tokens.next()
             }
             JsonNodeArray(nodes, path)
@@ -141,32 +132,24 @@ fun parseJsonNodeObject(
             if (currToken == "}")
                 tokens.next()//consume it
 
-            val fields = mutableMapOf<String, JsonNode>()
+            val keys = mutableMapOf<String, JsonNode>()
             while (currToken != "}") { //todo: use fold/recursion here
-                val fieldName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
+                val keyName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
+                if (keyName in keys)
+                    return parsingFailure("a unique key", keyName, tokens.position(), path, "duplicated key")
 
                 val colon = tokens.next()
-                if (colon != ":") return parsingFailure(
-                    "':'",
-                    colon,
-                    tokens.position(),
-                    path,
-                    "missing colon between field name and value"
-                )
-                val value = parseNewNode(tokens, Node(fieldName, path)).onFailure { return it.asFailure() }
-                fields.put(fieldName, value)
+                if (colon != ":")
+                    return parsingFailure("':'", colon, tokens.position(), path, "missing colon between key and value in object")
+                val value = parseNewNode(tokens, Node(keyName, path)).onFailure { return it.asFailure() }
+                keys.put(keyName, value)
 
                 currToken = tokens.peek()
-                if (currToken != "," && currToken != "}") return parsingFailure(
-                    "'}' or ','",
-                    currToken,
-                    tokens.position(),
-                    path,
-                    "missing closing curly"
-                )
+                if (currToken != "," && currToken != "}")
+                    return parsingFailure("'}' or ','", currToken, tokens.position(), path, "missing closing curly")
                 tokens.next()
             }
-            JsonNodeObject(fields, path)
+            JsonNodeObject(keys, path)
         }
     }
 

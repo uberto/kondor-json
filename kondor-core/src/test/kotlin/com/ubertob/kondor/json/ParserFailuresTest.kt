@@ -8,7 +8,7 @@ import strikt.assertions.isEqualTo
 class ParserFailuresTest {
 
     @Test
-    fun `parsing json not completely gives us precise errors`() {
+    fun `parsing json not completely returns an error`() {
         val illegalJson = "123 b"
 
         val error = JInt.fromJson(illegalJson).expectFailure()
@@ -17,7 +17,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal Boolean gives us precise errors`() {
+    fun `parsing illegal Boolean returns an error`() {
         val illegalJson = "False"
 
         val error = JBoolean.fromJson(illegalJson).expectFailure()
@@ -26,7 +26,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal String gives us precise errors`() {
+    fun `parsing illegal String returns an error`() {
         val illegalJson = """
             "unclosed string
             """
@@ -37,7 +37,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal Long gives us precise errors`() {
+    fun `parsing illegal Long returns an error`() {
         val illegalJson = "123-234"
 
         val error = JLong.fromJson(illegalJson).expectFailure()
@@ -45,9 +45,54 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
+    @Test
+    fun `parsing illegal Json with duplicate keys returns an error`() {
+        val illegalJson = """{ "id": 1, "id": 2, "name": "alice"}"""
+
+        val error = JPerson.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
+    }
 
     @Test
-    fun `parsing json without a field return precise errors`() {
+    fun `parsing illegal Json without colon returns an error`() {
+        val illegalJson = """{ "id" 2, "name": "alice"}"""
+
+        val error = JPerson.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 9: expected ':' but found '2' - missing colon between key and value in object")
+    }
+
+    @Test
+    fun `parsing illegal Json Object with double comma returns an error`() {
+        val illegalJson = """{ "id": 1,, "name": "alice" }"""
+
+        val error = JPerson.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 19: expected '\"' but found ',' - missing opening double quotes")
+    }
+
+    @Test
+    fun `parsing illegal Json Object without quoted keys returns an error`() {
+        val illegalJson = """{ "id": 1, name: "alice" }"""
+
+        val error = JPerson.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 18: expected '\"' but found 'name' - missing opening double quotes")
+    }
+
+    @Test
+    fun `parsing illegal Json Array with trailing comma returns an error`() {
+        val illegalJson = """[ "a", "b",]"""
+
+        val jsonStringArray = JList(JString)
+        val error = jsonStringArray.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a valid json value but found ']' - invalid json")
+    }
+
+    @Test
+    fun `parsing json without a field returns an error`() {
         val jsonWithDifferentField =
             """
  {
@@ -79,7 +124,7 @@ class ParserFailuresTest {
 
 
     @Test
-    fun `parsing json with different type of fields return precise errors`() {
+    fun `parsing json with different type of fields returns an error`() {
         val jsonWithDifferentField =
             """
  {
@@ -107,7 +152,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </items/0/price> expected a Number but found String")
+        expectThat(error.msg).isEqualTo("error on </items/[0]/price> expected a Number but found String")
     }
 
     object JPersonIncomplete : JAny<Person>() {
@@ -119,7 +164,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `error in parsing Json is reported`() {
+    fun `error in parsing Json is returned correctly`() {
 
         val error = JPersonIncomplete.fromJson(JPerson.toJson(randomPerson())).expectFailure()
 
