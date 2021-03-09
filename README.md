@@ -12,13 +12,13 @@ Maven
 <dependency>
   <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.3.0</version>
+   <version>1.3.1</version>
 </dependency>
 ```
 
 Gradle
 ```
-implementation 'com.ubertob.kondor:kondor-core:1.3.0'
+implementation 'com.ubertob.kondor:kondor-core:1.3.1'
 ```
 
 ## Quick Start
@@ -139,9 +139,9 @@ object JProduct : JAny<Product>() {
 }
 
 object JInvoice : JAny<Invoice>() {
-    val id by JField(Invoice::id, JStringWrapper(::InvoiceId))
-    val vat by JField(Invoice::vat, JBoolean, jsonFieldName = "vat-to-pay")
-    val customer by JField(Invoice::customer, JCustomer)
+   val id by JField(Invoice::id, JStringWrapper(::InvoiceId))
+   val `vat-to-pay` by JField(Invoice::vat, JBoolean)
+   val customer by JField(Invoice::customer, JCustomer)
     val items by JField(Invoice::items, JList(JProduct))
     val total by JField(Invoice::total, JDouble)
 
