@@ -73,7 +73,7 @@ class OtherParserTest {
 
     }
 
-    object JChange : NestedConverter<Change> {
+    object JChange : NestedPolyConverter<Change> {
 
         override fun extractTypeName(obj: Change): String =
             when (obj) {
@@ -98,23 +98,8 @@ class OtherParserTest {
             ChangeSet("id", "author", emptyList())
     }
 
-    interface NestedConverter<T : Any> : PolymorphicConverter<T> {
 
-        override fun JsonNodeObject.deserializeOrThrow(): T {
-            val typeName = fieldMap.keys.first()
-            val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-            return converter.fromJsonNode(this).orThrow()
-        }
-
-        override fun getWriters(value: T): List<NodeWriter<T>> =
-            extractTypeName(value).let { typeName ->
-                findSubTypeConverter(typeName)
-                    ?.getWriters(value)
-                    ?: error("subtype not known $typeName")
-            }
-    }
-
-    object JChangeLogItem : NestedConverter<ChangeLogItem> {
+    object JChangeLogItem : NestedPolyConverter<ChangeLogItem> {
         override fun extractTypeName(obj: ChangeLogItem): String =
             when (obj) {
                 is Preconditions -> "preConditions"

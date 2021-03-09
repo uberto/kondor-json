@@ -82,6 +82,23 @@ interface JSealed<T : Any> : PolymorphicConverter<T> {
 
 }
 
+//to map polimorphic object with xml->json standard convention
+interface NestedPolyConverter<T : Any> : PolymorphicConverter<T> {
+
+    override fun JsonNodeObject.deserializeOrThrow(): T {
+        val typeName = fieldMap.keys.first()
+        val converter = subConverters[typeName] ?: error("subtype not known $typeName")
+        return converter.fromJsonNode(this).orThrow()
+    }
+
+    override fun getWriters(value: T): List<NodeWriter<T>> =
+        extractTypeName(value).let { typeName ->
+            findSubTypeConverter(typeName)
+                ?.getWriters(value)
+                ?: error("subtype not known $typeName")
+        }
+}
+
 class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>> {
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.mapValues { entry ->
