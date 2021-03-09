@@ -2,8 +2,6 @@ package com.ubertob.kondor.json
 
 import java.math.BigDecimal
 import java.math.BigInteger
-import java.time.Instant
-import java.time.LocalDate
 import java.util.*
 
 interface StringWrapper {
@@ -34,38 +32,28 @@ data class JEnum<E : Enum<E>>(override val cons: (String) -> E) : JStringReprese
     override val render: (E) -> String = { it.name }
 }
 
-//instant as date string
-object JInstantD : JStringRepresentable<Instant>() {
-    override val cons: (String) -> Instant = Instant::parse
-    override val render: (Instant) -> String = Instant::toString
-}
-
-//instant as epoch millis
-object JInstant : JNumRepresentable<Instant>() {
-    override val cons: (BigDecimal) -> Instant = { Instant.ofEpochMilli(it.toLong()) }
-    override val render: (Instant) -> BigDecimal = { it.toEpochMilli().toBigDecimal() }
-}
-
-object JLocalDate : JStringRepresentable<LocalDate>() {
-    override val cons: (String) -> LocalDate = LocalDate::parse
-    override val render: (LocalDate) -> String = LocalDate::toString
-}
-
 //for serializing Kotlin object and other single instance types
 data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow() = singleton
 }
 
 
-interface JSealed<T : Any> : ObjectNodeConverter<T> {
+interface PolymorphicConverter<T : Any> : ObjectNodeConverter<T> {
+
+    fun extractTypeName(obj: T): String
+    val subConverters: Map<String, ObjectNodeConverter<out T>>
+
+
+    @Suppress("UNCHECKED_CAST") //todo: add tests for this
+    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
+        subConverters[typeName] as? ObjectNodeConverter<T>
+
+}
+
+interface JSealed<T : Any> : PolymorphicConverter<T> {
 
     val discriminatorFieldName: String
         get() = "_type"
-
-
-    fun extractTypeName(obj: T): String
-
-    val subConverters: Map<String, ObjectNodeConverter<out T>>
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
@@ -80,22 +68,17 @@ interface JSealed<T : Any> : ObjectNodeConverter<T> {
             fieldMap[discriminatorFieldName]
                 ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
         ).orThrow()
-        val bidiJson = subConverters[typeName] ?: error("subtype not known $typeName")
-        return bidiJson.fromJsonNode(this).orThrow()
+        val converter = subConverters[typeName] ?: error("subtype not known $typeName")
+        return converter.fromJsonNode(this).orThrow()
     }
 
-
-    override fun getWriters(value: T) =
+    override fun getWriters(value: T): List<NodeWriter<T>> =
         extractTypeName(value).let { typeName ->
             findSubTypeConverter(typeName)
                 ?.getWriters(value)
                 ?.plus(::typeWriter)
                 ?: error("subtype not known $typeName")
         }
-
-    @Suppress("UNCHECKED_CAST") //todo: add tests for this
-    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
-        subConverters[typeName] as? ObjectNodeConverter<T>
 
 }
 

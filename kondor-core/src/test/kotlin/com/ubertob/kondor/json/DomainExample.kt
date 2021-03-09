@@ -57,8 +57,8 @@ data class Company(val name: String, val taxType: TaxType) : Customer()
 
 object JPerson : JAny<Person>() {
 
-    private val id by binding(Person::id) // JField(Person::id, JInt)
-    private val name by binding(Person::name) //JField(Person::name, JString)
+    private val id by num(Person::id) // JField(Person::id, JInt)
+    private val name by str(Person::name) //JField(Person::name, JString)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Person(
@@ -142,15 +142,24 @@ object JCustomer : JSealed<Customer> {
 
 }
 
+
+//JField(Invoice::id, JStringWrapper(::InvoiceId))
+// JField(Invoice::vat, JBoolean)
+// JField(Invoice::customer, JCustomer)
+// JField(Invoice::items, JList(JProduct))
+// JField(Invoice::total, JBigDecimal)
+// JField(Invoice::created, JLocalDate)
+// JFieldMaybe(Invoice::paid, JInstant)
+
 object JInvoice : JAny<Invoice>() {
 
-    private val id by JField(Invoice::id, JStringWrapper(::InvoiceId))
-    private val `vat-to-pay` by JField(Invoice::vat, JBoolean)
-    private val customer by JField(Invoice::customer, JCustomer)
-    private val items by JField(Invoice::items, JList(JProduct))
-    private val total by JField(Invoice::total, JBigDecimal)
-    private val created_date by JField(Invoice::created, JLocalDate)
-    private val paid_datetime by JFieldMaybe(Invoice::paid, JInstant)
+    val id by str(::InvoiceId, Invoice::id)
+    val `vat-to-pay` by bool(Invoice::vat)
+    val customer by obj(JCustomer, Invoice::customer)
+    val items by array(JProduct, Invoice::items)
+    val total by num(Invoice::total)
+    val created_date by str(Invoice::created)
+    val paid_datetime by num(Invoice::paid)
 
     override fun JsonNodeObject.deserializeOrThrow(): Invoice =
         Invoice(
@@ -196,7 +205,7 @@ object JExpenseReport : JAny<ExpenseReport>() {
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 
 object JNotes : JAny<Notes>() {
-    private val updated by JField(Notes::updated, JInstantD)
+    private val updated by JField(Notes::updated, JInstant)
     private val things_to_do by JField(Notes::thingsToDo, JMap(JString))
 
     override fun JsonNodeObject.deserializeOrThrow() =
@@ -222,3 +231,5 @@ object JProducts : JArray<Product, Products>() {
         Products.fromIterable(from)
 
 }
+
+

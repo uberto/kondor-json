@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import java.math.BigDecimal
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -41,30 +42,77 @@ class JFieldMaybe<T : Any, PT : Any>(
 }
 
 
-//bindings
+//binding
 
-@JvmName("bindingString")
-fun <PT : Any> binding(binder: PT.() -> String) = JField(binder, JString)
+@JvmName("bindBool")
+fun <PT : Any> bool(binder: PT.() -> Boolean) = JField(binder, JBoolean)
 
-@JvmName("bindingStringNull")
-fun <PT : Any> binding(binder: PT.() -> String?) = JFieldMaybe(binder, JString)
+@JvmName("bindBoolNull")
+fun <PT : Any> bool(binder: PT.() -> Boolean?) = JFieldMaybe(binder, JBoolean)
 
-@JvmName("bindingInt")
-fun <PT : Any> binding(binder: PT.() -> Int) = JField(binder, JInt)
 
-@JvmName("bindingIntNull")
-fun <PT : Any> binding(binder: PT.() -> Int?) = JFieldMaybe(binder, JInt)
+@JvmName("bindInt")
+fun <PT : Any> num(binder: PT.() -> Int) = JField(binder, JInt)
 
-@JvmName("bindingDouble")
-fun <PT : Any> binding(binder: PT.() -> Double) = JField(binder, JDouble)
+@JvmName("bindIntNull")
+fun <PT : Any> num(binder: PT.() -> Int?) = JFieldMaybe(binder, JInt)
 
-@JvmName("bindingDoubleNull")
-fun <PT : Any> binding(binder: PT.() -> Double?) = JFieldMaybe(binder, JDouble)
+@JvmName("bindDouble")
+fun <PT : Any> num(binder: PT.() -> Double) = JField(binder, JDouble)
 
-@JvmName("jBindEnum")
-inline fun <PT : Any, reified E : Enum<E>> binding(noinline binder: PT.() -> E) = JField(binder, JEnum(::enumValueOf))
+@JvmName("bindDoubleNull")
+fun <PT : Any> num(binder: PT.() -> Double?) = JFieldMaybe(binder, JDouble)
 
-@JvmName("jBindEnumNull")
-inline fun <PT : Any, reified E : Enum<E>> binding(noinline binder: PT.() -> E?) =
-    JFieldMaybe(binder, JEnum(::enumValueOf))
+@JvmName("bindBigDecimal")
+fun <PT : Any> num(binder: PT.() -> BigDecimal) = JField(binder, JBigDecimal)
 
+@JvmName("bindBigDecimal")
+fun <PT : Any> num(binder: PT.() -> BigDecimal?) = JFieldMaybe(binder, JBigDecimal)
+
+
+@JvmName("bindString")
+fun <PT : Any> str(binder: PT.() -> String) = JField(binder, JString)
+
+@JvmName("bindStringNull")
+fun <PT : Any> str(binder: PT.() -> String?) = JFieldMaybe(binder, JString)
+
+@JvmName("bindEnum")
+inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E) = JField(binder, JEnum(::enumValueOf))
+
+@JvmName("bindEnumNull")
+inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E?) = JFieldMaybe(binder, JEnum(::enumValueOf))
+
+@JvmName("bindWrappedString")
+inline fun <PT : Any, reified E : StringWrapper> str(noinline cons: (String) -> E, noinline binder: PT.() -> E) = JField(binder, JStringWrapper(cons))
+
+@JvmName("bindWrappedStringNull")
+inline fun <PT : Any, reified E : StringWrapper> str(noinline cons: (String) -> E, noinline binder: PT.() -> E?) =
+    JFieldMaybe(binder, JStringWrapper(cons))
+
+
+@JvmName("bindSet")
+inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline binder: PT.() -> Set<E>) =
+    JField(binder, JSet(converter))
+
+@JvmName("bindSetNull")
+inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline binder: PT.() -> Set<E>?) =
+    JFieldMaybe(binder, JSet(converter))
+
+@JvmName("bindList")
+inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline binder: PT.() -> List<E>) =
+    JField(binder, JList(converter))
+
+@JvmName("bindListNull")
+inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline binder: PT.() -> List<E>?) =
+    JFieldMaybe(binder, JList(converter))
+
+@JvmName("bindObject")
+inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline binder: PT.() -> T) =
+    JField(binder, converter)
+
+@JvmName("bindObjectNull")
+inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline binder: PT.() -> T?) =
+    JFieldMaybe(binder, converter)
+
+
+//continue with Instant etc....
