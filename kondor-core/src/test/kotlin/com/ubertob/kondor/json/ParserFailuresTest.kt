@@ -69,7 +69,16 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 18: expected '\"' but found ',' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 13: expected '\"' but found ',' - missing opening double quotes")
+    }
+
+    @Test
+    fun `parsing illegal Json Object with empty key returns an error`() {
+        val illegalJson = """{ "": 1, "name": "alice" }"""
+
+        val error = JPerson.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> Not found key 'id'")
     }
 
     @Test

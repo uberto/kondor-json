@@ -63,7 +63,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: Stri
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.fieldMap[propName]
             ?.let(jf::fromJsonNodeBase)
-            ?: JsonError(wrapped.path, "Not found $propName").asFailure()
+            ?: JsonError(wrapped.path, "Not found key '$propName'").asFailure()
 
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =

@@ -180,6 +180,21 @@ class JsonParserTest {
     }
 
     @Test
+    fun `parse empty String`() {
+
+        val value = ""
+
+        val jsonString = JsonNodeString(value, NodeRoot).render()
+
+        val tokens = JsonLexer(jsonString).tokenize()
+
+        val node = parseJsonNodeString(tokens, NodeRoot).expectSuccess()
+
+        expectThat(node.text).isEqualTo(value)
+        expectThat(tokens.position()).isEqualTo(jsonString.length)
+    }
+
+    @Test
     fun `render null`() {
         val jsonString = JsonNodeNull(NodeRoot).render()
 

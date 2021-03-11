@@ -6,6 +6,8 @@ import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
+val DOUBLE_QUOTE = "\""
+
 inline fun <T> tryParse(
     expected: String,
     actual: String,
@@ -73,16 +75,20 @@ fun parseJsonNodeString(
 ): Outcome<JsonError, JsonNodeString> =
     tryParse("a String", tokens.peek(), tokens.position(), path) {
         val openQuote = tokens.next()
-        val text = tokens.next()
+        val text = if (tokens.peek() == DOUBLE_QUOTE) {
+            ""
+        } else {
+            tokens.next()
+        }
         val endQuote = tokens.next()
-        if (openQuote != "\"") return parsingFailure(
+        if (openQuote != DOUBLE_QUOTE) return parsingFailure(
             "'\"'",
             openQuote,
             tokens.position(),
             path,
             "missing opening double quotes"
         )
-        if (endQuote != "\"") return parsingFailure(
+        if (endQuote != DOUBLE_QUOTE) return parsingFailure(
             "'\"'",
             endQuote,
             tokens.position(),
@@ -157,7 +163,7 @@ fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode> =
     when (val first = tokens.peek()) {
         "null" -> parseJsonNodeNull(tokens, path)
         "false", "true" -> parseJsonNodeBoolean(tokens, path)
-        "\"" -> parseJsonNodeString(tokens, path)
+        DOUBLE_QUOTE -> parseJsonNodeString(tokens, path)
         "[" -> parseJsonNodeArray(tokens, path)
         "{" -> parseJsonNodeObject(tokens, path)
         else ->
@@ -179,4 +185,4 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
             .joinToString(prefix = "{", postfix = "}")
     }
 
-private fun String.putInQuotes(): String = replace("\"", "\\\"").let { "\"${it}\"" }
+private fun String.putInQuotes(): String = replace(DOUBLE_QUOTE, "\\\"").let { "\"${it}\"" }
