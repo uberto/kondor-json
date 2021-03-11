@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.3.2 - 11 Mar 2021
+
+Better error messages
+
 ### v1.3.1 - 9 Mar 2021
 
 Added types from java.time Experimental new syntax for fields
