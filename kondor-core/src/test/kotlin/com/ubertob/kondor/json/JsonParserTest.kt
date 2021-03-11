@@ -5,7 +5,6 @@ import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
-import com.ubertob.kondor.json.*
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -137,11 +136,11 @@ class JsonParserTest {
 
     @Test
     fun `render String`() {
-        val value = """ abc {} \\ " \n 123"""
+        val value = """ abc {} \\ , : [] " \n 123"""
 
         val jsonString = JsonNodeString(value, NodeRoot).render()
 
-        expectThat(jsonString).isEqualTo("""" abc {} \\ \" \n 123"""")
+        expectThat(jsonString).isEqualTo("""" abc {} \\ , : [] \" \n 123"""")
     }
 
     @Test
