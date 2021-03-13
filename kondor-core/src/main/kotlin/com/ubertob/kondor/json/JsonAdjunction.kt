@@ -37,14 +37,11 @@ interface JsonAdjunction<T, JN : JsonNode> {
     val nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    fun safeCast(node: JsonNode): JsonOutcome<JN> =
+    private fun safeCast(node: JsonNode): JsonOutcome<JN> =
         if (node.nodeKind() == nodeType)
             (node as JN).asSuccess()
         else
-            JsonError(
-                node.path,
-                "expected a ${nodeType.desc} but found ${node.nodeKind().desc}"
-            ).asFailure()
+            JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind().desc}").asFailure()
 
     fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T> = safeCast(node).bind(::fromJsonNode)
     fun fromJsonNode(node: JN): JsonOutcome<T>
@@ -54,6 +51,7 @@ interface JsonAdjunction<T, JN : JsonNode> {
         nodeType.parse(this, NodeRoot)
 
     fun toJson(value: T): String = toJsonNode(value, NodeRoot).render()
+
     fun fromJson(jsonString: String): JsonOutcome<T> =
         JsonLexer.tokenize(jsonString).run {
             parseFromRoot()

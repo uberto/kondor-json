@@ -2,7 +2,6 @@ package com.ubertob.kondor.json
 
 import JsonLexer
 import com.ubertob.kondor.expectSuccess
-import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import org.junit.jupiter.api.Test
@@ -144,42 +143,6 @@ class JsonParserTest {
     }
 
     @Test
-    fun `parse simple String`() {
-
-        repeat(10) {
-            val value = randomString(lowercase, 3, 3)
-
-            val jsonString = JsonNodeString(value, NodeRoot).render()
-
-            val tokens = JsonLexer(jsonString).tokenize()
-
-            val node = parseJsonNodeString(tokens, NodeRoot).expectSuccess()
-
-            expectThat(node.text).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
-        }
-    }
-
-    @Test
-    fun `parse String`() {
-
-        repeat(100) {
-            val value = randomString(text, 1, 10)
-
-            val jsonString = JsonNodeString(value, NodeRoot).render()
-
-//            println("$value -> $jsonString")
-
-            val tokens = JsonLexer(jsonString).tokenize()
-
-            val node = parseJsonNodeString(tokens, NodeRoot).expectSuccess()
-
-            expectThat(node.text).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
-        }
-    }
-
-    @Test
     fun `parse empty String`() {
 
         val value = ""
@@ -193,6 +156,43 @@ class JsonParserTest {
         expectThat(node.text).isEqualTo(value)
         expectThat(tokens.position()).isEqualTo(jsonString.length)
     }
+
+    @Test
+    fun `parse quote String`() {
+
+        val value = "\""
+
+        val jsonString = JsonNodeString(value, NodeRoot).render()
+
+        val tokens = JsonLexer(jsonString).tokenize()
+
+        val node = parseJsonNodeString(tokens, NodeRoot).expectSuccess()
+
+        expectThat(node.text).isEqualTo(value)
+        expectThat(tokens.position()).isEqualTo(jsonString.length)
+    }
+
+    @Test
+    fun `parse String`() {
+
+        repeat(1000) {
+            val value = randomString(text, 0, 10)
+            val jsonString = JsonNodeString(value, NodeRoot).render()
+
+            println("$value -> $jsonString")
+
+            val tokens = JsonLexer(jsonString).tokenize()
+
+            val node = parseJsonNodeString(tokens, NodeRoot).expectSuccess()
+
+            println("-> ${node.text}")
+
+            expectThat(node.text).isEqualTo(value)
+            expectThat(tokens.position()).isEqualTo(jsonString.length)
+        }
+    }
+
+
 
     @Test
     fun `render null`() {

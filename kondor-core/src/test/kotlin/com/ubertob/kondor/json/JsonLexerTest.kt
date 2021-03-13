@@ -12,7 +12,7 @@ class JsonLexerTest {
         val json = "abc"
         val seq = JsonLexer(json).tokenize()
 
-        expectThat(seq.asSequence().toList()).isEqualTo(listOf(json))
+        expectThat(seq.asSequence().toList()).isEqualTo(listOf(Value(json)))
     }
 
     @Test
@@ -23,18 +23,37 @@ class JsonLexerTest {
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
                 "abc", "def", "gh", "ijk", "lmn", "opq"
-            )
+            ).map(::Value)
         )
     }
 
     @Test
     fun `json special tokens`() {
-        val json = "[]{}:,  [a,b,c]  {d:e}"
+        val json = "[]{}:, \"\" [a,b,c]  {d:e}"
         val seq = JsonLexer(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
-                "[", "]", "{", "}", ":", ",", "[", "a", ",", "b", ",", "c", "]", "{", "d", ":", "e", "}"
+                OpeningBracket,
+                ClosingBracket,
+                OpeningCurly,
+                ClosingCurly,
+                Colon,
+                Comma,
+                OpeningQuotes,
+                ClosingQuotes,
+                OpeningBracket,
+                Value("a"),
+                Comma,
+                Value("b"),
+                Comma,
+                Value("c"),
+                ClosingBracket,
+                OpeningCurly,
+                Value("d"),
+                Colon,
+                Value("e"),
+                ClosingCurly
             )
         )
     }
@@ -48,7 +67,7 @@ class JsonLexerTest {
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
-                "{", "\"", "abc", "\"", ":", "123", "}"
+                OpeningCurly, OpeningQuotes, Value("abc"), ClosingQuotes, Colon, Value("123"), ClosingCurly
             )
         )
     }
@@ -62,7 +81,7 @@ class JsonLexerTest {
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
-                "{", "\"", "abc", "\"", ":", "\"", "abc\"\\ \n}", "\"", "}"
+                OpeningCurly, OpeningQuotes, Value("abc"), ClosingQuotes, Colon, OpeningQuotes, Value("abc\"\\ \n}"), ClosingQuotes, ClosingCurly
             )
         )
     }

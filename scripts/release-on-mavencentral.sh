@@ -9,7 +9,7 @@
 
 # then go to sonatype site and login
 # https://oss.sonatype.org/#nexus-search;quick~kondor
-# select Staging Repositories, and close the corresponding one (empty desc is fine)1.
+# select Staging Repositories, and close the corresponding one (empty desc is fine)
 # then click release and wait ~10 min to be able to download it
 # and then bouncing the version with SNAPSHOT in build.gradle
 # commit new shapshot version

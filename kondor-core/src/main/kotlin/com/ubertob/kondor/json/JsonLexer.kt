@@ -1,6 +1,5 @@
 import LexerState.*
-import com.ubertob.kondor.json.TokensStream
-import com.ubertob.kondor.json.peekingIterator
+import com.ubertob.kondor.json.*
 import java.util.concurrent.atomic.AtomicInteger
 
 enum class LexerState {
@@ -20,14 +19,34 @@ class JsonLexer(val jsonStr: CharSequence) {
                 when (state) {
                     OutString ->
                         when (char) {
-                            ' ', '\t', '\n', '\r', '\b' -> yieldIfNotEmpty(currToken)
-                            '{', '}', '[', ']', ',', ':' -> {
-                                yieldIfNotEmpty(currToken)
-                                yield(char.toString())
+                            ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken)
+                            '{' -> {
+                                yieldValue(currToken)
+                                yield(OpeningCurly)
+                            }
+                            '}' -> {
+                                yieldValue(currToken)
+                                yield(ClosingCurly)
+                            }
+                            '[' -> {
+                                yieldValue(currToken)
+                                yield(OpeningBracket)
+                            }
+                            ']' -> {
+                                yieldValue(currToken)
+                                yield(ClosingBracket)
+                            }
+                            ',' -> {
+                                yieldValue(currToken)
+                                yield(Comma)
+                            }
+                            ':' -> {
+                                yieldValue(currToken)
+                                yield(Colon)
                             }
                             '"' -> {
-                                yieldIfNotEmpty(currToken)
-                                yield(char.toString())
+                                yieldValue(currToken)
+                                yield(OpeningQuotes)
                                 state = InString
                             }
                             else -> currToken.append(char)
@@ -38,8 +57,8 @@ class JsonLexer(val jsonStr: CharSequence) {
                             state = Escaping
                         }
                         '"' -> {
-                            yieldIfNotEmpty(currToken)
-                            yield(char.toString())
+                            yieldValue(currToken)
+                            yield(ClosingQuotes)
                             state = OutString
                         }
                         else -> currToken += char
@@ -56,12 +75,12 @@ class JsonLexer(val jsonStr: CharSequence) {
                     }.also { state = InString }
                 }
             }
-            yieldIfNotEmpty(currToken)
+            yieldValue(currToken)
         }.peekingIterator().let { TokensStream(pos::get, it) }
 
-    private suspend fun SequenceScope<String>.yieldIfNotEmpty(currWord: StringBuilder) {
+    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: StringBuilder) {
         if (currWord.isNotEmpty()) {
-            yield(currWord.toString())
+            yield(Value(currWord.toString()))
         }
         currWord.clear()
     }

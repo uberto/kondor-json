@@ -33,7 +33,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found '\"' - unexpected end of file")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'opening quotes' - unexpected end of file")
     }
 
     @Test
@@ -69,7 +69,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 13: expected '\"' but found ',' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected '\"' but found ',' - missing opening double quotes")
     }
 
     @Test
@@ -87,7 +87,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 18: expected '\"' but found 'name' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected '\"' but found 'name' - missing opening double quotes")
     }
 
     @Test
