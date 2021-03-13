@@ -1,6 +1,8 @@
 package com.ubertob.kondor.json
 
 import java.math.BigDecimal
+import java.math.BigInteger
+import java.util.*
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -69,6 +71,12 @@ fun <PT : Any> num(binder: PT.() -> BigDecimal) = JField(binder, JBigDecimal)
 @JvmName("bindBigDecimal")
 fun <PT : Any> num(binder: PT.() -> BigDecimal?) = JFieldMaybe(binder, JBigDecimal)
 
+@JvmName("bindBigInteger")
+fun <PT : Any> num(binder: PT.() -> BigInteger) = JField(binder, JBigInteger)
+
+@JvmName("bindBigIntegerNull")
+fun <PT : Any> num(binder: PT.() -> BigInteger?) = JFieldMaybe(binder, JBigInteger)
+
 
 @JvmName("bindString")
 fun <PT : Any> str(binder: PT.() -> String) = JField(binder, JString)
@@ -88,6 +96,13 @@ inline fun <PT : Any, reified E : StringWrapper> str(noinline cons: (String) -> 
 @JvmName("bindWrappedStringNull")
 inline fun <PT : Any, reified E : StringWrapper> str(noinline cons: (String) -> E, noinline binder: PT.() -> E?) =
     JFieldMaybe(binder, JStringWrapper(cons))
+
+@JvmName("bindCurrency")
+fun <PT : Any> str(binder: PT.() -> Currency) = JField(binder, JCurrency)
+
+@JvmName("bindCurrencyNull")
+fun <PT : Any> str(binder: PT.() -> Currency?) =
+    JFieldMaybe(binder, JCurrency)
 
 
 @JvmName("bindSet")

@@ -72,18 +72,10 @@ data class Product(val id: Int, val shortDesc: String, val longDesc: String, val
 
 object JProduct : JAny<Product>() {
 
-    /* experimental
-
-    private val id by binding(Product::id)
-    private val long_description by binding(Product::longDesc )
-    private val `short-desc` by binding(Product::shortDesc )
-    private val price by binding(Product::price)
-
-     */
-    private val id by JField(Product::id, JInt)
-    private val long_description by JField(Product::longDesc, JString)
-    private val `short-desc` by JField(Product::shortDesc, JString)
-    private val price by JFieldMaybe(Product::price, JDouble)
+    private val id by num(Product::id) // JField(Product::id, JInt)
+    private val long_description by str(Product::longDesc) // JField(Product::longDesc, JString)
+    private val `short-desc` by str(Product::shortDesc) // JField(Product::shortDesc, JString)
+    private val price by num(Product::price) // JFieldMaybe(Product::price, JDouble)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Product(
@@ -114,8 +106,8 @@ data class Invoice(
 
 object JCompany : JAny<Company>() {
 
-    private val name by JField(Company::name, JString)
-    private val tax_type by JField(Company::taxType, JEnum(TaxType::valueOf))
+    private val name by str(Company::name) // JField(Company::name, JString)
+    private val tax_type by str(Company::taxType) //JField(Company::taxType, JEnum(TaxType::valueOf))
 
     override fun JsonNodeObject.deserializeOrThrow(): Company? =
         Company(
@@ -143,23 +135,16 @@ object JCustomer : JSealed<Customer> {
 }
 
 
-//JField(Invoice::id, JStringWrapper(::InvoiceId))
-// JField(Invoice::vat, JBoolean)
-// JField(Invoice::customer, JCustomer)
-// JField(Invoice::items, JList(JProduct))
-// JField(Invoice::total, JBigDecimal)
-// JField(Invoice::created, JLocalDate)
-// JFieldMaybe(Invoice::paid, JInstant)
 
 object JInvoice : JAny<Invoice>() {
 
-    val id by str(::InvoiceId, Invoice::id)
-    val `vat-to-pay` by bool(Invoice::vat)
-    val customer by obj(JCustomer, Invoice::customer)
-    val items by array(JProduct, Invoice::items)
-    val total by num(Invoice::total)
-    val created_date by str(Invoice::created)
-    val paid_datetime by num(Invoice::paid)
+    private val id by str(::InvoiceId, Invoice::id)
+    private val `vat-to-pay` by bool(Invoice::vat)
+    private val customer by obj(JCustomer, Invoice::customer)
+    private val items by array(JProduct, Invoice::items)
+    private val total by num(Invoice::total)
+    private val created_date by str(Invoice::created)
+    private val paid_datetime by num(Invoice::paid)
 
     override fun JsonNodeObject.deserializeOrThrow(): Invoice =
         Invoice(
@@ -179,8 +164,9 @@ data class Money(val currency: Currency, val amount: BigInteger)
 
 object JMoney : JAny<Money>() {
 
-    private val ccy by JField(Money::currency, JCurrency)
-    private val amount by JField(Money::amount, JBigInteger)
+    private val ccy by str(Money::currency) // JField(Money::currency, JCurrency)
+    private val amount by num(Money::amount) // JField(Money::amount, JBigInteger)
+
     override fun JsonNodeObject.deserializeOrThrow() =
         Money(
             currency = +ccy,
@@ -205,8 +191,8 @@ object JExpenseReport : JAny<ExpenseReport>() {
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 
 object JNotes : JAny<Notes>() {
-    private val updated by JField(Notes::updated, JInstant)
-    private val things_to_do by JField(Notes::thingsToDo, JMap(JString))
+    private val updated by str(Notes::updated) // JField(Notes::updated, JInstant)
+    private val things_to_do by obj(JMap(JString), Notes::thingsToDo) // JField(Notes::thingsToDo, JMap(JString))
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Notes(
