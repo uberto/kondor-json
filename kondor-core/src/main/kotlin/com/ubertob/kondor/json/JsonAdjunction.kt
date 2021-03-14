@@ -13,22 +13,6 @@ data class JsonError(val path: NodePath, val reason: String) : OutcomeError {
 
 typealias JsonOutcome<T> = Outcome<JsonError, T>
 
-/*
-a couple parser/render form an adjunction (https://en.wikipedia.org/wiki/Adjoint_functors)
-
-The laws are (no id because we cannot reconstruct a wrong json from the error):
-
-render `.` parse `.` render = render
-parse `.` render `.` parse = parse
-
-where:
-f `.` g: (x) -> g(f(x))
-render : JsonOutcome<T> -> JSON
-parse : JSON -> JsonOutcome<T>
-
-JSON here can be either the Json string or the JsonNode
- */
-
 typealias JConverter<T> = JsonAdjunction<T, *>
 
 

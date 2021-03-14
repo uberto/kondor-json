@@ -1,16 +1,24 @@
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core)
 
-
 # KondorJson
-A library to serialize/deserialize Json fast and safely without reflection or generators.
 
-Loosely inspired by the concept of functional adjunctions (*)
+A library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
+
+With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high
+level DSL.
+
+No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to
+use. You can also define more than one converter for each class if you want to have multiple formats for the same types,
+for example in case of versioned api or different formats for Json in HTTP and persistence.
 
 ## Dependency declaration
+
 Maven
+
 ```xml
+
 <dependency>
-  <groupId>com.ubertob.kondor</groupId>
+   <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
    <version>1.3.2</version>
 </dependency>
@@ -32,19 +40,20 @@ val value = JString.fromJson(jsonString).orThrow()  //"my string is here"
 `JString` is the Json decoder, there are others for all primitive types
 
 To transform an object we need to write the decoder first with a simple DSL:
+
 ```kotlin
 data class Customer(val id: Int, val name: String)
 
 object JCustomer : JAny<Customer>() {
 
-    val id by JField(Customer::id, JInt)
-    val name by JField(Customer::name, JString)
+   val id by num(Customer::id)
+   val name by str(Customer::name)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
-        Customer(
-            id = +id,
-            name = +name
-        )
+   override fun JsonNodeObject.deserializeOrThrow() =
+      Customer(
+         id = +id,
+         name = +name
+      )
 }
 ```
 
@@ -83,18 +92,18 @@ To describe the problem, let's say you need to map a Json like this:
 
 To your own domain objects:
 ```kotlin
-data class Customer(val id: Int, val name: String)
+data class Person(val id: Int, val name: String)
 
 data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?)
 
 data class InvoiceId(override val raw: String) : StringWrapper
 
 data class Invoice(
-    val id: InvoiceId,
-    val vat: Boolean,
-    val customer: Customer,
-    val items: List<Product>,
-    val total: Double
+   val id: InvoiceId,
+   val vat: Boolean,
+   val customer: Person,
+   val items: List<Product>,
+   val total: Double
 )
 ```
 
@@ -124,35 +133,39 @@ This is the result:
 ```kotlin
 object JProduct : JAny<Product>() {
 
-    val id by JField(Product::id, JInt)
-    val long_description by JField(Product::longDesc, JString)
-    val short_desc by JField(Product::shortDesc, JString)
-    val price by JFieldMaybe(Product::price, JDouble)
+   private val id by num(Product::id)
+   private val long_description by str(Product::longDesc)
+   private val `short-desc` by str(Product::shortDesc)
+   private val price by num(Product::price)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
-        Product(
-            id = +id,
-            shortDesc = +short_desc,
-            longDesc = +long_description,
-            price = +price
-        )
+   override fun JsonNodeObject.deserializeOrThrow() =
+      Product(
+         id = +id,
+         shortDesc = +`short-desc`,
+         longDesc = +long_description,
+         price = +price
+      )
 }
 
 object JInvoice : JAny<Invoice>() {
-   val id by JField(Invoice::id, JStringWrapper(::InvoiceId))
-   val `vat-to-pay` by JField(Invoice::vat, JBoolean)
-   val customer by JField(Invoice::customer, JCustomer)
-    val items by JField(Invoice::items, JList(JProduct))
-    val total by JField(Invoice::total, JDouble)
 
-    override fun JsonNodeObject.deserializeOrThrow(): Invoice =
-        Invoice(
-            id = +id,
-            vat = +vat,
-            customer = +customer,
-            items = +items,
-            total = +total
-        )
+   private val id by str(::InvoiceId, Invoice::id)
+   private val `vat-to-pay` by bool(Invoice::vat)
+   private val customer by obj(JPerson, Invoice::customer)
+   private val items by array(JProduct, Invoice::items)
+   private val total by num(Invoice::total)
+
+   override fun JsonNodeObject.deserializeOrThrow(): Invoice =
+      Invoice(
+         id = +id,
+         vat = +`vat-to-pay`,
+         customer = +customer,
+         items = +items,
+         total = +total,
+         created = +created_date,
+         paid = +paid_datetime
+      )
+
 }
 ```
 Comparing with a solution involving writing DTOs, you need to write less code using converters. Even without considering DTOs, the time needed to write the converters is roughly the same than to annotate the classes one by one, but it's easier and more IDE friendly to create the converter. For example if you attach `JField` to a nullable field of your domain class, it will not compile. 
@@ -174,20 +187,20 @@ Let's analyze an example in details:
 ```kotlin
 data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?) // 1
 
-object JProduct: JAny<Product>() { // 2
+object JProduct : JAny<Product>() { // 2
 
-    val id by JField(Product::id, JInt) // 3
-    val long_description by JField(Product::longDesc, JString) // 4
-    val `short-desc` by JField(Product::shortDesc, JString) // 5
-    val price by JFieldMaybe(Product::price, JDouble) // 6
+   val id by num(Product::id) // 3
+   val long_description by str(Product::longDesc) // 4
+   val `short-desc` by str(Product::shortDesc) // 5
+   val price by num(Product::price) // 6
 
-    override fun JsonNodeObject.deserializeOrThrow() = // 7
-        Product( // 8
-            id = +id, //9 
-            shortDesc = +`short-desc`,
-            longDesc = +long_description,
-            price = +price
-        )
+   override fun JsonNodeObject.deserializeOrThrow() = // 7
+      Product( // 8
+         id = +id, //9 
+         shortDesc = +`short-desc`,
+         longDesc = +long_description,
+         price = +price
+      )
 }
 ```
 
@@ -195,16 +208,17 @@ object JProduct: JAny<Product>() { // 2
 2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection
    we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
 3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify
-   the getter for the serialization and the specific converter needed for its type. If the converter or the getter is
-   not correct it won't compile.
+   the getter for the serialization, inside a function that represent the kind of Json node (boolean, number,
+   string,array, object) and the specific converter needed for its type. If the converter or the getter is not correct
+   it won't compile.
 4. The name of the field is taken from the variable name, `long_description` in this case
 5. Using ticks we can also use names illegal for variables in Kotlin
-6. For nullable/optional fields we use `JFieldMaybe`, otherwise it won't compile.
+6. Nullable/optional fields are handled automatically.
 7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization
    we can leave the method empty.
 8. Here we use the class constructor, but we could have used any function that return a `Product`
-9. To get the value from the fields we use the `unaryplus` operator. Since we match the name of parameter with the
-   fields it will be easy to spot any mistake.
+9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the
+   name of parameter with the fields.
 
 ## No Exceptions
 
@@ -274,13 +288,49 @@ using a collection of results it becomes very confusing.
 
 With Kondor is easy to solve difficult Json mappings, for example:
 
-### Sealed classes and polymorphic Json
+### Enums
 
-To store in Json a sealed class, or an interface with known implementation:
+Enums are automatically transformed in strings. For example with these types:
 
 ```kotlin
 enum class TaxType { Domestic, Exempt, EU, US, Other }
 
+data class Company(val name: String, val taxType: TaxType)
+```
+
+You can create this converter:
+
+```kotlin
+object JCompany : JAny<Company>() {
+
+   private val name by str(Company::name)
+   private val tax_type by str(Company::taxType)
+
+   override fun JsonNodeObject.deserializeOrThrow() =
+      Company(
+         name = +name,
+         taxType = +tax_type
+      )
+}
+```
+
+And it will be mapped to this Json format:
+
+```json
+{
+   "name": "Company Name",
+   "tax_type": "Domestic"
+}
+```
+
+### Sealed classes and polymorphic Json
+
+To store in Json a sealed class, or an interface with a number of known implementations you can use the `JSealed` base
+converter.
+
+For example assuming `Customer` can be either a `Person` or a `Company`:
+
+```kotlin
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
@@ -307,16 +357,14 @@ object JCustomer : JSealed<Customer> {
 }
 ```
 
-It will be rendered in a Json like this:
+It will be mapped in a Json like this:
 
 ```json
-...
-"customer": {
-"type": "private",
+{
+   "type": "private",
 "id": 1,
-"name": "ann"
-},
-...
+   "name": "ann"
+}
 ```
 
 Where "type" here is the discriminator field.
@@ -329,18 +377,19 @@ If you have a field which is a map and you want to save it as a Json object:
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 ```
 
-You just need to use the `JMap` converter:
+You just need to use the `JMap` converter and passing it the converter for the value type of the Map (the keys have to
+be `String` because of Json syntax):
 
 ```kotlin
 object JNotes : JAny<Notes>() {
-    private val updated by JField(Notes::updated, JInstantD)
-    private val things_to_do by JField(Notes::thingsToDo, JMap(JString))
+   private val updated by str(Notes::updated, JInstantD)
+   private val things_to_do by obj(JMap(JString), Notes::thingsToDo)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
-        Notes(
-            updated = +updated,
-            thingsToDo = +things_to_do
-        )
+   override fun JsonNodeObject.deserializeOrThrow() =
+      Notes(
+         updated = +updated,
+         thingsToDo = +things_to_do
+      )
 }
 ```
 
@@ -432,7 +481,8 @@ TODO: comparison of performance
 
 ## Adjunctions
 
-(*) Adjunctions are a fascinating part of Category Theory, you can find some more materials about them here:
+I've got the inspiration for Kondor while studying Adjoint functors. Adjunctions are a fascinating part of Category
+Theory, you can find some more materials about them here:
 
 https://en.wikipedia.org/wiki/Adjoint_functors
 
