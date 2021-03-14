@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.3.3 - 14 Mar 2021
+
+Concise mode available for all types Safer tokenizer
+
 ### v1.3.2 - 11 Mar 2021
 
 Better error messages

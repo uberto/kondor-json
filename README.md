@@ -20,13 +20,13 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.3.2</version>
+   <version>1.3.3</version>
 </dependency>
 ```
 
 Gradle
 ```
-implementation 'com.ubertob.kondor:kondor-core:1.3.2'
+implementation 'com.ubertob.kondor:kondor-core:1.3.3'
 ```
 
 ## Quick Start
