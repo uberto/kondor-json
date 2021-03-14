@@ -5,7 +5,9 @@ rationale when appropriate:
 
 ### v1.3.3 - 14 Mar 2021
 
-Concise mode available for all types Safer tokenizer
+Concise mode available for all types
+
+Safer tokenizer
 
 ### v1.3.2 - 11 Mar 2021
 
@@ -13,16 +15,19 @@ Better error messages
 
 ### v1.3.1 - 9 Mar 2021
 
-Added types from java.time Experimental new syntax for fields
+Added types from java.time
+
+Experimental new syntax for fields
 
 ### v1.3.0 - 6 Mar 2021
 
 Renamed JObject to ObjectNodeConverter and in JSealed typeFieldName to discriminatorFieldName and subtypesJObject to
-SubConverters Experimental new syntax `by binding`
+SubConverters
 
 ### v1.2.0 - 4 Mar 2021
 
 Fixed test dependency (thanks to Asad Manji)
+
 Better exceptions messages
 
 ### v1.1.0 - 2 Mar 2021
