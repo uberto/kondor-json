@@ -218,4 +218,21 @@ object JProducts : JArray<Product, Products>() {
 
 }
 
+data class FileInfo(val name: String, val date: Instant, val size: Long, val folderPath: String)
+
+object JFileInfo : JAny<FileInfo>() {
+    val name by str(FileInfo::name)
+    val date by num(FileInfo::date)
+    val size by num(FileInfo::size)
+    val folderPath by str(FileInfo::folderPath)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        FileInfo(
+            name = +name,
+            date = +date,
+            size = +size,
+            folderPath = +folderPath
+        )
+
+}
 
