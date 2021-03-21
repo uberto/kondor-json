@@ -35,6 +35,7 @@ interface JsonAdjunction<T, JN : JsonNode> {
         nodeType.parse(this, NodeRoot)
 
     fun toJson(value: T): String = toJsonNode(value, NodeRoot).render()
+    fun toPrettyJson(value: T): String = toJsonNode(value, NodeRoot).pretty(2)
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
         JsonLexer.tokenize(jsonString).run {

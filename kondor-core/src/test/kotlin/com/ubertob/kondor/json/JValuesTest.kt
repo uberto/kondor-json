@@ -192,6 +192,24 @@ class JValuesTest {
 
             val jsonStr = JInvoice.toJson(invoice)
 
+
+            expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
+        }
+    }
+
+    @Test
+    fun `PrettyJson with objects inside and back`() {
+
+        repeat(100) {
+            val invoice = randomInvoice()
+            val json = JInvoice.toJsonNode(invoice, NodeRoot)
+
+            val actual = JInvoice.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(invoice)
+
+            val jsonStr = JInvoice.toPrettyJson(invoice)
+
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
     }
@@ -199,14 +217,13 @@ class JValuesTest {
 
 
 //todo
-// add support for calculated fields
+// add support for serialize calculated fields
 // add Converters for all java.time, GUUID, URI, etc.
 // add test example with Java
-// add prettyPrint/compactPrint options
 // add null/skipField option
-// add parseJson from Reader
+// add parseJson from Reader (for streams)
 // add tests for concurrency reuse
-// add tests for Outcome
+// add more tests for Outcome
 // measure performance against other libs
 // module for integration with Http4k (Jconverters + Lens)
 // add un-typed option JObject<Any>

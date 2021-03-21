@@ -126,9 +126,12 @@ The possible solutions we examined were:
   
 So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple DSL.
 
-The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the adjuntion (aka the converter) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
+The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So
+instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the
+adjuntion (aka the converter) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
 
-This is the result:
+And here is the result, we need to describe the Json format using a converter object called Jxxx where xxx is the name
+of your class:
 
 ```kotlin
 object JProduct : JAny<Product>() {
@@ -168,13 +171,27 @@ object JInvoice : JAny<Invoice>() {
 
 }
 ```
-Comparing with a solution involving writing DTOs, you need to write less code using converters. Even without considering DTOs, the time needed to write the converters is roughly the same than to annotate the classes one by one, but it's easier and more IDE friendly to create the converter. For example if you attach `JField` to a nullable field of your domain class, it will not compile. 
 
-No need to browse StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write new ones.
+Then in your code you only need to invoke the converter:
+
+```kotlin
+val invoice: Invoice = JInvoice.fromJson(invoiceJsonString)
+
+val json: String = JInvoice.toPrettyJson(invoice) 
+```
+
+Comparing with a solution involving writing DTOs, you need to write less code using converters. Even without considering
+DTOs, the time needed to write the converters is roughly the same than to annotate the classes one by one, but it's
+easier and more IDE friendly to create the converter. For example if you attach `JField` to a nullable field of your
+domain class, it will not compile.
+
+No need to browse StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write
+new ones.
 
 It's very easy to define different converters for same class in different api.
 
 Finally in case of errors, the messages are very friendly and precise:
+
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
 ```
@@ -465,7 +482,7 @@ TODO: comparison of handling errors
 
 TODO: comparison of performance
 
-## Ideas for Future Features
+## Ideas for Future Features (PRs welcome)
 
 - Generate Json schema and automatically validate
 
@@ -473,7 +490,7 @@ TODO: comparison of performance
 
 - Generating random values from the converters
 
-- Add some converters that use Jackson for simplify the adopting
+- Add some converters that use Jackson for simplify the migration/adopting
 
 - Add integration with Http4k for Lens
 

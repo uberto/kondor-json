@@ -19,7 +19,7 @@ fun <E : OutcomeError> Outcome<E, *>.expectFailure(): E =
 const val uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const val lowercase = "abcdefghijklmnopqrstuvwxyz"
 const val digits = "0123456789"
-const val spacesigns = " ,.:+-()%$@{}[]\"\n\r"
+const val spacesigns = " ,.:+-()%$@{}[]\"\n\r\t"
 const val text = lowercase + digits + spacesigns
 
 fun stringsGenerator(charSet: String, minLen: Int, maxLen: Int): Sequence<String> = generateSequence {

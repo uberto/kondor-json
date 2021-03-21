@@ -98,8 +98,6 @@ class JValuesExtraTest {
 
             val jsonStr = JProducts.toJson(value)
 
-//            println(jsonStr)
-
             expectThat(JProducts.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }

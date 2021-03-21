@@ -225,4 +225,26 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
             .joinToString(prefix = "{", postfix = "}")
     }
 
-private fun String.putInQuotes(): String = replace("\"", "\\\"").let { "\"${it}\"" }
+fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returning StringBuilder for perf?
+    when (this) {
+        is JsonNodeNull -> render()
+        is JsonNodeString -> render()
+        is JsonNodeBoolean -> render()
+        is JsonNodeNumber -> render()
+        is JsonNodeArray -> values.map { it.pretty(indent, offset + indent + indent) }
+            .joinToString(prefix = "[${br(offset + indent)}", postfix = "${br(offset)}]", separator = ",${br(offset + indent)}")
+        is JsonNodeObject -> fieldMap.entries.map { it.key.putInQuotes() + ": " + it.value.pretty(indent, offset + indent + indent) }
+            .joinToString(prefix = "{${br(offset + indent)}", postfix = "${br(offset)}}", separator = ",${br(offset + indent)}")
+    }
+
+private fun br(offset: Int): String = "\n" + " ".repeat(offset)
+
+
+private fun String.putInQuotes(): String =
+    replace("\"", "\\\"")
+        .replace("\n", "\\n")
+        .replace("\b", "\\b")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+        .let { "\"${it}\"" }
+//TODO rewrite it faster with a loop? Check performance first! r 13  n 10  t 9  b 8

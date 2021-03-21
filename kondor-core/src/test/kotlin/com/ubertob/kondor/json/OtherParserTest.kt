@@ -15,12 +15,12 @@ class OtherParserTest {
 
         val node = parseJsonNodeObject(JsonLexer.tokenize(json), NodeRoot).expectSuccess()
 
-        println(node.fieldMap)
+//        println(node.fieldMap)
 
 
         val dcl = JDatabaseChangeLog.fromJson(json).expectSuccess()
 
-        println(dcl)
+//        println(dcl)
     }
 
     interface ChangeLogItem
