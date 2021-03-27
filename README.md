@@ -301,9 +301,9 @@ choose a different name to avoid clashing with `Result` in the Kotlin library wh
 be imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when
 using a collection of results it becomes very confusing.
 
-## Difficult Cases
+## Special Cases
 
-With Kondor is easy to solve difficult Json mappings, for example:
+With Kondor is easy to solve all Json mappings, including not so trivial ones. For example:
 
 ### Enums
 
@@ -453,7 +453,9 @@ on `SelectedFile` and `FileInfo`.
 
 ### Storing a Map as Json
 
-If you have a field which is a map and you want to save it as a Json object:
+Let's say you have a field which is a map and you want to save it as a Json object.
+
+For example a map of things to do, with a short key and a longer description:
 
 ```kotlin
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
@@ -475,30 +477,154 @@ object JNotes : JAny<Notes>() {
 }
 ```
 
+The result will be a Json like this:
+
+```json
+{
+   "updated": "2021-03-26T19:19:20.093501Z",
+   "things_to_do": {
+      "something": "lorem ipsum",
+      "something else": "Lorem ipsum dolor sit amet",
+      "another thing to do": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+      "ditto": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun"
+   }
+}
+```
+
 ### Custom collections
 
 If you have a custom collection:
 
 ```kotlin
 class Products : ArrayList<Product>() {
-    fun total(): Double = sumOf { it.price ?: 0.0 }
+   fun total(): Double = sumOf { it.price ?: 0.0 }
 
-    companion object {
+   companion object {
         fun fromIterable(from: Iterable<Product>): Products =
             from.fold(Products()) { acc, p -> acc.apply { add(p) } }
     }
 }
 ```
 
-You can easily create a converter for it:
+You can easily create a converter for it that will render it as a normal array:
 
 ```kotlin
 object JProducts : JArray<Product, Products>() {
-    override val helper = JProduct
+   override val helper = JProduct
 
-    override fun convertToCollection(from: Iterable<Product>) =
-        Products.fromIterable(from)
+   override fun convertToCollection(from: Iterable<Product>) =
+      Products.fromIterable(from)
 
+}
+```
+
+And it will be rendered as a standard Json array:
+
+```json
+[
+   {
+      "id": 175,
+      "long_description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididun",
+      "short-desc": "Good Stuff",
+      "price": 223.23
+   },
+   {
+      "id": 281,
+      "long_description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit",
+      "short-desc": "Free Stuff"
+   }
+]
+```
+
+### Xml->Json Format
+
+When it comes to convert an Xml format to json, a common practice is to map the Xml nodes to a Json array of objects
+with a single field that contains the type of the object as key and the object content as value.
+
+For example an extract of the Liquibase Json format to describe a ChangeSet with two changes, one of type `addColumn`and
+the other one of type `addLookupTable`:
+
+```json
+{
+   "changeSet": {
+      "id": "1",
+      "changes": [
+         {
+            "addColumn": {
+               "tableName": "person",
+               "columns": [
+                  {
+                     "column": {
+                        "name": "username",
+                        "type": "varchar(8)"
+                     }
+                  }
+               ]
+            }
+         },
+         {
+            "addLookupTable": {
+               "existingTableName": "person",
+               "existingColumnName": "state",
+               "newTableName": "state",
+               "newColumnName": "id",
+               "newColumnDataType": "char(2)"
+            }
+         }
+      ]
+   }
+}
+```
+
+It is quite complicated to parse this format, either using reflection, annotations or generated classes.
+
+Once we have the types to represent that format:
+
+```kotlin
+ data class ChangeSet(val id: String, val author: String, val changes: List<Change>) : ChangeLogItem
+
+sealed class Change {
+   data class CreateTable(val tableName: String, val columns: List<Column>) : Change()
+   data class AddColumn(val tableName: String, val columns: List<Column>) : Change()
+   data class AddLookupTable(
+      val existingTableName: String,
+      val existingColumnName: String,
+      val newTableName: String,
+      val newColumnName: String,
+      val newColumnDataType: String
+   ) : Change()
+}
+```
+
+With Kondor we can abstract on the protocol, and we can create a specific converter for this format, let's call
+it `NestedPolyConverter`.
+
+We can now easily define our converters using the new format that will parse and output the Json example correctly:
+
+```kotlin
+object JChangeSet : JAny<ChangeSet>() {
+   val id by str(ChangeSet::id)
+   val author by str(ChangeSet::author)
+   val changes by array(JChange, ChangeSet::changes)
+
+   override fun JsonNodeObject.deserializeOrThrow() =
+      ChangeSet("id", "author", emptyList())
+}
+
+object JChange : NestedPolyConverter<Change> {
+
+   override fun extractTypeName(obj: Change): String =
+      when (obj) {
+         is Change.AddColumn -> "addColumn"
+         is Change.AddLookupTable -> "addLookupTable"
+         is Change.CreateTable -> "createTable"
+      }
+
+   override val subConverters = mapOf(
+      "addColumn" to JAddColumn,
+      "addLookupTable" to JAddLookupTable,
+      "createTable" to JCreateTable
+   )
 }
 ```
 
@@ -514,12 +640,13 @@ There are some converters in Kondor ready-to-use:
 - Sealed classes: automatically converting your sealed classes in polymorphic json
 - Maps: converting a `Map<String, *>` into a Json object
 - Instant: both using epoch or date format
-- BigDecimal: you can use numbers of any lenght
+- BigDecimal: you can use numbers of any length
 - String wrappers: simplify json for IDs and other types that wrap over a string
 
-and so on
+and so on...
 
-You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the constructor.
+You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the
+constructor.
 
 TODO: example of class with private constructor and custom serializer/deserializer
 

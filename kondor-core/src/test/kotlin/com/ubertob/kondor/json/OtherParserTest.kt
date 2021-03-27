@@ -13,6 +13,10 @@ class OtherParserTest {
             """{"databaseChangeLog":[{"preConditions":[{"runningAs":{"username":"liquibase"}}]},{"changeSet":{"id":"1","author":"nvoxland","changes":[{"createTable":{"tableName":"person","columns":[{"column":{"name":"id","type":"int","autoIncrement":true,"constraints":{"primaryKey":true,"nullable":false}}},{"column":{"name":"firstname","type":"varchar(50)"}},{"column":{"name":"lastname","type":"varchar(50)","constraints":{"nullable":false}}},{"column":{"name":"state","type":"char(2)"}}]}}]}},{"changeSet":{"id":"2","author":"nvoxland","changes":[{"addColumn":{"tableName":"person","columns":[{"column":{"name":"username","type":"varchar(8)"}}]}}]}},{"changeSet":{"id":"3","author":"nvoxland","changes":[{"addLookupTable":{"existingTableName":"person","existingColumnName":"state","newTableName":"state","newColumnName":"id","newColumnDataType":"char(2)"}}]}}]}"""
 
 
+        """
+
+        """.trimIndent()
+
         val node = parseJsonNodeObject(JsonLexer.tokenize(json), NodeRoot).expectSuccess()
 
 //        println(node.fieldMap)
@@ -20,12 +24,15 @@ class OtherParserTest {
 
         val dcl = JDatabaseChangeLog.fromJson(json).expectSuccess()
 
-//        println(dcl)
+        val prettyJson = JDatabaseChangeLog.toPrettyJson(dcl)
+
+        println(prettyJson)
     }
 
     interface ChangeLogItem
 
     data class Column(val name: String, val type: String)
+
     sealed class Change {
         data class CreateTable(val tableName: String, val columns: List<Column>) : Change()
         data class AddColumn(val tableName: String, val columns: List<Column>) : Change()
@@ -90,9 +97,9 @@ class OtherParserTest {
     }
 
     object JChangeSet : JAny<ChangeSet>() {
-        val id by JField(ChangeSet::id, JString)
-        val author by JField(ChangeSet::author, JString)
-        val changes by JField(ChangeSet::changes, JList(JChange))
+        val id by str(ChangeSet::id)
+        val author by str(ChangeSet::author)
+        val changes by array(JChange, ChangeSet::changes)
 
         override fun JsonNodeObject.deserializeOrThrow() =
             ChangeSet("id", "author", emptyList())
@@ -109,8 +116,6 @@ class OtherParserTest {
 
         override val subConverters: Map<String, ObjectNodeConverter<out ChangeLogItem>> =
             mapOf("preConditions" to JPreconditions, "changeSet" to JChangeSet)
-
-
     }
 
     object JDatabaseChangeLog : JAny<DatabaseChangeLog>() {

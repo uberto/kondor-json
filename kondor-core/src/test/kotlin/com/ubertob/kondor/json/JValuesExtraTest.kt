@@ -78,7 +78,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toJson(value)
+            val jsonStr = JNotes.toPrettyJson(value)
 
 //            println(jsonStr)
 
@@ -98,7 +98,9 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JProducts.toJson(value)
+            val jsonStr = JProducts.toPrettyJson(value)
+
+//            println(jsonStr)
 
             expectThat(JProducts.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
