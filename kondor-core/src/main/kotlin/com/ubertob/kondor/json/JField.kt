@@ -33,9 +33,20 @@ class JField<T : Any, PT : Any>(
 
 }
 
+class JFieldFlatten<T : Any, PT : Any>(
+    override val binder: (PT) -> T,
+    private val converter: ObjectNodeConverter<T>
+) : JFieldBase<T, PT>() {
+
+    override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T> =
+        JsonPropMandatoryFlatten(property.name, converter)
+
+}
+
 class JFieldMaybe<T : Any, PT : Any>(
     override val binder: (PT) -> T?,
-    private val converter: JConverter<T>
+    private val converter: JConverter<T>,
+    private val flatten: Boolean = false
 ) : JFieldBase<T?, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T?> =
@@ -135,6 +146,10 @@ inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline bi
 @JvmName("bindObjectNull")
 inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline binder: PT.() -> T?) =
     JFieldMaybe(binder, converter)
+
+@JvmName("bindFlattenObject")
+inline fun <PT : Any, reified T : Any> flatten(converter: ObjectNodeConverter<T>, noinline binder: PT.() -> T) =
+    JFieldFlatten(binder, converter)
 
 
 //continue with Instant etc....

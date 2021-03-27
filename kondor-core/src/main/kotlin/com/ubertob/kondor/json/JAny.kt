@@ -48,7 +48,7 @@ abstract class JAny<T : Any> : ObjectNodeConverter<T> {
 
 }
 
-
+//todo refactor better getters and setters
 sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): (JsonNodeObject) -> JsonNodeObject
@@ -57,30 +57,29 @@ sealed class JsonProperty<T> {
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
 
-data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: String, val jf: JsonAdjunction<T, JN>) :
+data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: String, val converter: JsonAdjunction<T, JN>) :
     JsonProperty<T>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.fieldMap[propName]
-            ?.let(jf::fromJsonNodeBase)
+            ?.let(converter::fromJsonNodeBase)
             ?: JsonError(wrapped.path, "Not found key '$propName'").asFailure()
 
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
-            wrapped.copy(fieldMap = wrapped.fieldMap + (propName to jf.toJsonNode(value, Node(propName, wrapped.path))))
+            wrapped.copy(fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(value, Node(propName, wrapped.path))))
         }
 
 }
 
 
-data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: String, val jf: JsonAdjunction<T, JN>) :
+data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: String, val converter: JsonAdjunction<T, JN>) :
     JsonProperty<T?>() {
-
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T?> =
         wrapped.fieldMap[propName]
-            ?.let(jf::fromJsonNodeBase)
+            ?.let(converter::fromJsonNodeBase)
             ?: null.asSuccess()
 
 
@@ -88,12 +87,23 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: Strin
         { wrapped ->
             value?.let {
                 wrapped.copy(
-                    fieldMap = wrapped.fieldMap + (propName to jf.toJsonNode(
-                        it,
-                        Node(propName, wrapped.path)
-                    ))
+                    fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(it, Node(propName, wrapped.path)))
                 )
             } ?: wrapped
+        }
+
+}
+
+data class JsonPropMandatoryFlatten<T : Any>(override val propName: String, val converter: ObjectNodeConverter<T>) :
+    JsonProperty<T>() {
+
+    override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
+        wrapped.let(converter::fromJsonNodeBase)
+
+
+    override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
+        { wrapped ->
+            wrapped.copy(fieldMap = wrapped.fieldMap + (converter.toJsonNode(value, wrapped.path).fieldMap))
         }
 
 }

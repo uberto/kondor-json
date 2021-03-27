@@ -217,6 +217,7 @@ class JValuesTest {
 
 
 //todo
+// flatten and singlefield function...
 // add support for serialize calculated fields
 // add Converters for all java.time, GUUID, URI, etc.
 // add test example with Java

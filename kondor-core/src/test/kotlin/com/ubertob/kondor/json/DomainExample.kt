@@ -50,6 +50,17 @@ fun randomNotes() = Notes(
     thingsToDo = randomList(0, 10) { randomString(uppercase, 3, 3) to randomString(lowercase, 1, 20) }.toMap()
 )
 
+private fun randomPath() = randomList(1, 10, { randomString(lowercase, 3, 10) }).joinToString(separator = "/", prefix = "/")
+
+private fun randomInstant() = Instant.ofEpochMilli(Random.nextLong())
+
+fun randomFileInfo() = FileInfo(
+    name = randomString(lowercase, 1, 20),
+    date = randomInstant(),
+    size = Random.nextLong(100000),
+    folderPath = randomPath()
+)
+
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
@@ -233,6 +244,21 @@ object JFileInfo : JAny<FileInfo>() {
             size = +size,
             folderPath = +folderPath
         )
+}
+
+data class SelectedFile(val selected: Boolean, val file: FileInfo)
+object JSelectedFile : JAny<SelectedFile>() {
+
+    val selected by bool(SelectedFile::selected)
+    val file_info by flatten(JFileInfo, SelectedFile::file)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        SelectedFile(
+            +selected,
+            +file_info
+        )
 
 }
+
+
 

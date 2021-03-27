@@ -5,6 +5,8 @@ import com.ubertob.kondor.randomList
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.Instant
+import kotlin.random.Random
 
 class JValuesExtraTest {
 
@@ -89,7 +91,7 @@ class JValuesExtraTest {
 
         repeat(10) {
 
-            val value = Products.fromIterable( randomList(0, 10){ randomProduct()})
+            val value = Products.fromIterable(randomList(0, 10) { randomProduct() })
             val json = JProducts.toJsonNode(value, NodeRoot)
 
             val actual = JProducts.fromJsonNode(json).expectSuccess()
@@ -99,6 +101,45 @@ class JValuesExtraTest {
             val jsonStr = JProducts.toJson(value)
 
             expectThat(JProducts.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+
+    @Test
+    fun `Json render flatten objects like fields`() {
+
+        val selectedFile = SelectedFile(true, FileInfo("filename", Instant.ofEpochMilli(0), 123, "/"))
+
+        val json = JSelectedFile.toPrettyJson(selectedFile)
+
+        expectThat(json).isEqualTo(
+            """{
+  "selected": true,
+  "name": "filename",
+  "date": 0,
+  "size": 123,
+  "folderPath": "/"
+}""".trimIndent()
+        )
+
+    }
+
+
+    @Test
+    fun `Json SelectedFile`() {
+
+        repeat(10) {
+
+            val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
+            val json = JSelectedFile.toJsonNode(value, NodeRoot)
+
+            val actual = JSelectedFile.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JSelectedFile.toJson(value)
+
+            expectThat(JSelectedFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
