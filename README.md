@@ -25,7 +25,7 @@ Maven
 ```
 
 Gradle
-```
+```groovy
 implementation 'com.ubertob.kondor:kondor-core:1.4.0'
 ```
 
