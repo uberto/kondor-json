@@ -20,13 +20,13 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.3.5</version>
+   <version>1.4.0</version>
 </dependency>
 ```
 
 Gradle
 ```
-implementation 'com.ubertob.kondor:kondor-core:1.3.5'
+implementation 'com.ubertob.kondor:kondor-core:1.4.0'
 ```
 
 ## Quick Start
@@ -379,12 +379,77 @@ It will be mapped in a Json like this:
 ```json
 {
    "type": "private",
-"id": 1,
+   "id": 1,
    "name": "ann"
 }
 ```
 
 Where "type" here is the discriminator field.
+
+### Flatten Fields
+
+Let's say we have a class `FileInfo` that maps to this json format:
+
+```json
+{
+   "name": "filename",
+   "date": 0,
+   "size": 123,
+   "folderPath": "/"
+}
+```
+
+Now we need to create a type which is same as `FileInfo` but with a boolean field added:
+
+```kotlin
+data class SelectedFile(val selected: Boolean, val file: FileInfo)
+```
+
+Writing a converter we will get this json format:
+
+```json
+{
+   "selected": true,
+   "file": {
+      "name": "filename",
+      "date": 0,
+      "size": 123,
+      "folderPath": "/"
+   }
+}
+```
+
+But instead we want something simpler:
+
+```json
+{
+   "selected": true,
+   "name": "filename",
+   "date": 0,
+   "size": 123,
+   "folderPath": "/"
+}
+```
+
+With Kondor is easy to do this using the `flatten` format:
+
+```kotlin
+object JSelectedFile : JAny<SelectedFile>() {
+
+   val selected by bool(SelectedFile::selected)
+   val file_info by flatten(JFileInfo, SelectedFile::file)
+
+   override fun JsonNodeObject.deserializeOrThrow() =
+      SelectedFile(
+         +selected,
+         +file_info
+      )
+
+}
+```
+
+Note that it only works with non-nullable fields and it requires that there are no fields with same name
+on `SelectedFile` and `FileInfo`.
 
 ### Storing a Map as Json
 
