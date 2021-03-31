@@ -26,7 +26,7 @@ class OtherParserTest {
 
         val prettyJson = JDatabaseChangeLog.toPrettyJson(dcl)
 
-        println(prettyJson)
+//        println(prettyJson)
     }
 
     interface ChangeLogItem

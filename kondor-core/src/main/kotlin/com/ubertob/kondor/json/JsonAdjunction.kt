@@ -15,6 +15,7 @@ typealias JsonOutcome<T> = Outcome<JsonError, T>
 
 typealias JConverter<T> = JsonAdjunction<T, *>
 
+typealias JArrayConverter<CT> = JsonAdjunction<CT, JsonNodeArray>
 
 interface JsonAdjunction<T, JN : JsonNode> {
 

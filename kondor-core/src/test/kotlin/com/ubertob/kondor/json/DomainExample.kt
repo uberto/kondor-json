@@ -65,6 +65,7 @@ sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
 
+object JStringList : JArrayConverter<List<String>> by JList(JString)
 
 object JPerson : JAny<Person>() {
 
@@ -212,6 +213,7 @@ object JNotes : JAny<Notes>() {
         )
 }
 
+
 class Products : ArrayList<Product>() {
     fun total(): Double = sumOf { it.price ?: 0.0 }
 
@@ -221,11 +223,13 @@ class Products : ArrayList<Product>() {
     }
 }
 
-object JProducts : JArray<Product, Products>() {
+object JProducts : JArray<Product, Products> {
     override val converter = JProduct
 
     override fun convertToCollection(from: Iterable<Product>) =
         Products.fromIterable(from)
+
+    override val nodeType = ArrayNode
 
 }
 

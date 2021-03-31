@@ -101,19 +101,18 @@ class JValuesTest {
     fun `json array for a List of Strings`() {
 
         repeat(10) {
-            val jsonStringArray = JList(JString)
 
             val value = randomList(0, 5) { randomString(text, 1, 10) }
 
-            val node = jsonStringArray.toJsonNode(value, NodeRoot)
+            val node = JStringList.toJsonNode(value, NodeRoot)
 
-            val actual = jsonStringArray.fromJsonNode(node).expectSuccess()
+            val actual = JStringList.fromJsonNode(node).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = jsonStringArray.toJson(value)
+            val jsonStr = JStringList.toJson(value)
 
-            expectThat(jsonStringArray.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(JStringList.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 

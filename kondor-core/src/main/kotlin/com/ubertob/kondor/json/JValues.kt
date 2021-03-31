@@ -72,12 +72,11 @@ abstract class JStringRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeStrin
 
 }
 
+interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
-abstract class JArray<T : Any, CT: Iterable<T>>() : JsonAdjunction<CT, JsonNodeArray> {
+    val converter: JConverter<T>
 
-    abstract val converter: JConverter<T>
-
-    abstract fun convertToCollection(from: Iterable<T>): CT
+    fun convertToCollection(from: Iterable<T>): CT
 
     override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, CT> =
         mapFromArray(node) { jn -> converter.fromJsonNodeBase(jn) }.transform { convertToCollection(it) }
@@ -93,13 +92,14 @@ abstract class JArray<T : Any, CT: Iterable<T>>() : JsonAdjunction<CT, JsonNodeA
         f: (JsonNode) -> JsonOutcome<T>
     ): JsonOutcome<Iterable<T>> = node.values.map(f).extract()
 
+}
+
+data class JList<T : Any>(override val converter: JConverter<T>) : JArray<T, List<T>> {
+    override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
     override val nodeType = ArrayNode
 }
 
-data class JList<T: Any>(override val converter: JConverter<T>): JArray<T, List<T>>(){
-    override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
-}
-
-data class JSet<T: Any>(override val converter: JConverter<T>): JArray<T, Set<T>>(){
-    override fun convertToCollection(from: Iterable<T>): Set<T>  = from.toSet()
+data class JSet<T : Any>(override val converter: JConverter<T>) : JArray<T, Set<T>> {
+    override fun convertToCollection(from: Iterable<T>): Set<T> = from.toSet()
+    override val nodeType = ArrayNode
 }
