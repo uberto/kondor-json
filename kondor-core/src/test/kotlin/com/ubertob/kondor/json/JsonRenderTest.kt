@@ -9,7 +9,7 @@ class JsonRenderTest {
 
     @Test
     fun `render null`() {
-        val jsonString = JsonNodeNull(NodeRoot).render()
+        val jsonString = JsonNodeNull(NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("null")
     }
@@ -18,7 +18,7 @@ class JsonRenderTest {
     fun `render Boolean`() {
         val value = true
 
-        val jsonString = JsonNodeBoolean(value, NodeRoot).render()
+        val jsonString = JsonNodeBoolean(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("true")
     }
@@ -27,7 +27,7 @@ class JsonRenderTest {
     fun `render exp Num`() {
         val value = Double.MIN_VALUE
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodeRoot).render()
+        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("4.9E-324")
     }
@@ -36,7 +36,7 @@ class JsonRenderTest {
     fun `render integer Num`() {
         val value = Int.MAX_VALUE.toDouble()
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodeRoot).render()
+        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("2147483647")
     }
@@ -45,7 +45,7 @@ class JsonRenderTest {
     fun `render escaped String`() {
         val value = """ abc {} \\ , : [] " \n \t \r \b 123"""
 
-        val jsonString = JsonNodeString(value, NodeRoot).render()
+        val jsonString = JsonNodeString(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("""" abc {} \\ , : [] \" \n \t \r \b 123"""")
     }
@@ -54,7 +54,7 @@ class JsonRenderTest {
     @Test
     fun `render array`() {
         val jsonString =
-            JsonNodeArray(listOf(JsonNodeString("abc", NodeRoot), JsonNodeString("def", NodeRoot)), NodeRoot).render()
+            JsonNodeArray(listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)), NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("""["abc", "def"]""")
     }
@@ -62,7 +62,7 @@ class JsonRenderTest {
     @Test
     fun `pretty render array`() {
         val jsonString =
-            JsonNodeArray(listOf(JsonNodeString("abc", NodeRoot), JsonNodeString("def", NodeRoot)), NodeRoot).pretty(2)
+            JsonNodeArray(listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)), NodePathRoot).pretty(2)
 
         expectThat(jsonString).isEqualTo(
             """[
@@ -75,8 +75,8 @@ class JsonRenderTest {
     @Test
     fun `render object`() {
         val jsonString = JsonNodeObject(
-            mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodeRoot), "name" to JsonNodeString("Ann", NodeRoot)),
-            NodeRoot
+            mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot), "name" to JsonNodeString("Ann", NodePathRoot)),
+            NodePathRoot
         ).render()
 
         val expected = """{"id": 123, "name": "Ann"}"""
@@ -90,8 +90,8 @@ class JsonRenderTest {
             val indent = Random.nextInt(4)
             val offset = Random.nextInt(10)
             val jsonString = JsonNodeObject(
-                mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodeRoot), "name" to JsonNodeString("Ann", NodeRoot)),
-                NodeRoot
+                mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot), "name" to JsonNodeString("Ann", NodePathRoot)),
+                NodePathRoot
             ).pretty(indent, offset)
 
 

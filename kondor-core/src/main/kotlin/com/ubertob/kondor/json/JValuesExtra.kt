@@ -59,7 +59,7 @@ interface JSealed<T : Any> : PolymorphicConverter<T> {
         jno.copy(
             fieldMap = jno.fieldMap + (discriminatorFieldName to JsonNodeString(
                 extractTypeName(obj),
-                Node(discriminatorFieldName, jno.path)
+                NodePathSegment(discriminatorFieldName, jno.path)
             ))
         )
 
@@ -110,7 +110,7 @@ class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConve
             { jno: JsonNodeObject, _: Map<String, T> ->
                 jno.copy(
                     fieldMap = jno.fieldMap +
-                            (key to valueConverter.toJsonNode(value, Node(key, jno.path)))
+                            (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
                 )
             }
         }

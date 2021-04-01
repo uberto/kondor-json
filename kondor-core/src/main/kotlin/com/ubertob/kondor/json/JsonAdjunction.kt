@@ -33,10 +33,10 @@ interface JsonAdjunction<T, JN : JsonNode> {
     fun toJsonNode(value: T, path: NodePath): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
-        nodeType.parse(this, NodeRoot)
+        nodeType.parse(this, NodePathRoot)
 
-    fun toJson(value: T): String = toJsonNode(value, NodeRoot).render()
-    fun toPrettyJson(value: T): String = toJsonNode(value, NodeRoot).pretty(2)
+    fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
+    fun toPrettyJson(value: T): String = toJsonNode(value, NodePathRoot).pretty(2)
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
         JsonLexer.tokenize(jsonString).run {
@@ -44,7 +44,7 @@ interface JsonAdjunction<T, JN : JsonNode> {
                 .bind { fromJsonNode(it) }
                 .bind {
                     if (hasNext())
-                        parsingFailure("EOF", next(), position(), NodeRoot, "json continue after end")
+                        parsingFailure("EOF", next(), position(), NodePathRoot, "json continue after end")
                     else
                         it.asSuccess()
                 }

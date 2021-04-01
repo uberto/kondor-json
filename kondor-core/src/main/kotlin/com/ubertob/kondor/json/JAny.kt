@@ -68,7 +68,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: Stri
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
-            wrapped.copy(fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(value, Node(propName, wrapped.path))))
+            wrapped.copy(fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(value, NodePathSegment(propName, wrapped.path))))
         }
 
 }
@@ -87,7 +87,7 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: Strin
         { wrapped ->
             value?.let {
                 wrapped.copy(
-                    fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(it, Node(propName, wrapped.path)))
+                    fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(it, NodePathSegment(propName, wrapped.path)))
                 )
             } ?: wrapped
         }

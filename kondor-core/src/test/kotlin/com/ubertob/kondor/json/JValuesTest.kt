@@ -14,7 +14,7 @@ class JValuesTest {
         repeat(10) {
             val value = randomString(lowercase, 3, 3)
 
-            val json = JString.toJsonNode(value, NodeRoot)
+            val json = JString.toJsonNode(value, NodePathRoot)
 
             val actual = JString.fromJsonNode(json).expectSuccess()
 
@@ -31,7 +31,7 @@ class JValuesTest {
         repeat(10) {
 
             val value = Random.nextDouble()
-            val json = JDouble.toJsonNode(value, NodeRoot)
+            val json = JDouble.toJsonNode(value, NodePathRoot)
 
             val actual = JDouble.fromJsonNode(json).expectSuccess()
 
@@ -49,7 +49,7 @@ class JValuesTest {
         repeat(10) {
 
             val value = Random.nextInt()
-            val json = JInt.toJsonNode(value, NodeRoot)
+            val json = JInt.toJsonNode(value, NodePathRoot)
 
             val actual = JInt.fromJsonNode(json).expectSuccess()
 
@@ -67,7 +67,7 @@ class JValuesTest {
         repeat(10) {
 
             val value = Random.nextLong()
-            val json = JLong.toJsonNode(value, NodeRoot)
+            val json = JLong.toJsonNode(value, NodePathRoot)
 
             val actual = JLong.fromJsonNode(json).expectSuccess()
 
@@ -85,7 +85,7 @@ class JValuesTest {
         repeat(3) {
 
             val value = Random.nextBoolean()
-            val json = JBoolean.toJsonNode(value, NodeRoot)
+            val json = JBoolean.toJsonNode(value, NodePathRoot)
 
             val actual = JBoolean.fromJsonNode(json).expectSuccess()
 
@@ -104,7 +104,7 @@ class JValuesTest {
 
             val value = randomList(0, 5) { randomString(text, 1, 10) }
 
-            val node = JStringList.toJsonNode(value, NodeRoot)
+            val node = JStringList.toJsonNode(value, NodePathRoot)
 
             val actual = JStringList.fromJsonNode(node).expectSuccess()
 
@@ -122,7 +122,7 @@ class JValuesTest {
 
         repeat(10) {
             val value = randomPerson()
-            val json = JPerson.toJsonNode(value, NodeRoot)
+            val json = JPerson.toJsonNode(value, NodePathRoot)
 
             val actual = JPerson.fromJsonNode(json).expectSuccess()
 
@@ -143,7 +143,7 @@ class JValuesTest {
 
             val value = randomList(0, 10) { randomPerson() }.toSet()
 
-            val node = jsonUserArray.toJsonNode(value, NodeRoot)
+            val node = jsonUserArray.toJsonNode(value, NodePathRoot)
 
             val actual = jsonUserArray.fromJsonNode(node).expectSuccess()
 
@@ -159,8 +159,8 @@ class JValuesTest {
     @Test
     fun `Json with nullable and back`() {
 
-        val toothpasteJson = JProduct.toJsonNode(toothpaste, NodeRoot)
-        val offerJson = JProduct.toJsonNode(offer, NodeRoot)
+        val toothpasteJson = JProduct.toJsonNode(toothpaste, NodePathRoot)
+        val offerJson = JProduct.toJsonNode(offer, NodePathRoot)
 
         val actualToothpaste = JProduct.fromJsonNode(toothpasteJson).expectSuccess()
         val actualOffer = JProduct.fromJsonNode(offerJson).expectSuccess()
@@ -183,7 +183,7 @@ class JValuesTest {
 
         repeat(100) {
             val invoice = randomInvoice()
-            val json = JInvoice.toJsonNode(invoice, NodeRoot)
+            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
 
             val actual = JInvoice.fromJsonNode(json).expectSuccess()
 
@@ -201,7 +201,7 @@ class JValuesTest {
 
         repeat(100) {
             val invoice = randomInvoice()
-            val json = JInvoice.toJsonNode(invoice, NodeRoot)
+            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
 
             val actual = JInvoice.fromJsonNode(json).expectSuccess()
 

@@ -16,7 +16,7 @@ class JValuesExtraTest {
         repeat(5) {
 
             val value = randomCompany()
-            val json = JCompany.toJsonNode(value, NodeRoot)
+            val json = JCompany.toJsonNode(value, NodePathRoot)
 
             val actual = JCompany.fromJsonNode(json).expectSuccess()
 
@@ -34,7 +34,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomCustomer()
-            val json = JCustomer.toJsonNode(value, NodeRoot)
+            val json = JCustomer.toJsonNode(value, NodePathRoot)
 
             val actual = JCustomer.fromJsonNode(json).expectSuccess()
 
@@ -52,7 +52,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomExpenseReport()
-            val json = JExpenseReport.toJsonNode(value, NodeRoot)
+            val json = JExpenseReport.toJsonNode(value, NodePathRoot)
 
             val actual = JExpenseReport.fromJsonNode(json).expectSuccess()
 
@@ -72,7 +72,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomNotes()
-            val json = JNotes.toJsonNode(value, NodeRoot)
+            val json = JNotes.toJsonNode(value, NodePathRoot)
 
             val actual = JNotes.fromJsonNode(json).expectSuccess()
 
@@ -92,7 +92,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = Products.fromIterable(randomList(0, 10) { randomProduct() })
-            val json = JProducts.toJsonNode(value, NodeRoot)
+            val json = JProducts.toJsonNode(value, NodePathRoot)
 
             val actual = JProducts.fromJsonNode(json).expectSuccess()
 
@@ -133,7 +133,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
-            val json = JSelectedFile.toJsonNode(value, NodeRoot)
+            val json = JSelectedFile.toJsonNode(value, NodePathRoot)
 
             val actual = JSelectedFile.fromJsonNode(json).expectSuccess()
 

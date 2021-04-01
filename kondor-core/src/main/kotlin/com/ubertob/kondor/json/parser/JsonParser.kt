@@ -154,7 +154,7 @@ fun parseJsonNodeArray(
             var currNode = 0
             while (currToken != ClosingBracket) { //todo: use fold/recursion here
                 nodes.add(
-                    parseNewNode(tokens, Node("[${currNode++}]", path))
+                    parseNewNode(tokens, NodePathSegment("[${currNode++}]", path))
                         .onFailure { return it.asFailure() })
                 currToken = tokens.peek()
                 if (currToken != Comma && currToken != ClosingBracket)
@@ -186,7 +186,7 @@ fun parseJsonNodeObject(
                 val colon = tokens.next()
                 if (colon != Colon)
                     return parsingFailure("':'", colon, tokens.position(), path, "missing colon between key and value in object")
-                val value = parseNewNode(tokens, Node(keyName, path)).onFailure { return it.asFailure() }
+                val value = parseNewNode(tokens, NodePathSegment(keyName, path)).onFailure { return it.asFailure() }
                 keys.put(keyName, value)
 
                 currToken = tokens.peek()

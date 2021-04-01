@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.4.1 -
+
+Reorganized package names
+
 ### v1.4.0 - 27 Mar 2021
 
 Flatten Field type

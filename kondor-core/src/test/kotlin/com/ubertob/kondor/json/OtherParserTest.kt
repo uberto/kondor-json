@@ -17,7 +17,7 @@ class OtherParserTest {
 
         """.trimIndent()
 
-        val node = parseJsonNodeObject(JsonLexer.tokenize(json), NodeRoot).expectSuccess()
+        val node = parseJsonNodeObject(JsonLexer.tokenize(json), NodePathRoot).expectSuccess()
 
 //        println(node.fieldMap)
 
