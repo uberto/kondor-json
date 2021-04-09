@@ -241,7 +241,8 @@ private fun br(offset: Int): String = "\n" + " ".repeat(offset)
 
 
 private fun String.putInQuotes(): String =
-    replace("\"", "\\\"")
+    replace("\\", "\\\\")
+        .replace("\"", "\\\"")
         .replace("\n", "\\n")
         .replace("\b", "\\b")
         .replace("\r", "\\r")

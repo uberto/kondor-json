@@ -27,6 +27,19 @@ class JValuesTest {
     }
 
     @Test
+    fun `JsonNode String with special characters`() {
+        listOf("\\", "\n", "\b", "\r", "\t")
+            .map { "foo${it}bar"}
+            .forEach { value ->
+                val json = JString.toJsonNode(value, NodePathRoot)
+                val actual = JString.fromJsonNode(json).expectSuccess()
+                expectThat(actual).isEqualTo(value)
+                val jsonStr = JString.toJson(value)
+                expectThat(JString.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            }
+    }
+
+    @Test
     fun `Json Double`() {
         repeat(10) {
 
