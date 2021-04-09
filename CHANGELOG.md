@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.4.2 - 9 Apr 2021
+
+Fixed bug with escaped strings
+
 ### v1.4.1 - 2 Apr 2021
 
 Reorganized package names
