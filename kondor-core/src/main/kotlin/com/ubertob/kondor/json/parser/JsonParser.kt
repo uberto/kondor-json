@@ -14,7 +14,13 @@ inline fun <T> tryParse(
     f: () -> T
 ): Outcome<JsonError, T> =
     tryThis(f).transformFailure {
-        parsingError(expected, actual.toString(), position, path, it.msg)
+        when (it.t) {
+            is NumberFormatException ->
+                parsingError(expected, "$actual", position, path, it.msg)
+            else ->
+                parsingError(expected, "${it.msg} after $actual", position, path, "Invalid Json")
+        }
+
     }
 
 sealed class KondorToken

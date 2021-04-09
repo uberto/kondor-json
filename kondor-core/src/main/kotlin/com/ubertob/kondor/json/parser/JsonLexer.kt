@@ -71,7 +71,7 @@ class JsonLexer(val jsonStr: CharSequence) {
                         'r' -> currToken += '\r'
                         'b' -> currToken += '\b'
                         '"' -> currToken += '\"'
-                        else -> error("Wrong escape char $char")
+                        else -> error("Wrongly escaped char '\\$char' in Json string")
                     }.also { state = InString }
                 }
             }

@@ -1,6 +1,9 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.*
+import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondor.randomList
+import com.ubertob.kondor.randomString
+import com.ubertob.kondor.text
 import org.junit.jupiter.api.Test
 import strikt.api.expect
 import strikt.api.expectThat
@@ -11,8 +14,8 @@ class JValuesTest {
 
     @Test
     fun `JsonNode String`() {
-        repeat(10) {
-            val value = randomString(lowercase, 3, 3)
+        repeat(100) {
+            val value = randomString(text, 0, 30)
 
             val json = JString.toJsonNode(value, NodePathRoot)
 
@@ -28,7 +31,7 @@ class JValuesTest {
 
     @Test
     fun `JsonNode String with special characters`() {
-        listOf("\\", "\n", "\b", "\r", "\t")
+        listOf("\\", "\n", "\b", "\r", "\t", "\"")
             .map { "foo${it}bar"}
             .forEach { value ->
                 val json = JString.toJsonNode(value, NodePathRoot)

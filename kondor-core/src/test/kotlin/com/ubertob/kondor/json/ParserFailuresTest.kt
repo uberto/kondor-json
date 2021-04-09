@@ -26,14 +26,25 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal String returns an error`() {
+    fun `parsing String missing close quotes returns an error`() {
         val illegalJson = """
             "unclosed string
             """
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'opening quotes' - unexpected end of file")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'unexpected end of file after opening quotes' - Invalid Json")
+    }
+
+    @Test
+    fun `parsing String with unknown escape returns an error`() {
+        val illegalJson = """
+            "foo \ bar"
+            """
+
+        val error = JString.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'Wrongly escaped char '\\ ' in Json string after opening quotes' - Invalid Json")
     }
 
     @Test
