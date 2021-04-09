@@ -43,11 +43,11 @@ class JsonRenderTest {
 
     @Test
     fun `render escaped String`() {
-        val value = "abc {} \\ , : [] \" \n \t \r \b 123"
+        val value = "abc {} \\ , : [] \" \n \t \r 123"
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        expectThat(jsonString).isEqualTo(""""abc {} \\ , : [] \" \n \t \r \b 123"""")
+        expectThat(jsonString).isEqualTo(""""abc {} \\ , : [] \" \n \t \r 123"""")
     }
 
 

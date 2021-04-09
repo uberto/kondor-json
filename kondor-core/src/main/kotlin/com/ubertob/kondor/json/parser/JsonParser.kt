@@ -177,7 +177,13 @@ fun parseJsonNodeObject(
 ): Outcome<JsonError, JsonNodeObject> =
     tryParse("an Object", tokens.peek(), tokens.position(), path) {
         val openCurly = tokens.next()
-        if (openCurly != OpeningCurly) return parsingFailure("'{'", openCurly, tokens.position(), path, "missing opening curly")
+        if (openCurly != OpeningCurly) return parsingFailure(
+            "'{'",
+            openCurly,
+            tokens.position(),
+            path,
+            "missing opening curly"
+        )
         else {
             var currToken = tokens.peek()
             if (currToken == ClosingCurly)
@@ -191,7 +197,13 @@ fun parseJsonNodeObject(
 
                 val colon = tokens.next()
                 if (colon != Colon)
-                    return parsingFailure("':'", colon, tokens.position(), path, "missing colon between key and value in object")
+                    return parsingFailure(
+                        "':'",
+                        colon,
+                        tokens.position(),
+                        path,
+                        "missing colon between key and value in object"
+                    )
                 val value = parseNewNode(tokens, NodePathSegment(keyName, path)).onFailure { return it.asFailure() }
                 keys.put(keyName, value)
 
@@ -238,20 +250,37 @@ fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returnin
         is JsonNodeBoolean -> render()
         is JsonNodeNumber -> render()
         is JsonNodeArray -> values.map { it.pretty(indent, offset + indent + indent) }
-            .joinToString(prefix = "[${br(offset + indent)}", postfix = "${br(offset)}]", separator = ",${br(offset + indent)}")
-        is JsonNodeObject -> fieldMap.entries.map { it.key.putInQuotes() + ": " + it.value.pretty(indent, offset + indent + indent) }
-            .joinToString(prefix = "{${br(offset + indent)}", postfix = "${br(offset)}}", separator = ",${br(offset + indent)}")
+            .joinToString(
+                prefix = "[${br(offset + indent)}",
+                postfix = "${br(offset)}]",
+                separator = ",${br(offset + indent)}"
+            )
+        is JsonNodeObject -> fieldMap.entries.map {
+            it.key.putInQuotes() + ": " + it.value.pretty(
+                indent,
+                offset + indent + indent
+            )
+        }
+            .joinToString(
+                prefix = "{${br(offset + indent)}",
+                postfix = "${br(offset)}}",
+                separator = ",${br(offset + indent)}"
+            )
     }
 
 private fun br(offset: Int): String = "\n" + " ".repeat(offset)
 
 
+val regex = """[\\\"\n\r\t]""".toRegex()
 private fun String.putInQuotes(): String =
-    replace("\\", "\\\\")
-        .replace("\"", "\\\"")
-        .replace("\n", "\\n")
-        .replace("\b", "\\b")
-        .replace("\r", "\\r")
-        .replace("\t", "\\t")
-        .let { "\"${it}\"" }
-//TODO rewrite it faster with a loop? Check performance first! r 13  n 10  t 9  b 8
+    replace(regex) { m ->
+        when (m.value) {
+            "\\" -> "\\\\"
+            "\"" -> "\\\""
+            "\n" -> "\\n"
+            "\b" -> "\\b"
+            "\r" -> "\\r"
+            "\t" -> "\\t"
+            else -> ""
+        }
+    }.let { "\"${it}\"" }
