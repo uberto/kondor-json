@@ -47,7 +47,7 @@ class JsonRenderTest {
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        expectThat(jsonString).isEqualTo("""" abc {} \\ , : [] \" \n \t \r \b 123"""")
+        expectThat(jsonString).isEqualTo("""" abc {} \\\\ , : [] \" \\n \\t \\r \\b 123"""")
     }
 
 
