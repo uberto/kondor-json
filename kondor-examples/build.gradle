@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation project(":kondor-core")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.http4k:http4k-core:4.6.0.0"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 
