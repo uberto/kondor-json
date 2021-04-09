@@ -650,6 +650,19 @@ constructor.
 
 TODO: example of class with private constructor and custom serializer/deserializer
 
+## Integration with Http4k
+
+Using Kondor it's easy to integrate with Http4k since they use the same functional approach.
+
+For example you can create a `BodyLens` directly from a JConverter using an ext function like this:
+
+```kotlin
+fun <T : Any> JConverter<T>.toBodyLens(vararg metas: Meta): BiDiBodyLens<T> =
+   httpBodyRoot(metas.toList(), APPLICATION_JSON, ContentNegotiation.None)
+      .map({ fromJson(it.payload.asString()).orThrow() }, { Body(toJson(it)) })
+      .toLens()
+```
+
 ## Other Advantages
 
 It's easy to write generic converters for special types, much easier and safer than defining custom serializer.
