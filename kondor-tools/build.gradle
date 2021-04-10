@@ -5,7 +5,11 @@ plugins {
 
 
 dependencies {
+    implementation project(":kondor-core")
+
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "com.squareup:kotlinpoet:1.8.0"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation "io.strikt:strikt-core:$striktVersion"
@@ -25,12 +29,12 @@ tasks {
     }
 }
 
-archivesBaseName = 'kondor-core'
+archivesBaseName = 'kondor-tools'
 
 modifyPom {
     project {
-        name 'kondor'
-        description 'A Kotlin library to use Json in functional way without reflection'
+        name 'kondor-tools'
+        description 'A suite of tools to work with Kondor json library'
         url 'https://github.com/uberto/kondor-json'
         inceptionYear '2021'
         scm {
