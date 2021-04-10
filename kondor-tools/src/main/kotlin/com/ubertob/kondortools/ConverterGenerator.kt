@@ -1,7 +1,6 @@
 package com.ubertob.kondortools
 
 import com.squareup.kotlinpoet.*
-import com.squareup.kotlinpoet.MemberName.Companion.member
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.ubertob.kondor.json.JAny
 import com.ubertob.kondor.json.JsonNodeObject
@@ -35,34 +34,42 @@ private fun createConverterFor(kClass: KClass<*>): TypeSpec =
                 .receiver(JsonNodeObject::class)
                 .addModifiers(KModifier.OVERRIDE)
                 .returns(kClass)
-                .addStatement("return ${kClass.simpleName}()")
+                .addStatement(kClass.generateNamedParams())
                 .build()
         )
         .build()
 
+private fun KClass<*>.generateNamedParams(): String =
+    memberProperties.joinToString(
+        separator = ",\n",
+        prefix = "return \n    $simpleName(\n",
+        postfix = "\n    )"
+    ) { "      ${it.name} = +${it.name}" }
 
-val flux = FunSpec.constructorBuilder()
-    .addParameter("greeting", String::class)
-    .build()
-
-val classHW = TypeSpec.classBuilder("HelloWorld")
-    .primaryConstructor(flux)
-    .addProperty(
-        PropertySpec.builder("greeting", String::class)
-            .initializer("greeting")
-            .addModifiers(KModifier.PRIVATE)
-            .build()
-    )
-    .build()
-
-
-val helloClass = ClassName("com.example.hello", "Hello")
-val worldFunction: MemberName = helloClass.member("world")
-val byeProperty: MemberName = helloClass.nestedClass("World").member("bye")
-
-val factoriesFun = FunSpec.builder("factories")
-    .addStatement("val hello = %L", helloClass.constructorReference())
-    .addStatement("val world = %L", worldFunction.reference())
-    .addStatement("val bye = %L", byeProperty.reference())
-    .build()
+//KotlinPoet snippets examples:
+//
+//val flux = FunSpec.constructorBuilder()
+//    .addParameter("greeting", String::class)
+//    .build()
+//
+//val classHW = TypeSpec.classBuilder("HelloWorld")
+//    .primaryConstructor(flux)
+//    .addProperty(
+//        PropertySpec.builder("greeting", String::class)
+//            .initializer("greeting")
+//            .addModifiers(KModifier.PRIVATE)
+//            .build()
+//    )
+//    .build()
+//
+//
+//val helloClass = ClassName("com.example.hello", "Hello")
+//val worldFunction: MemberName = helloClass.member("world")
+//val byeProperty: MemberName = helloClass.nestedClass("World").member("bye")
+//
+//val factoriesFun = FunSpec.builder("factories")
+//    .addStatement("val hello = %L", helloClass.constructorReference())
+//    .addStatement("val world = %L", worldFunction.reference())
+//    .addStatement("val bye = %L", byeProperty.reference())
+//    .build()
 
