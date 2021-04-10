@@ -22,7 +22,6 @@ fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
 
 private fun createConverterFor(kClass: KClass<*>): TypeSpec =
     TypeSpec.objectBuilder("J${kClass.simpleName}")
-        .addModifiers(KModifier.EXTERNAL)
         .addSuperinterface(JAny::class.parameterizedBy(kClass))
         .addProperties(
             kClass.memberProperties.map { prop ->

@@ -33,4 +33,6 @@ class GenerationTest {
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
     }
+
+    //add more tests with obj fields, array, sealed classes etc.
 }
