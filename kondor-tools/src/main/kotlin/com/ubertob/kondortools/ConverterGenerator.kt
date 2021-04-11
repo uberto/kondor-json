@@ -6,6 +6,8 @@ import com.ubertob.kondor.json.JAny
 import com.ubertob.kondor.json.JsonNodeObject
 import java.io.StringWriter
 import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
+import kotlin.reflect.full.createType
 import kotlin.reflect.full.memberProperties
 
 interface RemoveMe //only used to be removed later
@@ -31,7 +33,7 @@ private fun createConverterFor(kClass: KClass<*>): TypeSpec =
             kClass.memberProperties.map { prop ->
                 PropertySpec.builder(prop.name, RemoveMe::class, KModifier.PRIVATE)
 
-                    .delegate("xxx(${kClass.simpleName}::${prop.name})")
+                    .delegate(generateRightConverter(kClass, prop))
                     .build()
             }
         )
@@ -45,37 +47,28 @@ private fun createConverterFor(kClass: KClass<*>): TypeSpec =
         )
         .build()
 
+//this should allow for a callback so users can specialize it with their types
+private fun generateRightConverter(
+    kClass: KClass<*>,
+    prop: KProperty1<out Any, *>
+) = when (prop.returnType) {
+    Boolean::class.createType() -> "bool(${kClass.simpleName}::${prop.name})"
+    Double::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
+    Long::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
+    Int::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
+    String::class.createType() -> "str(${kClass.simpleName}::${prop.name})"
+    else -> "obj(J${prop.simpleClassName()}, ${kClass.simpleName}::${prop.name})"
+//enum, objects, collections...
+}
+
+private fun KProperty1<out Any, *>.simpleClassName() =
+    ClassName.bestGuess(returnType.asTypeName().toString()).simpleName
+// .also{   println("!!!${prop.name}  ${prop.returnType.asTypeName()}") }
+
+
 private fun KClass<*>.generateNamedParams(): String =
     memberProperties.joinToString(
         separator = ",\n",
         prefix = "return \n    $simpleName(\n",
         postfix = "\n    )"
     ) { "      ${it.name} = +${it.name}" }
-
-//KotlinPoet snippets examples:
-//
-//val flux = FunSpec.constructorBuilder()
-//    .addParameter("greeting", String::class)
-//    .build()
-//
-//val classHW = TypeSpec.classBuilder("HelloWorld")
-//    .primaryConstructor(flux)
-//    .addProperty(
-//        PropertySpec.builder("greeting", String::class)
-//            .initializer("greeting")
-//            .addModifiers(KModifier.PRIVATE)
-//            .build()
-//    )
-//    .build()
-//
-//
-//val helloClass = ClassName("com.example.hello", "Hello")
-//val worldFunction: MemberName = helloClass.member("world")
-//val byeProperty: MemberName = helloClass.nestedClass("World").member("bye")
-//
-//val factoriesFun = FunSpec.builder("factories")
-//    .addStatement("val hello = %L", helloClass.constructorReference())
-//    .addStatement("val world = %L", worldFunction.reference())
-//    .addStatement("val bye = %L", byeProperty.reference())
-//    .build()
-
