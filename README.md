@@ -695,9 +695,7 @@ TODO: comparison of performance
 
 - Generating random values from the converters
 
-- Add some converters that use Jackson for simplify the migration/adopting
-
-- Add integration with Http4k for Lens
+- Add a converter that use Jackson for simplify the migration/adopting
 
 - Add integration with Snodge for fuzzy testing
 

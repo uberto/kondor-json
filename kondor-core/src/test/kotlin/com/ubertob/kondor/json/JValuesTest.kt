@@ -5,7 +5,6 @@ import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import org.junit.jupiter.api.Test
-import strikt.api.expect
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import kotlin.random.Random
@@ -134,7 +133,7 @@ class JValuesTest {
 
 
     @Test
-    fun `Json Customer and back`() {
+    fun `Json Person and back`() {
 
         repeat(10) {
             val value = randomPerson()
@@ -175,22 +174,24 @@ class JValuesTest {
     @Test
     fun `Json with nullable and back`() {
 
-        val toothpasteJson = JProduct.toJsonNode(toothpaste, NodePathRoot)
-        val offerJson = JProduct.toJsonNode(offer, NodePathRoot)
+        repeat(100) {
+            val product = randomProduct()
+            val json = JProduct.toJsonNode(product, NodePathRoot)
 
-        val actualToothpaste = JProduct.fromJsonNode(toothpasteJson).expectSuccess()
-        val actualOffer = JProduct.fromJsonNode(offerJson).expectSuccess()
+            val actual = JProduct.fromJsonNode(json).expectSuccess()
 
-        expect {
-            that(actualToothpaste).isEqualTo(toothpaste)
-            that(actualOffer).isEqualTo(offer)
+            expectThat(actual).isEqualTo(product)
+
+            val jsonStr = JProduct.toJson(product)
+
+            expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(product)
+
+            val jsonStrNull = JProduct.toNullJson(product)
+
+            expectThat(JProduct.fromJson(jsonStrNull).expectSuccess()).isEqualTo(product)
+
         }
 
-        listOf(toothpaste, offer).forEach { prod ->
-            val jsonStr = JProduct.toJson(prod)
-
-            expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(prod)
-        }
     }
 
 
@@ -232,15 +233,11 @@ class JValuesTest {
 
 
 //todo
-// flatten and singlefield function...
-// add support for serialize calculated fields
-// add Converters for all java.time, GUUID, URI, etc.
+// add parseJson from InputStream
 // add test example with Java
-// add null/skipField option
-// add parseJson from Reader (for streams)
-// add tests for concurrency reuse
-// add more tests for Outcome
+// add Converters for all java.time, GUUID, URI, etc.
 // measure performance against other libs
-// module for integration with Http4k (Jconverters + Lens)
+// measure performance under concurrency
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)
+// add support to serialize calculated fields

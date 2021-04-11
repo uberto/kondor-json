@@ -105,4 +105,20 @@ class JsonRenderTest {
         }
     }
 
+    @Test
+    fun `render object with null`() {
+        val path = NodePathRoot
+        val jsonString = JsonNodeObject(
+            mapOf(
+                "id" to JsonNodeNumber(123.toBigDecimal(), path),
+                "name" to JsonNodeString("Ann", path),
+                "somethingelse" to JsonNodeNull(path)
+            ),
+            NodePathRoot
+        ).render()
+
+        val expected = """{"id": 123, "name": "Ann", "somethingelse": null}"""
+        expectThat(jsonString).isEqualTo(expected)
+    }
+
 }

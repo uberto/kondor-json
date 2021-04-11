@@ -22,10 +22,10 @@ fun randomCustomer(): Customer = when (Random.nextBoolean()) {
 }
 
 fun randomProduct() = Product(
-    Random.nextInt(1, 1000),
-    randomString(text, 2, 10),
-    randomText(100),
-    randomNullable { randomPrice(10, 1000) })
+    id = Random.nextInt(1, 1000),
+    shortDesc = randomString(lowercase, 2, 10),
+    longDesc = randomText(100),
+    price = randomNullable { randomPrice(10, 1000) })
 
 fun randomInvoice() = Invoice(
     id = InvoiceId(randomString(digits, 5, 5)),
@@ -121,7 +121,7 @@ object JCompany : JAny<Company>() {
     private val name by str(Company::name) // JField(Company::name, JString)
     private val tax_type by str(Company::taxType) //JField(Company::taxType, JEnum(TaxType::valueOf))
 
-    override fun JsonNodeObject.deserializeOrThrow(): Company? =
+    override fun JsonNodeObject.deserializeOrThrow() =
         Company(
             name = +name,
             taxType = +tax_type

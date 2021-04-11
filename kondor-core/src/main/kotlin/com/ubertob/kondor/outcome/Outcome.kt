@@ -70,10 +70,16 @@ inline fun <T, E : OutcomeError> Outcome<E, T>.onFailure(block: (E) -> Nothing):
 
 
 inline fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: E): Outcome<E, T> =
-        when (this) {
-            is Success<T> -> if (predicate(value)) error.asFailure() else this
-            is Failure<E> -> this
-        }
+    when (this) {
+        is Success<T> -> if (predicate(value)) error.asFailure() else this
+        is Failure<E> -> this
+    }
+
+fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: E): Outcome<E, T> =
+    when (this) {
+        is Success -> if (value != null) value.asSuccess() else error.asFailure()
+        is Failure -> this
+    }
 
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extract(): Outcome<E, Iterable<T>> =
     fold(emptyList<T>().asSuccess()) { acc: Outcome<E, Iterable<T>>, e: Outcome<E, T> ->

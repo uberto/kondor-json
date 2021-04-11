@@ -8,7 +8,7 @@ import org.junit.jupiter.api.fail
 
 import kotlin.random.Random
 
-fun <T : Any> Outcome<*, T>.expectSuccess(): T =
+fun <T> Outcome<*, T>.expectSuccess(): T =
     this.onFailure { fail(it.msg) }
 
 fun <E : OutcomeError> Outcome<E, *>.expectFailure(): E =
@@ -20,7 +20,10 @@ const val uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const val lowercase = "abcdefghijklmnopqrstuvwxyz"
 const val digits = "0123456789"
 const val spacesigns = " ,.:+-()%$@{}[]\\\"\n\r\t"
-const val text = lowercase + digits + spacesigns
+const val latin1 = "°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
+const val japanese = "こんにちは　世界"
+
+const val text = uppercase + lowercase + digits + spacesigns
 
 fun stringsGenerator(charSet: String, minLen: Int, maxLen: Int): Sequence<String> = generateSequence {
     randomString(charSet, minLen, maxLen)

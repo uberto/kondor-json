@@ -1,9 +1,7 @@
 package com.ubertob.kondor.json
 
 import JsonLexer
-import com.ubertob.kondor.expectSuccess
-import com.ubertob.kondor.randomString
-import com.ubertob.kondor.text
+import com.ubertob.kondor.*
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -161,7 +159,25 @@ class JsonParserTest {
         }
     }
 
+    @Test
+    fun `parse unicode String`() {
 
+        repeat(100) {
+            val value = randomString(digits + latin1 + japanese, 0, 10)
+            val jsonString = JsonNodeString(value, NodePathRoot).render()
+
+//            println("$value -> $jsonString")
+
+            val tokens = JsonLexer(jsonString).tokenize()
+
+            val node = parseJsonNodeString(tokens, NodePathRoot).expectSuccess()
+
+//            println("-> ${node.text}")
+
+            expectThat(node.text).isEqualTo(value)
+            expectThat(tokens.position()).isEqualTo(jsonString.length)
+        }
+    }
 
     @Test
     fun `parse Null`() {
@@ -236,6 +252,29 @@ class JsonParserTest {
         val nodes = parseJsonNodeObject(tokens, NodePathRoot).expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("{}")
+        expectThat(tokens.position()).isEqualTo(jsonString.length)
+    }
+
+    @Test
+    fun `parse an object with nulls`() {
+
+        val jsonString = """
+          {
+            "id": 123,
+            "name": "Ann",
+            "somethingelse": null
+          }
+        """.trimIndent()
+
+        val tokens = JsonLexer(jsonString).tokenize()
+
+        val nodes = parseJsonNodeObject(
+            tokens,
+            NodePathRoot
+        ).expectSuccess()
+
+        val expected = """{"id": 123, "name": "Ann", "somethingelse": null}"""
+        expectThat(nodes.render()).isEqualTo(expected)
         expectThat(tokens.position()).isEqualTo(jsonString.length)
     }
 

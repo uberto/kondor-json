@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.outcome.failIfNull
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
@@ -102,7 +103,9 @@ interface NestedPolyConverter<T : Any> : PolymorphicConverter<T> {
 class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>> {
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.mapValues { entry ->
-            valueConverter.fromJsonNodeBase(entry.value).orThrow()
+            valueConverter.fromJsonNodeBase(entry.value)
+                .failIfNull(JsonError(path, "Found null node in map!"))
+                .orThrow()
         }
 
     override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =

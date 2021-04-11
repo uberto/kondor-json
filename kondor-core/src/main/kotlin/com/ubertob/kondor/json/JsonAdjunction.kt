@@ -22,21 +22,26 @@ interface JsonAdjunction<T, JN : JsonNode> {
     val nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    private fun safeCast(node: JsonNode): JsonOutcome<JN> =
+    private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
         if (node.nodeKind() == nodeType)
             (node as JN).asSuccess()
+        else if (node.nodeKind() == NullNode)
+            null.asSuccess()
         else
             JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind().desc}").asFailure()
 
-    fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T> = safeCast(node).bind(::fromJsonNode)
+    fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
+
     fun fromJsonNode(node: JN): JsonOutcome<T>
-    fun toJsonNode(value: T, path: NodePath): JN
+
+    fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
+
+    fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean = false): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         nodeType.parse(this, NodePathRoot)
 
     fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
-    fun toPrettyJson(value: T): String = toJsonNode(value, NodePathRoot).pretty(2)
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
         JsonLexer.tokenize(jsonString).run {
@@ -52,7 +57,11 @@ interface JsonAdjunction<T, JN : JsonNode> {
 
 }
 
+fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toPrettyJson(value: T): String =
+    toJsonNode(value, NodePathRoot).pretty(2)
 
+fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toNullJson(value: T): String =
+    toJsonNode(value, NodePathRoot, true).pretty(2)
 
 
 

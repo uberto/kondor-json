@@ -3,6 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
 
 
@@ -21,7 +22,7 @@ interface ObjectNodeConverter<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 
     fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
 
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
+    override fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean): JsonNodeObject =
         getWriters(value)
             .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
                 writer(acc, value)
@@ -57,24 +58,36 @@ sealed class JsonProperty<T> {
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
 
-data class JsonPropMandatory<T : Any, JN : JsonNode>(override val propName: String, val converter: JsonAdjunction<T, JN>) :
+data class JsonPropMandatory<T : Any, JN : JsonNode>(
+    override val propName: String,
+    val converter: JsonAdjunction<T, JN>
+) :
     JsonProperty<T>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.fieldMap[propName]
             ?.let(converter::fromJsonNodeBase)
+            ?.failIfNull(JsonError(wrapped.path, "Found null for non-nullable '$propName'"))
             ?: JsonError(wrapped.path, "Not found key '$propName'").asFailure()
 
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
-            wrapped.copy(fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(value, NodePathSegment(propName, wrapped.path))))
+            wrapped.copy(
+                fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(
+                    value,
+                    NodePathSegment(propName, wrapped.path)
+                ))
+            )
         }
 
 }
 
 
-data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: String, val converter: JsonAdjunction<T, JN>) :
+data class JsonPropOptional<T : Any, JN : JsonNode>(
+    override val propName: String,
+    val converter: JsonAdjunction<T, JN>
+) :
     JsonProperty<T?>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T?> =
@@ -83,14 +96,15 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(override val propName: Strin
             ?: null.asSuccess()
 
 
-    override fun setter(value: T?): (JsonNodeObject) -> JsonNodeObject =
-        { wrapped ->
-            value?.let {
-                wrapped.copy(
-                    fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(it, NodePathSegment(propName, wrapped.path)))
-                )
-            } ?: wrapped
-        }
+    override fun setter(value: T?): (JsonNodeObject) -> JsonNodeObject = { wrapped ->
+        wrapped.copy(
+            fieldMap = wrapped.fieldMap + (propName to toJsonNode(value, wrapped))
+        )
+    }
+
+    private fun toJsonNode(value: T?, wrapped: JsonNodeObject) =
+        value?.let { converter.toJsonNode(it, NodePathSegment(propName, wrapped.path)) }
+            ?: JsonNodeNull(wrapped.path)
 
 }
 
@@ -98,8 +112,9 @@ data class JsonPropMandatoryFlatten<T : Any>(override val propName: String, val 
     JsonProperty<T>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
-        wrapped.let(converter::fromJsonNodeBase)
-
+        wrapped
+            .let(converter::fromJsonNodeBase)
+            .failIfNull(JsonError(wrapped.path, "Found null for non-nullable '$propName'"))
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
