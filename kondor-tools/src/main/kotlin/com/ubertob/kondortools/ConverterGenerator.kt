@@ -8,6 +8,7 @@ import java.io.StringWriter
 import kotlin.reflect.KClass
 import kotlin.reflect.full.memberProperties
 
+interface RemoveMe //only used to be removed later
 
 fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
     val fileBuilder = FileSpec.builder("", "KondorConverters")
@@ -16,16 +17,21 @@ fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
 
     val sw = StringWriter()
     fileBuilder.build().writeTo(sw)
-    return sw.toString()
+    val output = sw.toString()
+        .replace(": RemoveMe", "")
+        .replace("public object", "object")
+
+    return output
 }
 
 private fun createConverterFor(kClass: KClass<*>): TypeSpec =
     TypeSpec.objectBuilder("J${kClass.simpleName}")
-        .addSuperinterface(JAny::class.parameterizedBy(kClass))
+        .superclass(JAny::class.parameterizedBy(kClass))
         .addProperties(
             kClass.memberProperties.map { prop ->
-                PropertySpec.builder(prop.name, String::class, KModifier.PRIVATE)
-                    .initializer("str(${kClass.simpleName}::${prop.name})")
+                PropertySpec.builder(prop.name, RemoveMe::class, KModifier.PRIVATE)
+
+                    .delegate("xxx(${kClass.simpleName}::${prop.name})")
                     .build()
             }
         )
