@@ -6,6 +6,7 @@
 # launch:
 
 ./gradlew uploadArchives -p kondor-core
+./gradlew uploadArchives -p kondor-tools
 
 # then go to sonatype site and login
 # https://oss.sonatype.org/#nexus-search;quick~kondor
