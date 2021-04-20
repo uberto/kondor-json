@@ -31,7 +31,7 @@ class JValuesTest {
     @Test
     fun `JsonNode String with special characters`() {
         listOf("\\", "\n", "\b", "\r", "\t", "\"")
-            .map { "foo${it}bar"}
+            .map { "foo${it}bar" }
             .forEach { value ->
                 val json = JString.toJsonNode(value, NodePathRoot)
                 val actual = JString.fromJsonNode(json).expectSuccess()
@@ -234,6 +234,7 @@ class JValuesTest {
 
 //todo
 // add parseJson from InputStream
+// add a method to compare json equivalent content
 // add test example with Java
 // add Converters for all java.time, GUUID, URI, etc.
 // measure performance against other libs

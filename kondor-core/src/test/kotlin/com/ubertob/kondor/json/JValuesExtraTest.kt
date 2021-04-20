@@ -116,11 +116,11 @@ class JValuesExtraTest {
 
         expectThat(json).isEqualTo(
             """{
-  "selected": true,
-  "name": "filename",
   "date": 0,
-  "size": 123,
-  "folderPath": "/"
+  "folderPath": "/",
+  "name": "filename",
+  "selected": true,
+  "size": 123
 }""".trimIndent()
         )
 

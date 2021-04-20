@@ -261,6 +261,7 @@ fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returnin
                 offset + indent + indent
             )
         }
+            .sorted()
             .joinToString(
                 prefix = "{${br(offset + indent)}",
                 postfix = "${br(offset)}}",
@@ -271,7 +272,7 @@ fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returnin
 private fun br(offset: Int): String = "\n" + " ".repeat(offset)
 
 
-val regex = """[\\\"\n\r\t]""".toRegex()
+val regex = """[\\"\n\r\t]""".toRegex()
 private fun String.putInQuotes(): String =
     replace(regex) { m ->
         when (m.value) {

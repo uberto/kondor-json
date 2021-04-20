@@ -37,3 +37,4 @@ fun <T : Any> JConverter<T>.toBodyLens(vararg metas: Meta): BiDiBodyLens<T> =
     httpBodyRoot(metas.toList(), APPLICATION_JSON, ContentNegotiation.None)
         .map({ fromJson(it.payload.asString()).orThrow() }, { Body(toJson(it)) })
         .toLens()
+
