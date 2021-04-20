@@ -7,7 +7,9 @@ import com.ubertob.kondor.json.JsonNodeObject
 import java.io.StringWriter
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.KTypeProjection
 import kotlin.reflect.full.createType
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 
 interface RemoveMe //only used to be removed later
@@ -51,20 +53,21 @@ private fun createConverterFor(kClass: KClass<*>): TypeSpec =
 private fun generateRightConverter(
     kClass: KClass<*>,
     prop: KProperty1<out Any, *>
-) = when (prop.returnType) {
-    Boolean::class.createType() -> "bool(${kClass.simpleName}::${prop.name})"
-    Double::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
-    Long::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
-    Int::class.createType() -> "num(${kClass.simpleName}::${prop.name})"
-    String::class.createType() -> "str(${kClass.simpleName}::${prop.name})"
+) = when {
+    prop.returnType == Boolean::class.createType() -> "bool(${kClass.simpleName}::${prop.name})"
+    prop.returnType.isSubtypeOf(Number::class.createType()) -> "num(${kClass.simpleName}::${prop.name})"
+    prop.returnType.isSubtypeOf(CharSequence::class.createType()) -> "str(${kClass.simpleName}::${prop.name})"
+    prop.returnType.isSubtypeOf(Enum::class.createType(listOf(KTypeProjection.STAR))) -> "str(${kClass.simpleName}::${prop.name})"
+    prop.returnType.isSubtypeOf(Iterable::class.createType(listOf(KTypeProjection.STAR))) -> "array(J${prop.genericClassName()}, ${kClass.simpleName}::${prop.name})"
     else -> "obj(J${prop.simpleClassName()}, ${kClass.simpleName}::${prop.name})"
-//enum, objects, collections...
 }
 
 private fun KProperty1<out Any, *>.simpleClassName() =
     ClassName.bestGuess(returnType.asTypeName().toString()).simpleName
 // .also{   println("!!!${prop.name}  ${prop.returnType.asTypeName()}") }
 
+private fun KProperty1<out Any, *>.genericClassName() =
+    ClassName.bestGuess(returnType.arguments.first().type?.asTypeName().toString()).simpleName
 
 private fun KClass<*>.generateNamedParams(): String =
     memberProperties.joinToString(

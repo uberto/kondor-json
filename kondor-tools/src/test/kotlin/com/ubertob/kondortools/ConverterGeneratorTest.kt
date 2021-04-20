@@ -7,8 +7,9 @@ import strikt.assertions.contains
 data class User(val id: Int, val name: String, val isAdmin: Boolean)
 enum class Roles { Admin, ReadWrite, ReadOnly }
 data class Grant(val user: User, val role: Roles)
+data class App(val name: String, val users: Set<User>)
 
-class GenerationTest {
+class ConverterGeneratorTest {
 
     @Test
     fun `generate converter from User data class`() {
@@ -59,7 +60,33 @@ object JGrant : JAny<Grant>() {
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
 
-        //WIP        expectThat(kotlinCode).contains(expected)
+        expectThat(kotlinCode).contains(expected)
+    }
+
+
+    @Test
+    fun `generate converter from App data class`() {
+
+        val expected = """
+object JApp : JAny<App>() {
+  private val name by str(App::name)
+
+  private val users by array(JUser, App::users)
+
+  public override fun JsonNodeObject.deserializeOrThrow(): App = 
+      App(
+        name = +name,
+        users = +users
+      )
+}"""
+
+        val kotlinCode = generateConverterFileFor(App::class)
+
+
+        println("identical: ${kotlinCode == expected}")
+        println("generated:\n$kotlinCode")
+
+        expectThat(kotlinCode).contains(expected)
     }
 
     //add more tests with obj fields, array, sealed classes etc.
