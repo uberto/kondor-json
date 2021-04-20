@@ -63,11 +63,18 @@ private fun generateRightConverter(
 }
 
 private fun KProperty1<out Any, *>.simpleClassName() =
-    ClassName.bestGuess(returnType.asTypeName().toString()).simpleName
-// .also{   println("!!!${prop.name}  ${prop.returnType.asTypeName()}") }
+    try {
+        ClassName.bestGuess(returnType.asTypeName().toString()).simpleName
+    } catch (t: Throwable) {
+        "xxx"
+    }
 
 private fun KProperty1<out Any, *>.genericClassName() =
-    ClassName.bestGuess(returnType.arguments.first().type?.asTypeName().toString()).simpleName
+    try {
+        ClassName.bestGuess(returnType.arguments.first().type?.asTypeName().toString()).simpleName
+    } catch (t: Throwable) {
+        "xxx"
+    }
 
 private fun KClass<*>.generateNamedParams(): String =
     memberProperties.joinToString(
