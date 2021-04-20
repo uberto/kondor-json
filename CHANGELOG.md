@@ -5,7 +5,7 @@ rationale when appropriate:
 
 ### v1.4.4 - 20 Apr 2021
 
-Pretty render sort json entries for objects
+PrettyRender sorts json entries for objects
 
 ### v1.4.3 - 10 Apr 2021
 
