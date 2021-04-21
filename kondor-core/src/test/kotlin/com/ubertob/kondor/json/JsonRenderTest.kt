@@ -78,11 +78,15 @@ class JsonRenderTest {
 
     @Test
     fun `pretty render array`() {
-        val jsonString =
-            JsonNodeArray(
-                listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)),
-                NodePathRoot
-            ).pretty(false, 2)
+        val nodeArray = JsonNodeArray(
+            listOf(
+                JsonNodeString("abc", NodePathRoot),
+                JsonNodeNull(NodePathRoot),
+                JsonNodeString("def", NodePathRoot)
+            ),
+            NodePathRoot
+        )
+        val jsonString = nodeArray.pretty(false, 2)
 
         expectThat(jsonString).isEqualTo(
             """[
@@ -90,6 +94,17 @@ class JsonRenderTest {
             |  "def"
             |]""".trimMargin()
         )
+
+        val jsonStringNN = nodeArray.pretty(true, 2)
+
+        expectThat(jsonStringNN).isEqualTo(
+            """[
+            |  "abc",
+            |  null,
+            |  "def"
+            |]""".trimMargin()
+        )
+
     }
 
     @Test
@@ -148,16 +163,17 @@ class JsonRenderTest {
     }
 
     @Test
-    fun `render object with null`() {
+    fun `render object with null explicit`() {
         val path = NodePathRoot
-        val jsonString = JsonNodeObject(
+        val nodeObject = JsonNodeObject(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal(), path),
                 "name" to JsonNodeString("Ann", path),
                 "somethingelse" to JsonNodeNull(path)
             ),
             NodePathRoot
-        ).pretty(true, 2)
+        )
+        val jsonString = nodeObject.pretty(true, 2)
 
         val expected = """{
               |  "id": 123,
@@ -165,6 +181,14 @@ class JsonRenderTest {
               |  "somethingelse": null
               |}""".trimMargin()
         expectThat(jsonString).isEqualTo(expected)
+
+        val jsonStringNN = nodeObject.pretty(false, 2)
+
+        val expectedNN = """{
+              |  "id": 123,
+              |  "name": "Ann"
+              |}""".trimMargin()
+        expectThat(jsonStringNN).isEqualTo(expectedNN)
     }
 
 }

@@ -238,8 +238,8 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
         is JsonNodeString -> text.putInQuotes()
         is JsonNodeBoolean -> value.toString()
         is JsonNodeNumber -> num.toString()
-        is JsonNodeArray -> notNullEntries.map { it.render() }.joinToString(prefix = "[", postfix = "]")
-        is JsonNodeObject -> notNullEntries.map { it.key.putInQuotes() + ": " + it.value.render() }
+        is JsonNodeArray -> notNullValues.map { it.render() }.joinToString(prefix = "[", postfix = "]")
+        is JsonNodeObject -> notNullFields.map { it.key.putInQuotes() + ": " + it.value.render() }
             .joinToString(prefix = "{", postfix = "}")
     }
 
@@ -251,13 +251,19 @@ fun JsonNode.pretty(explicitNull: Boolean, indent: Int, offset: Int = 0): String
         is JsonNodeString -> render()
         is JsonNodeBoolean -> render()
         is JsonNodeNumber -> render()
-        is JsonNodeArray -> values.map { it.pretty(explicitNull, indent, offset + indent + indent) }
+        is JsonNodeArray -> valuesFiltered(explicitNull).map {
+            it.pretty(
+                explicitNull,
+                indent,
+                offset + indent + indent
+            )
+        }
             .joinToString(
                 prefix = "[${br(offset + indent)}",
                 postfix = "${br(offset)}]",
                 separator = ",${br(offset + indent)}"
             )
-        is JsonNodeObject -> fieldMap.entries.map {
+        is JsonNodeObject -> fieldsFiltered(explicitNull).map {
             it.key.putInQuotes() + ": " + it.value.pretty(
                 explicitNull, indent,
                 offset + indent + indent
@@ -270,6 +276,12 @@ fun JsonNode.pretty(explicitNull: Boolean, indent: Int, offset: Int = 0): String
                 separator = ",${br(offset + indent)}"
             )
     }
+
+private fun JsonNodeObject.fieldsFiltered(explicitNull: Boolean) =
+    if (explicitNull) fieldMap.entries else notNullFields
+
+private fun JsonNodeArray.valuesFiltered(explicitNull: Boolean) =
+    if (explicitNull) values else notNullValues
 
 private fun br(offset: Int): String = "\n" + " ".repeat(offset)
 

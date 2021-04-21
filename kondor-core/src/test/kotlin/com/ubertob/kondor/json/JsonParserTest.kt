@@ -10,9 +10,6 @@ import kotlin.random.Random
 
 class JsonParserTest {
 
-
-
-
     @Test
     fun `parse Boolean`() {
 
@@ -196,13 +193,14 @@ class JsonParserTest {
     fun `parse array`() {
 
         val jsonString = """
-            ["abc", "def"]
+            ["abc", null, "def"]
         """.trimIndent()
 
         val tokens = JsonLexer(jsonString).tokenize()
 
         val nodes = parseJsonNodeArray(tokens, NodePathRoot).expectSuccess()
 
+        expectThat(nodes.values.count()).isEqualTo(3)
         expectThat(nodes.render()).isEqualTo("""["abc", "def"]""")
         expectThat(tokens.position()).isEqualTo(jsonString.length)
     }
@@ -272,6 +270,8 @@ class JsonParserTest {
             tokens,
             NodePathRoot
         ).expectSuccess()
+
+        expectThat(nodes.fieldMap.size).isEqualTo(3)
 
         val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
