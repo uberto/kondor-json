@@ -22,7 +22,7 @@ interface ObjectNodeConverter<T : Any> : JsonAdjunction<T, JsonNodeObject> {
 
     fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
 
-    override fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean): JsonNodeObject =
+    override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
         getWriters(value)
             .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
                 writer(acc, value)

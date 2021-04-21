@@ -36,7 +36,7 @@ interface JsonAdjunction<T, JN : JsonNode> {
 
     fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
-    fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean = false): JN
+    fun toJsonNode(value: T, path: NodePath): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         nodeType.parse(this, NodePathRoot)
@@ -58,10 +58,10 @@ interface JsonAdjunction<T, JN : JsonNode> {
 }
 
 fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toPrettyJson(value: T): String =
-    toJsonNode(value, NodePathRoot).pretty(2)
+    toJsonNode(value, NodePathRoot).pretty(false, 2)
 
 fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toNullJson(value: T): String =
-    toJsonNode(value, NodePathRoot, true).pretty(2)
+    toJsonNode(value, NodePathRoot).pretty(true, 2)
 
 
 

@@ -9,7 +9,7 @@ import java.math.BigDecimal
 object JBoolean : JsonAdjunction<Boolean, JsonNodeBoolean> {
 
     override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.value.asSuccess()
-    override fun toJsonNode(value: Boolean, path: NodePath, explicitNull: Boolean): JsonNodeBoolean =
+    override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
         JsonNodeBoolean(value, path)
 
     override val nodeType = BooleanNode
@@ -19,7 +19,7 @@ object JBoolean : JsonAdjunction<Boolean, JsonNodeBoolean> {
 object JString : JsonAdjunction<String, JsonNodeString> {
 
     override fun fromJsonNode(node: JsonNodeString): JsonOutcome<String> = node.text.asSuccess()
-    override fun toJsonNode(value: String, path: NodePath, explicitNull: Boolean): JsonNodeString =
+    override fun toJsonNode(value: String, path: NodePath): JsonNodeString =
         JsonNodeString(value, path)
 
     override val nodeType = StringNode
@@ -58,7 +58,7 @@ abstract class JNumRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeNumber> 
     abstract val render: (T) -> BigDecimal
 
     override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> = tryFromNode(node) { cons(node.num) }
-    override fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean): JsonNodeNumber =
+    override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =
         JsonNodeNumber(render(value), path)
 
     override val nodeType = NumberNode
@@ -69,7 +69,7 @@ abstract class JStringRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeStrin
     abstract val render: (T) -> String
 
     override fun fromJsonNode(node: JsonNodeString): JsonOutcome<T> = tryFromNode(node) { cons(node.text) }
-    override fun toJsonNode(value: T, path: NodePath, explicitNull: Boolean): JsonNodeString =
+    override fun toJsonNode(value: T, path: NodePath): JsonNodeString =
         JsonNodeString(render(value), path)
 
     override val nodeType = StringNode
@@ -86,7 +86,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
         mapFromArray(node, converter::fromJsonNodeBase)
             .transform { convertToCollection(it) }
 
-    override fun toJsonNode(value: CT, path: NodePath, explicitNull: Boolean): JsonNodeArray =
+    override fun toJsonNode(value: CT, path: NodePath): JsonNodeArray =
         mapToJson(value, converter::toJsonNode, path)
 
     private fun <T : Any> mapToJson(objs: Iterable<T>, f: (T, NodePath) -> JsonNode, path: NodePath): JsonNodeArray =

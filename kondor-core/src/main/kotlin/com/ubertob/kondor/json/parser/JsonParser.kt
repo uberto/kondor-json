@@ -238,18 +238,20 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
         is JsonNodeString -> text.putInQuotes()
         is JsonNodeBoolean -> value.toString()
         is JsonNodeNumber -> num.toString()
-        is JsonNodeArray -> values.map { it.render() }.joinToString(prefix = "[", postfix = "]")
-        is JsonNodeObject -> fieldMap.entries.map { it.key.putInQuotes() + ": " + it.value.render() }
+        is JsonNodeArray -> notNullEntries.map { it.render() }.joinToString(prefix = "[", postfix = "]")
+        is JsonNodeObject -> notNullEntries.map { it.key.putInQuotes() + ": " + it.value.render() }
             .joinToString(prefix = "{", postfix = "}")
     }
 
-fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returning StringBuilder for perf?
+
+fun JsonNode.pretty(explicitNull: Boolean, indent: Int, offset: Int = 0): String =
+    //todo: try returning StringBuilder for perf?
     when (this) {
         is JsonNodeNull -> render()
         is JsonNodeString -> render()
         is JsonNodeBoolean -> render()
         is JsonNodeNumber -> render()
-        is JsonNodeArray -> values.map { it.pretty(indent, offset + indent + indent) }
+        is JsonNodeArray -> values.map { it.pretty(explicitNull, indent, offset + indent + indent) }
             .joinToString(
                 prefix = "[${br(offset + indent)}",
                 postfix = "${br(offset)}]",
@@ -257,7 +259,7 @@ fun JsonNode.pretty(indent: Int, offset: Int = 0): String = //todo: try returnin
             )
         is JsonNodeObject -> fieldMap.entries.map {
             it.key.putInQuotes() + ": " + it.value.pretty(
-                indent,
+                explicitNull, indent,
                 offset + indent + indent
             )
         }

@@ -18,13 +18,19 @@ sealed class JsonNode {
         }
 }
 
+typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
 data class JsonNodeNull(override val path: NodePath) : JsonNode()
 data class JsonNodeBoolean(val value: Boolean, override val path: NodePath) : JsonNode()
 data class JsonNodeNumber(val num: BigDecimal, override val path: NodePath) : JsonNode()
 data class JsonNodeString(val text: String, override val path: NodePath) : JsonNode()
-data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: NodePath) : JsonNode()
+data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: NodePath) : JsonNode() {
+    val notNullEntries: List<JsonNode> = values.filter { it.nodeKind() != NullNode }
+}
+
 data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path: NodePath) : JsonNode() {
+
+    val notNullEntries: List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind() != NullNode }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(this@JsonNodeObject)

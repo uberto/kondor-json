@@ -273,7 +273,7 @@ class JsonParserTest {
             NodePathRoot
         ).expectSuccess()
 
-        val expected = """{"id": 123, "name": "Ann", "somethingelse": null}"""
+        val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
         expectThat(tokens.position()).isEqualTo(jsonString.length)
     }

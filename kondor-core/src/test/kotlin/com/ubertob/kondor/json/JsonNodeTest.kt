@@ -26,7 +26,7 @@ class JsonNodeTest {
         val jn2 = ObjectNode.parse(JsonLexer(json2).tokenize(), NodePathRoot).expectSuccess()
 
 
-        expectThat(jn1.pretty(2)).isEqualTo(jn2.pretty(2))
+        expectThat(jn1.pretty(true, 2)).isEqualTo(jn2.pretty(true, 2))
 
         expectThat(jn1).isEqualTo(jn2)
 

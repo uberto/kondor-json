@@ -54,7 +54,24 @@ class JsonRenderTest {
     @Test
     fun `render array`() {
         val jsonString =
-            JsonNodeArray(listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)), NodePathRoot).render()
+            JsonNodeArray(
+                listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)),
+                NodePathRoot
+            ).render()
+
+        expectThat(jsonString).isEqualTo("""["abc", "def"]""")
+    }
+
+    @Test
+    fun `render array with nulls`() {
+        val jsonString =
+            JsonNodeArray(
+                listOf(
+                    JsonNodeString("abc", NodePathRoot),
+                    JsonNodeNull(NodePathRoot),
+                    JsonNodeString("def", NodePathRoot)
+                ), NodePathRoot
+            ).render()
 
         expectThat(jsonString).isEqualTo("""["abc", "def"]""")
     }
@@ -62,7 +79,10 @@ class JsonRenderTest {
     @Test
     fun `pretty render array`() {
         val jsonString =
-            JsonNodeArray(listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)), NodePathRoot).pretty(2)
+            JsonNodeArray(
+                listOf(JsonNodeString("abc", NodePathRoot), JsonNodeString("def", NodePathRoot)),
+                NodePathRoot
+            ).pretty(false, 2)
 
         expectThat(jsonString).isEqualTo(
             """[
@@ -75,7 +95,26 @@ class JsonRenderTest {
     @Test
     fun `render object`() {
         val jsonString = JsonNodeObject(
-            mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot), "name" to JsonNodeString("Ann", NodePathRoot)),
+            mapOf(
+                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot)
+            ),
+            NodePathRoot
+        ).render()
+
+        val expected = """{"id": 123, "name": "Ann"}"""
+        expectThat(jsonString).isEqualTo(expected)
+    }
+
+
+    @Test
+    fun `render object with nulls`() {
+        val jsonString = JsonNodeObject(
+            mapOf(
+                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot),
+                "nullable" to JsonNodeNull(NodePathRoot)
+            ),
             NodePathRoot
         ).render()
 
@@ -90,9 +129,12 @@ class JsonRenderTest {
             val indent = Random.nextInt(4)
             val offset = Random.nextInt(10)
             val jsonString = JsonNodeObject(
-                mapOf("id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot), "name" to JsonNodeString("Ann", NodePathRoot)),
+                mapOf(
+                    "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                    "name" to JsonNodeString("Ann", NodePathRoot)
+                ),
                 NodePathRoot
-            ).pretty(indent, offset)
+            ).pretty(false, indent, offset)
 
 
             val external = " ".repeat(offset)
@@ -115,9 +157,13 @@ class JsonRenderTest {
                 "somethingelse" to JsonNodeNull(path)
             ),
             NodePathRoot
-        ).render()
+        ).pretty(true, 2)
 
-        val expected = """{"id": 123, "name": "Ann", "somethingelse": null}"""
+        val expected = """{
+              |  "id": 123,
+              |  "name": "Ann",
+              |  "somethingelse": null
+              |}""".trimMargin()
         expectThat(jsonString).isEqualTo(expected)
     }
 
