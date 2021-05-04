@@ -2,7 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.extract
+import com.ubertob.kondor.outcome.extractList
 import java.math.BigDecimal
 
 
@@ -43,13 +43,13 @@ object JLong : JNumRepresentable<Long>() {
 }
 
 fun <T : Any> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
-    Outcome.tryThis {
+    Outcome.tryOrFail {
         f()
     }.transformFailure { throwableError ->
-        when (throwableError.t) {
-            is JsonParsingException -> throwableError.t.error // keep path info
+        when (val throwable = throwableError.throwable) {
+            is JsonParsingException -> throwable.error // keep path info
             is IllegalStateException -> JsonError(node.path, throwableError.msg)
-            else -> JsonError(node.path, "Caught exception: ${throwableError.t}")
+            else -> JsonError(node.path, "Caught exception: $throwable")
         }
     }
 
@@ -96,7 +96,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
         node: JsonNodeArray,
         f: (JsonNode) -> JsonOutcome<T?>
     ): JsonOutcome<Iterable<T>> = node.values.map(f)
-        .extract()
+        .extractList()
         .transform { it.filterNotNull() }
 
 }

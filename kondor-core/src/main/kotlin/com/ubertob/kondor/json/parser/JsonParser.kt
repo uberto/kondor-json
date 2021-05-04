@@ -1,7 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.Outcome.Companion.tryThis
+import com.ubertob.kondor.outcome.Outcome.Companion.tryOrFail
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
@@ -13,15 +13,15 @@ inline fun <T> tryParse(
     path: NodePath,
     f: () -> T
 ): Outcome<JsonError, T> =
-    tryThis(f).transformFailure {
-        when (it.t) {
-            is NumberFormatException ->
-                parsingError(expected, "$actual", position, path, it.msg)
-            else ->
-                parsingError(expected, "${it.msg} after $actual", position, path, "Invalid Json")
+    tryOrFail(f)
+        .transformFailure {
+            when (it.throwable) {
+                is NumberFormatException ->
+                    parsingError(expected, "$actual", position, path, it.msg)
+                else ->
+                    parsingError(expected, "${it.msg} after $actual", position, path, "Invalid Json")
+            }
         }
-
-    }
 
 sealed class KondorToken
 object OpeningQuotes : KondorToken() {

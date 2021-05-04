@@ -242,3 +242,4 @@ class JValuesTest {
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)
 // add support to serialize calculated fields
+// use Kotlin require() and check() contracts

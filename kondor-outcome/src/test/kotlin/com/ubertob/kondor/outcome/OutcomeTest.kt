@@ -1,6 +1,5 @@
 package com.ubertob.kondor.outcome
 
-import com.ubertob.kondor.expectSuccess
 import org.junit.jupiter.api.Test
 
 internal class OutcomeTest {

@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    api project(":kondor-outcome")
 
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation "io.strikt:strikt-core:$striktVersion"
@@ -26,12 +25,12 @@ tasks {
     }
 }
 
-archivesBaseName = 'kondor-core'
+archivesBaseName = 'kondor-outcome'
 
 modifyPom {
     project {
-        name 'kondor'
-        description 'A Kotlin library to use Json in functional way without reflection'
+        name 'kondor-outcome'
+        description 'A Kotlin specialized Either type for wrapping results in a functional way'
         url 'https://github.com/uberto/kondor-json'
         inceptionYear '2021'
         scm {
