@@ -12,7 +12,7 @@ class JsonLexer(val jsonStr: CharSequence) {
 
     fun tokenize(): TokensStream =
         sequence {
-            val currToken = StringBuilder()  //replace with index and substring for perf
+            val currToken = StringBuilder()
             var state = OutString
             jsonStr.forEach { char ->
                 pos.incrementAndGet()

@@ -153,12 +153,12 @@ fun parseJsonNodeArray(
         if (openBraket != OpeningBracket)
             return parsingFailure("'['", openBraket, tokens.position(), path, "missing opening bracket")
         else {
-            var currToken = tokens.peek()
+            var currToken = tokens.peek() //add a tokens foldOutcome
             if (currToken == ClosingBracket)
-                tokens.next()//consume it
+                tokens.next()//consume it for the case of []
             val nodes = mutableListOf<JsonNode>()
             var currNode = 0
-            while (currToken != ClosingBracket) { //todo: use fold/recursion here
+            while (currToken != ClosingBracket) {
                 nodes.add(
                     parseNewNode(tokens, NodePathSegment("[${currNode++}]", path))
                         .onFailure { return it.asFailure() })
@@ -173,24 +173,19 @@ fun parseJsonNodeArray(
 
 fun parseJsonNodeObject(
     tokens: TokensStream,
-    path: NodePath   //todo add more context to NodePath? like the field type, expected values...
-): Outcome<JsonError, JsonNodeObject> =
+    path: NodePath
+): Outcome<JsonError, JsonNodeObject> =  //TODO remove non local returns...
     tryParse("an Object", tokens.peek(), tokens.position(), path) {
         val openCurly = tokens.next()
-        if (openCurly != OpeningCurly) return parsingFailure(
-            "'{'",
-            openCurly,
-            tokens.position(),
-            path,
-            "missing opening curly"
-        )
+        if (openCurly != OpeningCurly)
+            return parsingFailure("'{'", openCurly, tokens.position(), path, "missing opening curly")
         else {
             var currToken = tokens.peek()
             if (currToken == ClosingCurly)
                 tokens.next()//consume it
 
             val keys = mutableMapOf<String, JsonNode>()
-            while (currToken != ClosingCurly) { //todo: use fold/recursion here
+            while (currToken != ClosingCurly) { //add a tokens foldOutcome
                 val keyName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
                 if (keyName in keys)
                     return parsingFailure("a unique key", keyName, tokens.position(), path, "duplicated key")
@@ -245,7 +240,6 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
 
 
 fun JsonNode.pretty(explicitNull: Boolean, indent: Int, offset: Int = 0): String =
-    //todo: try returning StringBuilder for perf?
     when (this) {
         is JsonNodeNull -> render()
         is JsonNodeString -> render()
