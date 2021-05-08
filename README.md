@@ -20,13 +20,13 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.4.5</version>
+   <version>1.5.0</version>
 </dependency>
 ```
 
 Gradle
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:1.4.5'
+implementation 'com.ubertob.kondor:kondor-core:1.5.0'
 ```
 
 ## Quick Start
@@ -122,9 +122,10 @@ The possible solutions we examined were:
 
 - Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our types with fields heavily annotated.
 
-- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based on reflection. 
-  
-So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple DSL.
+- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based on reflection.
+
+So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple
+DSL.
 
 The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So
 instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the
@@ -180,10 +181,16 @@ val invoice: Invoice = JInvoice.fromJson(invoiceJsonString)
 val json: String = JInvoice.toPrettyJson(invoice) 
 ```
 
-Comparing with a solution involving writing DTOs, you need to write less code using converters. Even without considering
-DTOs, the time needed to write the converters is roughly the same than to annotate the classes one by one, but it's
-easier and more IDE friendly to create the converter. For example if you attach `JField` to a nullable field of your
-domain class, it will not compile.
+The converters itself can be generated from the domain classes, you only have to copy and paste them in your code base,
+and adapting them as you need. Note that there is no automatic update if you change the data class, this is the whole
+point of Kondor-Json.
+
+To have a play with generators, look at `kondor-tools` module.
+
+Comparing with a solution involving writing DTOs, you need to much less code using converters (especially if you use the
+generator). Even without considering DTOs, the time needed to write the converters is roughly the same than to annotate
+the classes one by one, but it's easier and more IDE friendly to create the converter. For example if you
+attach `JField` to a nullable field of your domain class, it will not compile.
 
 No need to browse StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write
 new ones.
@@ -195,6 +202,7 @@ Finally in case of errors, the messages are very friendly and precise:
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
 ```
+
 ## How It Works
 
 To you Kondor you need to define a Converter for each type (or class of types).
