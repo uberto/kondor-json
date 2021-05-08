@@ -2,7 +2,7 @@ package com.ubertob.kondortools
 
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.contains
+import strikt.assertions.isEqualTo
 
 data class User(val id: Int, val name: String, val isAdmin: Boolean)
 enum class Roles { Admin, ReadWrite, ReadOnly }
@@ -14,45 +14,51 @@ class ConverterGeneratorTest {
     @Test
     fun `generate converter from User data class`() {
 
-        val expected = """object JUser : JAny<User>() {
+        val expected = """import com.ubertob.kondor.json.*
+import com.ubertob.kondortools.User
+
+object JUser : JAny<User>() {
   private val id by num(User::id)
 
   private val isAdmin by bool(User::isAdmin)
 
   private val name by str(User::name)
 
-  public override fun JsonNodeObject.deserializeOrThrow(): User = 
+  override fun JsonNodeObject.deserializeOrThrow(): User = 
       User(
         id = +id,
         isAdmin = +isAdmin,
         name = +name
       )
-}"""
+}
+"""
 
-        val kotlinCode = generateConverterFileFor(User::class, Grant::class)
-
+        val kotlinCode = generateConverterFileFor(User::class)
 
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
-        expectThat(kotlinCode).contains(expected)
+        expectThat(kotlinCode).isEqualTo(expected)
     }
 
 
     @Test
     fun `generate converter from Grant data class`() {
 
-        val expected = """
+        val expected = """import com.ubertob.kondor.json.*
+import com.ubertob.kondortools.Grant
+
 object JGrant : JAny<Grant>() {
   private val role by str(Grant::role)
 
   private val user by obj(JUser, Grant::user)
 
-  public override fun JsonNodeObject.deserializeOrThrow(): Grant = 
+  override fun JsonNodeObject.deserializeOrThrow(): Grant = 
       Grant(
         role = +role,
         user = +user
       )
-}"""
+}
+"""
 
         val kotlinCode = generateConverterFileFor(Grant::class)
 
@@ -60,25 +66,28 @@ object JGrant : JAny<Grant>() {
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
 
-        expectThat(kotlinCode).contains(expected)
+        expectThat(kotlinCode).isEqualTo(expected)
     }
 
 
     @Test
     fun `generate converter from App data class`() {
 
-        val expected = """
+        val expected = """import com.ubertob.kondor.json.*
+import com.ubertob.kondortools.App
+
 object JApp : JAny<App>() {
   private val name by str(App::name)
 
   private val users by array(JUser, App::users)
 
-  public override fun JsonNodeObject.deserializeOrThrow(): App = 
+  override fun JsonNodeObject.deserializeOrThrow(): App = 
       App(
         name = +name,
         users = +users
       )
-}"""
+}
+"""
 
         val kotlinCode = generateConverterFileFor(App::class)
 
@@ -86,7 +95,7 @@ object JApp : JAny<App>() {
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
 
-        expectThat(kotlinCode).contains(expected)
+        expectThat(kotlinCode).isEqualTo(expected)
     }
 
     //add more tests with obj fields, array, sealed classes etc.

@@ -23,10 +23,17 @@ fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
     fileBuilder.build().writeTo(sw)
     val output = sw.toString()
         .replace(": RemoveMe", "")
+        .replace("import com.ubertob.kondortools.RemoveMe\n", "")
+        .replace("import com.ubertob.kondor.json.(.*)\n".toRegex(), "")
+        .insert("import com.ubertob.kondor.json.*\n")
         .replace("public object", "object")
+        .replace("public override", "override")
 
     return output
 }
+
+private fun String.insert(prefix: String): String =
+    prefix + this
 
 private fun createConverterFor(kClass: KClass<*>): TypeSpec =
     TypeSpec.objectBuilder("J${kClass.simpleName}")
