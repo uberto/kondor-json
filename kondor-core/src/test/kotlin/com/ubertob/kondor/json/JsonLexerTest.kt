@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json
 
-import JsonLexer
+import com.ubertob.kondor.json.parser.*
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo

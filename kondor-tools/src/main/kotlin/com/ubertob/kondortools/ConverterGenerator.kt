@@ -3,7 +3,7 @@ package com.ubertob.kondortools
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.ubertob.kondor.json.JAny
-import com.ubertob.kondor.json.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import java.io.StringWriter
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1

@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.extractList

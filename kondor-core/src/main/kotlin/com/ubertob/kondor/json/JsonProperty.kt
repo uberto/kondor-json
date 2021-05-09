@@ -1,5 +1,9 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeNull
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePathSegment
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess

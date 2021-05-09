@@ -1,7 +1,10 @@
 package com.ubertob.kondor.json
 
-import JsonLexer
 import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.json.parser.JsonLexer
+import com.ubertob.kondor.json.parser.pretty
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo

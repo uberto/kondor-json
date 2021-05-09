@@ -1,10 +1,24 @@
+#!/bin/bash
+
+if [ $# -eq 0 ]; then
+  echo "You need to pass the version! (and nothing else)"
+  exit 1
+fi
+
 # Steps:
-# remove snapshot from the version manually in build.gradle
+# verify it's all working with a
+./gradlew clean build
+
+# update the version in build.gradle
+ver=$(grep "version '" build.gradle)
+echo currrent: $ver
+#grep from
+echo updating to $1
 # update the README.md
 # check the CHANGELOG.md
-# verify it's all working with a ./gradlew clean build
-# launch:
 
+exit 0
+# launch:
 ./gradlew uploadArchives -p kondor-core
 ./gradlew uploadArchives -p kondor-tools
 ./gradlew uploadArchives -p kondor-outcome

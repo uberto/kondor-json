@@ -1,4 +1,4 @@
-package com.ubertob.kondor.json
+package com.ubertob.kondor.json.jsonnode
 
 sealed class NodePath()
 object NodePathRoot : NodePath()

@@ -3,6 +3,8 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.*
 import com.ubertob.kondor.json.datetime.num
 import com.ubertob.kondor.json.datetime.str
+import com.ubertob.kondor.json.jsonnode.ArrayNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant

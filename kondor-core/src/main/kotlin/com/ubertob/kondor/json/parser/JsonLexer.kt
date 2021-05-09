@@ -1,5 +1,6 @@
-import LexerState.*
-import com.ubertob.kondor.json.*
+package com.ubertob.kondor.json.parser
+
+import com.ubertob.kondor.json.parser.LexerState.*
 import java.util.concurrent.atomic.AtomicInteger
 
 enum class LexerState {

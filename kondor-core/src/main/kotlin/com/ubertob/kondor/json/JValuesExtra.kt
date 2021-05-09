@@ -1,5 +1,8 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePathSegment
 import com.ubertob.kondor.outcome.failIfNull
 import java.math.BigDecimal
 import java.math.BigInteger

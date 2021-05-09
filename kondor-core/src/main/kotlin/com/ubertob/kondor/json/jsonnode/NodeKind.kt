@@ -1,4 +1,7 @@
-package com.ubertob.kondor.json
+package com.ubertob.kondor.json.jsonnode
+
+import com.ubertob.kondor.json.JsonOutcome
+import com.ubertob.kondor.json.parser.*
 
 sealed class NodeKind<JN : JsonNode>(
     val desc: String,

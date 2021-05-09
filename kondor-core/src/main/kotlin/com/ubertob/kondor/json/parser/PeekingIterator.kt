@@ -1,4 +1,4 @@
-package com.ubertob.kondor.json
+package com.ubertob.kondor.json.parser
 
 interface PeekingIterator<T> : Iterator<T> {
     fun peek(): T

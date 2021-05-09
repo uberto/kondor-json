@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.randomList
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

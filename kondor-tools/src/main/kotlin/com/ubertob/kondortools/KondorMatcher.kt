@@ -1,9 +1,9 @@
 package com.ubertob.kondortools
 
-import JsonLexer
-import com.ubertob.kondor.json.NodePathRoot
-import com.ubertob.kondor.json.ObjectNode
-import com.ubertob.kondor.json.pretty
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.json.parser.JsonLexer
+import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.outcome.*
 
 
