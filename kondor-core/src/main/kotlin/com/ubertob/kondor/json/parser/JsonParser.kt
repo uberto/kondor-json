@@ -3,11 +3,8 @@ package com.ubertob.kondor.json.parser
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.*
 import com.ubertob.kondor.outcome.Outcome.Companion.tryOrFail
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
 private inline fun <T> tryParse(
@@ -27,19 +24,26 @@ private inline fun <T> tryParse(
             }
         }
 
+data class TokensPath(val tokens: TokensStream, val path: NodePath)
+
 fun <T> tryParseBind(
     expected: String,
-    actual: KondorToken,
-    position: Int,
+    tokens: TokensStream,
     path: NodePath,
-    f: () -> Outcome<JsonError, T>
+    f: TokensPath.() -> Outcome<JsonError, T>
 ): Outcome<JsonError, T> =
     try {
-        f()
+        f(TokensPath(tokens, path))
     } catch (t: NumberFormatException) {
-        parsingError(expected, "$actual", position, path, t.message.orEmpty()).asFailure()
+        parsingError(expected, tokens.last().toString(), tokens.position(), path, t.message.orEmpty()).asFailure()
     } catch (t: Throwable) {
-        parsingError(expected, "${t.message.orEmpty()} after $actual", position, path, "Invalid Json").asFailure()
+        parsingError(
+            expected,
+            "${t.message.orEmpty()} after ${tokens.last()}",
+            tokens.position(),
+            path,
+            "Invalid Json"
+        ).asFailure()
     }
 
 
@@ -59,31 +63,69 @@ fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
 ): JsonOutcome<JsonNodeBoolean> =
-    tryParseBind("a Boolean", tokens.peek(), tokens.position(), path) {
-        boolean(tokens, path)
+    tryParseBind("a Boolean", tokens, path) {
+        boolean()
     }
 
 fun parseJsonNodeNum(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNumber> =
-    tryParseBind("a Number", tokens.peek(), tokens.position(), path) {
-        number(tokens, path)
+    tryParseBind("a Number", tokens, path) {
+        number()
     }
 
 fun parseJsonNodeNull(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNull> =
-    tryParseBind("a Null", tokens.peek(), tokens.position(), path) {
-        explicitNull(tokens, path)
+    tryParseBind("a Null", tokens, path) {
+        explicitNull()
+    }
+
+typealias JsonParser<T> = (TokensPath) -> JsonOutcome<T>
+
+infix fun <T> KondorToken.`(`(content: JsonParser<T>): JsonParser<T> = { tokensPath ->
+    val token = tokensPath.tokens.next()
+    if (token != this)
+        parsingFailure(
+            this.toString(),
+            token,
+            tokensPath.tokens.position(),
+            tokensPath.path,
+            "missing ${this}"
+        )
+    else
+        content(tokensPath)
+}
+
+
+infix fun <T> JsonParser<T>.`)`(expected: KondorToken): JsonParser<T> = { tokensPath ->
+    this(tokensPath).bind {
+        val token = tokensPath.tokens.next()
+        if (token != token)
+            parsingFailure(
+                expected.toString(),
+                token,
+                tokensPath.tokens.position(),
+                tokensPath.path,
+                "missing ${expected}"
+            )
+        else
+            it.asSuccess()
+    }
+}
+
+fun parseJsonNodeString(
+    tokens: TokensStream,
+    path: NodePath
+): Outcome<JsonError, JsonNodeString> =
+    tryParseBind("a String", tokens, path) {
+        (OpeningQuotes `(` ::string `)` ClosingQuotes)(this)
     }
 
 
-private fun boolean(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeBoolean> =
+private fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
     when (val token = tokens.next()) {
         Value("true") -> true.asSuccess()
         Value("false") -> false.asSuccess()
@@ -91,55 +133,27 @@ private fun boolean(
     }.transform { JsonNodeBoolean(it, path) }
 
 
-private fun number(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeNumber> =
+private fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
     when (val token = tokens.next()) {
         is Value -> BigDecimal(token.text).asSuccess()
         else -> parsingFailure("a Number", token, tokens.position(), path, "not a valid number")
     }.transform { JsonNodeNumber(it, path) }
 
 
-private fun explicitNull(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeNull> =
+private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> =
     when (val token = tokens.next()) {
         Value("null") -> Unit.asSuccess()
-        else -> parsingFailure("null", token, tokens.position(), path, "valid values: null")
+        else -> parsingFailure("a Null", token, tokens.position(), path, "valid values: null")
     }.transform { JsonNodeNull(path) }
+
+private fun string(tokensPath: TokensPath): JsonOutcome<JsonNodeString> =
+    when (val token = tokensPath.tokens.peek()) {
+        is Value -> token.text.asSuccess().also { tokensPath.tokens.next() }
+        else -> "".asSuccess()
+    }.transform { JsonNodeString(it, tokensPath.path) }
 
 //---
 
-
-fun parseJsonNodeString(
-    tokens: TokensStream,
-    path: NodePath
-): Outcome<JsonError, JsonNodeString> =
-    tryParse("a String", tokens.peek(), tokens.position(), path) {
-        val openQuote = tokens.next()
-        if (openQuote != OpeningQuotes) return parsingFailure(
-            "'\"'", openQuote, tokens.position(), path,
-            "missing opening double quotes"
-        )
-        val text = if (tokens.peek() == ClosingQuotes) {
-            ""
-        } else {
-            tokens.next().let {
-                when (it) {
-                    is Value -> it.text
-                    else -> return parsingFailure("null", it, tokens.position(), path, "valid values: null")
-                }
-            }
-        }
-        val endQuote = tokens.next()
-        if (endQuote != ClosingQuotes) return parsingFailure(
-            "'\"'", endQuote, tokens.position(), path,
-            "missing closing double quotes"
-        )
-        JsonNodeString(text, path)
-    }
 
 fun parseJsonNodeArray(
     tokens: TokensStream,

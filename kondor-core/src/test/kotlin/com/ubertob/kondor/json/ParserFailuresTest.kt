@@ -30,22 +30,22 @@ class ParserFailuresTest {
     fun `parsing String missing close quotes returns an error`() {
         val illegalJson = """
             "unclosed string
-            """
+            """.trim()
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'unexpected end of file after opening quotes' - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a String but found 'unexpected end of file after unclosed string' - Invalid Json")
     }
 
     @Test
     fun `parsing String with unknown escape returns an error`() {
         val illegalJson = """
             "foo \ bar"
-            """
+            """.trim()
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 14: expected a String but found 'Wrongly escaped char '\\ ' in Json string after opening quotes' - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a String but found 'Wrongly escaped char '\\ ' in Json string after opening quotes' - Invalid Json")
     }
 
     @Test
@@ -81,7 +81,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected '\"' but found ',' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected opening quotes but found ',' - missing opening quotes")
     }
 
     @Test
@@ -99,7 +99,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected '\"' but found 'name' - missing opening double quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected opening quotes but found 'name' - missing opening quotes")
     }
 
     @Test

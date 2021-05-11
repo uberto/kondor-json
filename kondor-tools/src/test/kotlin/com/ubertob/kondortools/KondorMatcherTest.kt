@@ -21,7 +21,7 @@ internal class KondorMatcherTest {
         val actual = """{"age" : 32,"name" : "Frank", "children": [  "Ann", "Bob","Cathy"] , "married": true} """
 
         val res = actual isSameJsonObject expected
-        res.onFailure { fail() }
+        res.onFailure { fail(it.msg) }
 
     }
 }

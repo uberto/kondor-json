@@ -8,6 +8,7 @@ import org.junit.jupiter.api.fail
 
 import kotlin.random.Random
 
+
 fun <T> Outcome<*, T>.expectSuccess(): T =
     this.onFailure { fail(it.msg) }
 
