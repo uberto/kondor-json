@@ -6,6 +6,7 @@ import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.Outcome.Companion.tryOrFail
 import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
@@ -26,6 +27,20 @@ private inline fun <T> tryParse(
             }
         }
 
+private inline fun <T> tryParseBind(
+    expected: String,
+    actual: KondorToken,
+    position: Int,
+    path: NodePath,
+    f: () -> Outcome<JsonError, T>
+): Outcome<JsonError, T> =
+    try {
+        f()
+    } catch (t: NumberFormatException) {
+        parsingError(expected, "$actual", position, path, t.message.orEmpty()).asFailure()
+    } catch (t: Throwable) {
+        parsingError(expected, "${t.message.orEmpty()} after $actual", position, path, "Invalid Json").asFailure()
+    }
 
 
 fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) = JsonError(
@@ -38,19 +53,26 @@ fun parsingFailure(expected: String, actual: String, position: Int, path: NodePa
 fun parsingFailure(expected: String, actual: KondorToken, position: Int, path: NodePath, details: String) =
     parsingError(expected, actual.toString(), position, path, details).asFailure()
 
+
+//todo make it generic on JsonNode and reified
 fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
-): Outcome<JsonError, JsonNodeBoolean> =
-    tryParse("Boolean", tokens.peek(), tokens.position(), path) {
-        tokens.next().let {
-            when (it) {
-                Value("true") -> true
-                Value("false") -> false
-                else -> return parsingFailure("a Boolean", it, tokens.position(), path, "valid values: false, true")
-            }.let { JsonNodeBoolean(it, path) }
-        }
+): JsonOutcome<JsonNodeBoolean> =
+    tryParseBind("Boolean", tokens.peek(), tokens.position(), path) {
+        boolean(tokens, path)
     }
+
+private fun boolean(
+    tokens: TokensStream,
+    path: NodePath
+): JsonOutcome<JsonNodeBoolean> =
+    when (val token = tokens.next()) {
+        Value("true") -> true.asSuccess()
+        Value("false") -> false.asSuccess()
+        else -> parsingFailure("a Boolean", token, tokens.position(), path, "valid values: false, true")
+    }.transform { JsonNodeBoolean(it, path) }
+
 
 fun parseJsonNodeNum(
     tokens: TokensStream,
