@@ -63,28 +63,71 @@ fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
 ): JsonOutcome<JsonNodeBoolean> =
-    tryParseBind("a Boolean", tokens, path) {
-        boolean()
-    }
+    tryParseBind(
+        "a Boolean", tokens, path,
+        TokensPath::boolean
+    )
 
 fun parseJsonNodeNum(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNumber> =
-    tryParseBind("a Number", tokens, path) {
-        number()
-    }
+    tryParseBind(
+        "a Number", tokens, path,
+        TokensPath::number
+    )
 
 fun parseJsonNodeNull(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeNull> =
-    tryParseBind("a Null", tokens, path) {
-        explicitNull()
-    }
+    tryParseBind(
+        "a Null", tokens, path,
+        TokensPath::explicitNull
+    )
 
 typealias JsonParser<T> = (TokensPath) -> JsonOutcome<T>
 
+fun parseJsonNodeString(
+    tokens: TokensStream,
+    path: NodePath
+): Outcome<JsonError, JsonNodeString> =
+    tryParseBind(
+        "a String", tokens, path,
+        OpeningQuotes `(` TokensPath::string `)` ClosingQuotes
+    )
+
+private fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
+    when (val token = tokens.next()) {
+        Value("true") -> true.asSuccess()
+        Value("false") -> false.asSuccess()
+        else -> parsingFailure("a Boolean", token, tokens.position(), path, "valid values: false, true")
+    }.transform { JsonNodeBoolean(it, path) }
+
+
+private fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
+    when (val token = tokens.next()) {
+        is Value -> BigDecimal(token.text).asSuccess()
+        else -> parsingFailure("a Number", token, tokens.position(), path, "not a valid number")
+    }.transform { JsonNodeNumber(it, path) }
+
+
+private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> =
+    when (val token = tokens.next()) {
+        Value("null") -> Unit.asSuccess()
+        else -> parsingFailure("a Null", token, tokens.position(), path, "valid values: null")
+    }.transform { JsonNodeNull(path) }
+
+
+//todo extract the optionality...
+private fun TokensPath.string(): JsonOutcome<JsonNodeString> =
+    when (val token = tokens.peek()) {
+        is Value -> token.text.asSuccess().also { tokens.next() }
+        else -> "".asSuccess()
+    }.transform { JsonNodeString(it, path) }
+
+
+//todo refactor out failure in ( and )
 infix fun <T> KondorToken.`(`(content: JsonParser<T>): JsonParser<T> = { tokensPath ->
     val token = tokensPath.tokens.next()
     if (token != this)
@@ -115,44 +158,6 @@ infix fun <T> JsonParser<T>.`)`(expected: KondorToken): JsonParser<T> = { tokens
             it.asSuccess()
     }
 }
-
-fun parseJsonNodeString(
-    tokens: TokensStream,
-    path: NodePath
-): Outcome<JsonError, JsonNodeString> =
-    tryParseBind(
-        "a String", tokens, path,
-        OpeningQuotes `(` ::string `)` ClosingQuotes
-    )
-
-private fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
-    when (val token = tokens.next()) {
-        Value("true") -> true.asSuccess()
-        Value("false") -> false.asSuccess()
-        else -> parsingFailure("a Boolean", token, tokens.position(), path, "valid values: false, true")
-    }.transform { JsonNodeBoolean(it, path) }
-
-
-private fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
-    when (val token = tokens.next()) {
-        is Value -> BigDecimal(token.text).asSuccess()
-        else -> parsingFailure("a Number", token, tokens.position(), path, "not a valid number")
-    }.transform { JsonNodeNumber(it, path) }
-
-
-private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> =
-    when (val token = tokens.next()) {
-        Value("null") -> Unit.asSuccess()
-        else -> parsingFailure("a Null", token, tokens.position(), path, "valid values: null")
-    }.transform { JsonNodeNull(path) }
-
-
-//todo extract the optionality...
-private fun string(tokensPath: TokensPath): JsonOutcome<JsonNodeString> =
-    when (val token = tokensPath.tokens.peek()) {
-        is Value -> token.text.asSuccess().also { tokensPath.tokens.next() }
-        else -> "".asSuccess()
-    }.transform { JsonNodeString(it, tokensPath.path) }
 
 //---
 
