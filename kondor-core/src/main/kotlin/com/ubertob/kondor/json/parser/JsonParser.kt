@@ -120,10 +120,10 @@ fun parseJsonNodeString(
     tokens: TokensStream,
     path: NodePath
 ): Outcome<JsonError, JsonNodeString> =
-    tryParseBind("a String", tokens, path) {
-        (OpeningQuotes `(` ::string `)` ClosingQuotes)(this)
-    }
-
+    tryParseBind(
+        "a String", tokens, path,
+        OpeningQuotes `(` ::string `)` ClosingQuotes
+    )
 
 private fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
     when (val token = tokens.next()) {
@@ -146,6 +146,8 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> =
         else -> parsingFailure("a Null", token, tokens.position(), path, "valid values: null")
     }.transform { JsonNodeNull(path) }
 
+
+//todo extract the optionality...
 private fun string(tokensPath: TokensPath): JsonOutcome<JsonNodeString> =
     when (val token = tokensPath.tokens.peek()) {
         is Value -> token.text.asSuccess().also { tokensPath.tokens.next() }
