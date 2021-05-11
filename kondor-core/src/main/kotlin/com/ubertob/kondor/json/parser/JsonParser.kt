@@ -146,7 +146,7 @@ infix fun <T> KondorToken.`(`(content: JsonParser<T>): JsonParser<T> = { tokensP
 infix fun <T> JsonParser<T>.`)`(expected: KondorToken): JsonParser<T> = { tokensPath ->
     this(tokensPath).bind {
         val token = tokensPath.tokens.next()
-        if (token != token)
+        if (token != expected)
             parsingFailure(
                 expected.toString(),
                 token,
