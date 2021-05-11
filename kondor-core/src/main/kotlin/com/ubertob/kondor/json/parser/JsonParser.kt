@@ -27,7 +27,7 @@ private inline fun <T> tryParse(
             }
         }
 
-private inline fun <T> tryParseBind(
+fun <T> tryParseBind(
     expected: String,
     actual: KondorToken,
     position: Int,
@@ -54,14 +54,31 @@ fun parsingFailure(expected: String, actual: KondorToken, position: Int, path: N
     parsingError(expected, actual.toString(), position, path, details).asFailure()
 
 
-//todo make it generic on JsonNode and reified
+//todo delete these and just use inner boolean in NodeKind.
 fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
 ): JsonOutcome<JsonNodeBoolean> =
-    tryParseBind("Boolean", tokens.peek(), tokens.position(), path) {
+    tryParseBind("a Boolean", tokens.peek(), tokens.position(), path) {
         boolean(tokens, path)
     }
+
+fun parseJsonNodeNum(
+    tokens: TokensStream,
+    path: NodePath
+): Outcome<JsonError, JsonNodeNumber> =
+    tryParseBind("a Number", tokens.peek(), tokens.position(), path) {
+        number(tokens, path)
+    }
+
+fun parseJsonNodeNull(
+    tokens: TokensStream,
+    path: NodePath
+): Outcome<JsonError, JsonNodeNull> =
+    tryParseBind("a Null", tokens.peek(), tokens.position(), path) {
+        explicitNull(tokens, path)
+    }
+
 
 private fun boolean(
     tokens: TokensStream,
@@ -74,32 +91,27 @@ private fun boolean(
     }.transform { JsonNodeBoolean(it, path) }
 
 
-fun parseJsonNodeNum(
+private fun number(
     tokens: TokensStream,
     path: NodePath
-): Outcome<JsonError, JsonNodeNumber> =
-    tryParse("a Number", tokens.peek(), tokens.position(), path) {
-        tokens.next().let {
-            when (it) {
-                is Value -> JsonNodeNumber(BigDecimal(it.text), path)
-                else -> return parsingFailure("a Number", it, tokens.position(), path, "not a valid number")
-            }
-        }
-    }
+): JsonOutcome<JsonNodeNumber> =
+    when (val token = tokens.next()) {
+        is Value -> BigDecimal(token.text).asSuccess()
+        else -> parsingFailure("a Number", token, tokens.position(), path, "not a valid number")
+    }.transform { JsonNodeNumber(it, path) }
 
 
-fun parseJsonNodeNull(
+private fun explicitNull(
     tokens: TokensStream,
     path: NodePath
-): Outcome<JsonError, JsonNodeNull> =
-    tryParse("Null", tokens.peek(), tokens.position(), path) {
-        tokens.next().let {
-            when (it) {
-                Value("null") -> JsonNodeNull(path)
-                else -> return parsingFailure("null", it, tokens.position(), path, "valid values: null")
-            }
-        }
-    }
+): JsonOutcome<JsonNodeNull> =
+    when (val token = tokens.next()) {
+        Value("null") -> Unit.asSuccess()
+        else -> parsingFailure("null", token, tokens.position(), path, "valid values: null")
+    }.transform { JsonNodeNull(path) }
+
+//---
+
 
 fun parseJsonNodeString(
     tokens: TokensStream,
