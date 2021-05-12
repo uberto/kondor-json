@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectFailure
+import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -103,13 +104,42 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal Json Array with trailing comma returns an error`() {
+    fun `allows illegal Json Array with trailing comma`() {
         val illegalJson = """[ "a", "b",]"""
+
+        val jsonStringArray = JList(JString)
+        jsonStringArray.fromJson(illegalJson).expectSuccess()
+    }
+
+    @Test
+    fun `illegal Json Array with double trailing comma returns an error`() {
+        val illegalJson = """[ "a", "b",,]"""
 
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a valid json value but found ']' - invalid json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' or value but found ',' - missing closing bracket")
+
+    }
+
+    @Test
+    fun `parsing illegal Json Array starting with comma returns an error`() {
+        val illegalJson = """[,"a", "b"]"""
+
+        val jsonStringArray = JList(JString)
+        val error = jsonStringArray.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 2: expected ']' or value but found ',' - missing closing bracket")
+    }
+
+    @Test
+    fun `parsing illegal Json Array with non matching brackets returns an error`() {
+        val illegalJson = """[ "a", "b" }"""
+
+        val jsonStringArray = JList(JString)
+        val error = jsonStringArray.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' or value but found '}' - missing closing bracket")
     }
 
     @Test
