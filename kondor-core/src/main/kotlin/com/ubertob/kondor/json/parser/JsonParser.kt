@@ -205,12 +205,12 @@ fun parseJsonNodeObject(
         if (openCurly != OpeningCurly)
             return parsingFailure("'{'", openCurly, tokens.position(), path, "missing opening curly")
         else {
-            var currToken = tokens.peek()
-            if (currToken == ClosingCurly)
-                tokens.next()//consume it
 
             val keys = mutableMapOf<String, JsonNode>()
-            while (currToken != ClosingCurly) { //add a tokens foldOutcome
+            while (true) { //add a tokens foldOutcome
+                if (tokens.peek() == ClosingCurly)
+                    break
+
                 val keyName = parseJsonNodeString(tokens, path).onFailure { return it.asFailure() }.text
                 if (keyName in keys)
                     return parsingFailure("a unique key", keyName, tokens.position(), path, "duplicated key")
@@ -228,12 +228,20 @@ fun parseJsonNodeObject(
                     ?.onFailure { return it.asFailure() }
                     ?.let { keys.put(keyName, it) }
 
+                if (tokens.peek() == Comma)
+                    tokens.next()
+                else
+                    break
 
-                currToken = tokens.peek()
-                if (currToken != Comma && currToken != ClosingCurly)
-                    return parsingFailure("'}' or ','", currToken, tokens.position(), path, "missing closing curly")
-                tokens.next()
             }
+            if (tokens.next() != ClosingCurly)
+                return parsingFailure(
+                    "'}' or key:value",
+                    tokens.last()!!,
+                    tokens.position(),
+                    path,
+                    "missing closing curly"
+                )
             JsonNodeObject(keys, path)
         }
     }
