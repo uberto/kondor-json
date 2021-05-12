@@ -171,20 +171,27 @@ fun parseJsonNodeArray(
         if (openBraket != OpeningBracket)
             return parsingFailure("'['", openBraket, tokens.position(), path, "missing opening bracket")
         else {
-            var currToken = tokens.peek() //add a tokens foldOutcome
-            if (currToken == ClosingBracket)
-                tokens.next()//consume it for the case of []
             val nodes = mutableListOf<JsonNode>()
             var currNode = 0
-            while (currToken != ClosingBracket) {
-                nodes.add(
-                    parseNewNode(tokens, NodePathSegment("[${currNode++}]", path))
-                        .onFailure { return it.asFailure() })
-                currToken = tokens.peek()
-                if (currToken != Comma && currToken != ClosingBracket)
-                    return parsingFailure("',' or ':'", currToken, tokens.position(), path, "missing closing bracket")
-                tokens.next()
+            while (true) {
+                parseNewNode(tokens, NodePathSegment("[${currNode++}]", path))
+                    ?.onFailure { return it.asFailure() }
+                    ?.also { nodes.add(it) }
+                    ?: break
+
+                if (tokens.peek() == Comma)
+                    tokens.next()
+                else
+                    break
             }
+            if (tokens.next() != ClosingBracket)
+                return parsingFailure(
+                    "']' or value",
+                    tokens.last()!!,
+                    tokens.position(),
+                    path,
+                    "missing closing bracket"
+                )
             JsonNodeArray(nodes, path)
         }
     }
@@ -217,8 +224,10 @@ fun parseJsonNodeObject(
                         path,
                         "missing colon between key and value in object"
                     )
-                val value = parseNewNode(tokens, NodePathSegment(keyName, path)).onFailure { return it.asFailure() }
-                keys.put(keyName, value)
+                parseNewNode(tokens, NodePathSegment(keyName, path))
+                    ?.onFailure { return it.asFailure() }
+                    ?.let { keys.put(keyName, it) }
+
 
                 currToken = tokens.peek()
                 if (currToken != Comma && currToken != ClosingCurly)
@@ -229,19 +238,15 @@ fun parseJsonNodeObject(
         }
     }
 
-fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode> =
+fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode>? =
     when (val first = tokens.peek()) {
         Value("null") -> parseJsonNodeNull(tokens, path)
         Value("false"), Value("true") -> parseJsonNodeBoolean(tokens, path)
+        is Value -> parseJsonNodeNum(tokens, path)
         OpeningQuotes -> parseJsonNodeString(tokens, path)
         OpeningBracket -> parseJsonNodeArray(tokens, path)
         OpeningCurly -> parseJsonNodeObject(tokens, path)
-        is Value ->
-            when (first.text.get(0)) { //regex -?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?
-                in '0'..'9', '-' -> parseJsonNodeNum(tokens, path)
-                else -> parsingFailure("a valid json value", first, tokens.position(), path, "invalid json")
-            }
-        else -> parsingFailure("a valid json value", first, tokens.position(), path, "invalid json")
+        ClosingQuotes, ClosingBracket, ClosingCurly, Comma, Colon -> null //no new node
     }
 
 
