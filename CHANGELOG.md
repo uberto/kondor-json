@@ -3,6 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.5.1 - 13 May 2021
+
+Fixed inconsistent package names
+
+OutcomeException copy the error to the message
+
 ### v1.5.0 - 8 May 2021
 
 Moved Outcome in a separate module, so that can be used independently Added a code generator function to generate the

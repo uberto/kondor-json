@@ -7,9 +7,9 @@ A library to serialize/deserialize Json fast and safely without using reflection
 With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high
 level DSL.
 
-No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to
-use. You can also define more than one converter for each class if you want to have multiple formats for the same types,
-for example in case of versioned api or different formats for Json in HTTP and persistence.
+No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need
+tovuse. You can also define more than one converter for each class if you want to have multiple formats for the same
+types,vfor example in case of versioned api or different formats for Json in HTTP and persistence.
 
 ## Dependency declaration
 
@@ -20,13 +20,13 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.5.0</version>
+   <version>1.5.1</version>
 </dependency>
 ```
 
 Gradle
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:1.5.0'
+implementation 'com.ubertob.kondor:kondor-core:1.5.1'
 ```
 
 ## Quick Start

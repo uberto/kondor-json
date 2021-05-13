@@ -17,7 +17,6 @@ echo updating to $1
 # update the README.md
 # check the CHANGELOG.md
 
-exit 0
 # launch:
 ./gradlew uploadArchives -p kondor-core
 ./gradlew uploadArchives -p kondor-tools
