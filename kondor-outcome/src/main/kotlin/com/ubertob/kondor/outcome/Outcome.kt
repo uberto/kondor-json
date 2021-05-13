@@ -88,7 +88,9 @@ interface OutcomeError {
     val msg: String
 }
 
-data class OutcomeException(val error: OutcomeError) : RuntimeException()
+data class OutcomeException(val error: OutcomeError) : RuntimeException() {
+    override val message: String = error.msg
+}
 
 fun <E : OutcomeError> E.asFailure(): Outcome<E, Nothing> = Failure(this)
 fun <T> T.asSuccess(): Outcome<Nothing, T> = Success(this)
