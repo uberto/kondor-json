@@ -26,6 +26,7 @@ fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
         .replace("import com.ubertob.kondortools.RemoveMe\n", "")
         .replace("import com.ubertob.kondor.json.(.*)\n".toRegex(), "")
         .insert("import com.ubertob.kondor.json.*\n")
+        .insert("import com.ubertob.kondor.json.jsonnode.JsonNodeObject\n")
         .replace("public object", "object")
         .replace("public override", "override")
 
