@@ -58,7 +58,7 @@ fun parsingFailure(expected: String, actual: KondorToken, position: Int, path: N
     parsingError(expected, actual.toString(), position, path, details).asFailure()
 
 
-//todo delete these and just use inner boolean in NodeKind.
+//todo delete these and just use TokensPath.boolean in NodeKind directly. Same for the others
 fun parseJsonNodeBoolean(
     tokens: TokensStream,
     path: NodePath
@@ -127,7 +127,7 @@ private fun TokensPath.string(): JsonOutcome<JsonNodeString> =
     }.transform { JsonNodeString(it, path) }
 
 
-//todo refactor out failure in ( and )
+//todo refactor out failure in ( and ) and use surround
 infix fun <T> KondorToken.`(`(content: JsonParser<T>): JsonParser<T> = { tokensPath ->
     val token = tokensPath.tokens.next()
     if (token != this)
@@ -247,14 +247,21 @@ fun parseJsonNodeObject(
     }
 
 fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode>? =
-    when (val first = tokens.peek()) {
+    when (val t = tokens.peek()) {
         Value("null") -> parseJsonNodeNull(tokens, path)
         Value("false"), Value("true") -> parseJsonNodeBoolean(tokens, path)
         is Value -> parseJsonNodeNum(tokens, path)
         OpeningQuotes -> parseJsonNodeString(tokens, path)
         OpeningBracket -> parseJsonNodeArray(tokens, path)
         OpeningCurly -> parseJsonNodeObject(tokens, path)
-        ClosingQuotes, ClosingBracket, ClosingCurly, Comma, Colon -> null //no new node
+        ClosingBracket, ClosingCurly -> null //no more nodes
+        ClosingQuotes, Comma, Colon -> parsingError(
+            "a new node",
+            tokens.last().toString(),
+            tokens.position(),
+            path,
+            "'$t' in wrong position"
+        ).asFailure()
     }
 
 

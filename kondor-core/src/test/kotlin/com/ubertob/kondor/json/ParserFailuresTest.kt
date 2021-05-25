@@ -130,7 +130,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' or value but found ',' - missing closing bracket")
+        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a new node but found ',' - ',' in wrong position")
 
     }
 
@@ -141,7 +141,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 2: expected ']' or value but found ',' - missing closing bracket")
+        expectThat(error.msg).isEqualTo("error on </[0]> at position 2: expected a new node but found ',' - ',' in wrong position")
     }
 
     @Test
