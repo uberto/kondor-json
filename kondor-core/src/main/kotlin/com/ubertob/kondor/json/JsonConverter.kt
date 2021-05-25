@@ -14,11 +14,11 @@ data class JsonError(val path: NodePath, val reason: String) : OutcomeError {
 
 typealias JsonOutcome<T> = Outcome<JsonError, T>
 
-typealias JConverter<T> = JsonAdjunction<T, *>
+typealias JConverter<T> = JsonConverter<T, *>
 
-typealias JArrayConverter<CT> = JsonAdjunction<CT, JsonNodeArray>
+typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
-interface JsonAdjunction<T, JN : JsonNode> {
+interface JsonConverter<T, JN : JsonNode> {
 
     val nodeType: NodeKind<JN>
 
@@ -58,10 +58,10 @@ interface JsonAdjunction<T, JN : JsonNode> {
 
 }
 
-fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toPrettyJson(value: T): String =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(false, 2)
 
-fun <T, JN : JsonNode> JsonAdjunction<T, JN>.toNullJson(value: T): String =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(true, 2)
 
 

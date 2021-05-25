@@ -7,7 +7,7 @@ import com.ubertob.kondor.outcome.extractList
 import java.math.BigDecimal
 
 
-object JBoolean : JsonAdjunction<Boolean, JsonNodeBoolean> {
+object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
 
     override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.value.asSuccess()
     override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
@@ -17,7 +17,7 @@ object JBoolean : JsonAdjunction<Boolean, JsonNodeBoolean> {
 
 }
 
-object JString : JsonAdjunction<String, JsonNodeString> {
+object JString : JsonConverter<String, JsonNodeString> {
 
     override fun fromJsonNode(node: JsonNodeString): JsonOutcome<String> = node.text.asSuccess()
     override fun toJsonNode(value: String, path: NodePath): JsonNodeString =
@@ -54,7 +54,7 @@ fun <T : Any> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
         }
     }
 
-abstract class JNumRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeNumber> {
+abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (BigDecimal) -> T
     abstract val render: (T) -> BigDecimal
 
@@ -65,7 +65,7 @@ abstract class JNumRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeNumber> 
     override val nodeType = NumberNode
 }
 
-abstract class JStringRepresentable<T : Any>() : JsonAdjunction<T, JsonNodeString> {
+abstract class JStringRepresentable<T : Any>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
 

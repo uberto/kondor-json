@@ -14,7 +14,8 @@ class ConverterGeneratorTest {
     @Test
     fun `generate converter from User data class`() {
 
-        val expected = """import com.ubertob.kondor.json.*
+        val expected = """import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.*
 import com.ubertob.kondortools.User
 
 object JUser : JAny<User>() {
@@ -44,7 +45,8 @@ object JUser : JAny<User>() {
     @Test
     fun `generate converter from Grant data class`() {
 
-        val expected = """import com.ubertob.kondor.json.*
+        val expected = """import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.*
 import com.ubertob.kondortools.Grant
 
 object JGrant : JAny<Grant>() {
@@ -73,7 +75,8 @@ object JGrant : JAny<Grant>() {
     @Test
     fun `generate converter from App data class`() {
 
-        val expected = """import com.ubertob.kondor.json.*
+        val expected = """import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.*
 import com.ubertob.kondortools.App
 
 object JApp : JAny<App>() {

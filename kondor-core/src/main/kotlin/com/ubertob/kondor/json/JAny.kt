@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
 
-interface ObjectNodeConverter<T : Any> : JsonAdjunction<T, JsonNodeObject> {
+interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     fun JsonNodeObject.deserializeOrThrow(): T?
 
