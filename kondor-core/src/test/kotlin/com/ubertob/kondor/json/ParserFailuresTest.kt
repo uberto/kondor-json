@@ -47,7 +47,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a String but found 'unexpected end of file after unclosed string' - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a String but found unexpected end of file after unclosed string - Invalid Json")
     }
 
     @Test
@@ -58,7 +58,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a String but found 'Wrongly escaped char '\\ ' in Json string after opening quotes' - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a String but found wrongly escaped char '\\ ' in Json string after opening quotes - Invalid Json")
     }
 
     @Test
@@ -94,7 +94,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected opening quotes but found ',' - missing opening quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected 'opening quotes' but found ',' - invalid Json")
     }
 
     @Test
@@ -112,7 +112,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected opening quotes but found 'name' - missing opening quotes")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected 'opening quotes' but found 'name' - invalid Json")
     }
 
     @Test
@@ -151,7 +151,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' or value but found '}' - missing closing bracket")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' but found '}' - invalid Json")
     }
 
     @Test

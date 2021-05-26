@@ -120,4 +120,12 @@ fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List
     }
 
 
+fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
+    fold(emptyList<T>().asSuccess()) { acc: Outcome<E, Iterable<T>>, e: Outcome<E, T> ->
+        acc.bind { list -> e.transform { list + it } }
+    }
+
+
+fun <T, E : OutcomeError> Sequence<Outcome<E, T>>.takeWhileSuccess(): Sequence<Outcome<E, T>> =
+    takeWhile { it.transform { true }.recover { false } }
 
