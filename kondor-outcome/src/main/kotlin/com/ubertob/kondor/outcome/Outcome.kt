@@ -58,8 +58,13 @@ inline fun <T, E : OutcomeError, F : OutcomeError> Outcome<E, T>.bindFailure(f: 
         is Failure -> f(error)
     }
 
+
 fun <T, U, E : OutcomeError> Outcome<E, T>.combine(other: Outcome<E, U>): Outcome<E, Pair<T, U>> =
     bind { first -> other.transform { second -> first to second } }
+
+//Keisli composition
+infix fun <A, B, C, E : OutcomeError> ((A) -> Outcome<E, B>).compose(other: (B) -> Outcome<E, C>): (A) -> Outcome<E, C> =
+    { a -> this(a).bind(other) }
 
 
 fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
