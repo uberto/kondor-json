@@ -114,16 +114,18 @@ fun parseJsonNodeArray(
     )
 
 
-typealias JsonParser<T> = (TokensPath) -> JsonOutcome<T>
+typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
 
-fun <T> surrounded(openingToken: KondorToken, content: JsonParser<T>, closingToken: KondorToken): JsonParser<T> =
-    { tokensPath ->
-        tokensPath.take(openingToken)
-            .bind { content(tokensPath) }
-            .bindAndDrop { tokensPath.take(closingToken) }
+
+fun <T> surrounded(openingToken: KondorToken, takeContent: JsonParser<T>, closingToken: KondorToken): JsonParser<T> =
+    {
+        fun middle(left: KondorToken, middle: T, right: KondorToken) = middle
+
+        ::middle `!` take(openingToken) `*` takeContent() `*` take(closingToken)
     }
 
-fun <T> TokensPath.extractNodes(f: TokensPath.() -> Outcome<JsonError, T>?): JsonOutcome<List<T>> =
+
+fun <T> TokensPath.extractNodes(f: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
     naturals().map { f(subNodePath(it)) }
         .takeWhileNotNull()
         .extractList()
@@ -161,8 +163,9 @@ fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
 
 fun <T> TokensPath.list(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
     extractNodes {
-        contentParser()
-            ?.bindAndDrop { takeOrNull(Comma) ?: null.asSuccess() }
+        contentParser()?.bindAndIgnore {
+            takeOrNull(Comma) ?: null.asSuccess()
+        }
     }
 
 
@@ -257,7 +260,7 @@ fun parseJsonNodeObject(
     }
 
 
-inline fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndDrop(f: (T) -> Outcome<E, U>): Outcome<E, T> =
+inline fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>): Outcome<E, T> =
     when (this) {
         is Failure -> this
         is Success -> f(value).transform { value }
