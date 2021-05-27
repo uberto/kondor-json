@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_VARIABLE")
+
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess

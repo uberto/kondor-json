@@ -56,6 +56,7 @@ interface JsonConverter<T, JN : JsonNode> {
                 }
         }
 
+    fun asProfunctor(): JsonProfunctor<T> = ProfunctorConverter(::fromJson, ::toJson)
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =

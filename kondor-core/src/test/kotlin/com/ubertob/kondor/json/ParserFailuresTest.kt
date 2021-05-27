@@ -32,10 +32,9 @@ class ParserFailuresTest {
         val illegalJson = "False"
 
         try {
-            val error = JBoolean.fromJson(illegalJson).orThrow()
+            JBoolean.fromJson(illegalJson).orThrow()
         } catch (e: Exception) {
             expectThat(e.message).isEqualTo("error on <[root]> at position 5: expected a Boolean but found 'False' - valid values: false, true")
-
         }
     }
 

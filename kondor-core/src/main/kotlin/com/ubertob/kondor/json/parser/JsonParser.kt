@@ -109,9 +109,9 @@ typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
 
 fun <T> surrounded(openingToken: KondorToken, takeContent: JsonParser<T>, closingToken: KondorToken): JsonParser<T> =
     {
-        fun middle(left: KondorToken, middle: T, right: KondorToken) = middle
+        val middle = { _: KondorToken, middle: T, _: KondorToken -> middle }
 
-        ::middle `!` take(openingToken) `*` takeContent() `*` take(closingToken)
+        middle `!` take(openingToken) `*` takeContent() `*` take(closingToken)
     }
 
 
