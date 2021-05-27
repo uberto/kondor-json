@@ -126,17 +126,10 @@ fun <T> surrounded(openingToken: KondorToken, content: JsonParser<T>, closingTok
 fun <T> TokensPath.extractNodes(f: TokensPath.() -> Outcome<JsonError, T>?): JsonOutcome<List<T>> =
     naturals().map { f(subNodePath(it)) }
         .takeWhileNotNull()
-        .takeWhileSuccess()
         .extractList()
 
 private fun TokensPath.subNodePath(nodeNumber: Int) =
     copy(path = NodePathSegment("[$nodeNumber]", path))
-
-//        .fold(start.asSuccess() as JsonOutcome< List<T>>)
-//        {acc, outcome -> acc.bind { list -> outcome.transform { list + it } } }
-
-//add node path number+recursion        f(this)?.bind { fold(start + it, f) } ?: start.asSuccess()
-
 
 fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
     when (val token = tokens.next()) {
@@ -213,40 +206,6 @@ fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode>? =
         ).asFailure()
     }
 
-//
-//fun parseJsonNodeArray(
-//    tokens: TokensStream,
-//    path: NodePath
-//): JsonOutcome<JsonNodeArray> =
-//    tryParse("an Array", tokens.peek(), tokens.position(), path) {
-//        val openBraket = tokens.next()
-//        if (openBraket != OpeningBracket)
-//            return parsingFailure("'['", openBraket, tokens.position(), path, "missing opening bracket")
-//        else {
-//            val nodes = mutableListOf<JsonNode>()
-//            var currNode = 0
-//            while (true) {
-//                parseNewNode(tokens, NodePathSegment("[${currNode++}]", path))
-//                    ?.onFailure { return it.asFailure() }
-//                    ?.also { nodes.add(it) }
-//                    ?: break
-//
-//                if (tokens.peek() == Comma)
-//                    tokens.next()
-//                else
-//                    break
-//            }
-//            if (tokens.next() != ClosingBracket)
-//                return parsingFailure(
-//                    "']' or value",
-//                    tokens.last()!!,
-//                    tokens.position(),
-//                    path,
-//                    "missing closing bracket"
-//                )
-//            JsonNodeArray(nodes, path)
-//        }
-//    }
 
 fun parseJsonNodeObject(
     tokens: TokensStream,
@@ -299,8 +258,10 @@ fun parseJsonNodeObject(
 
 
 inline fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndDrop(f: (T) -> Outcome<E, U>): Outcome<E, T> =
-    bind { x -> f(x).transform { x } }
-
+    when (this) {
+        is Failure -> this
+        is Success -> f(value).transform { value }
+    }
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Sequence<T?>.takeWhileNotNull(): Sequence<T> = takeWhile { it != null } as Sequence<T>

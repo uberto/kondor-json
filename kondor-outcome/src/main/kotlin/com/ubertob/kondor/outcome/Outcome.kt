@@ -115,17 +115,26 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
 
 
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    fold(emptyList<T>().asSuccess()) { acc: Outcome<E, Iterable<T>>, e: Outcome<E, T> ->
-        acc.bind { list -> e.transform { list + it } }
-    }
+    foldOutcome(emptyList()) { acc, e -> e.transform { acc + it } }
 
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    fold(emptyList<T>().asSuccess()) { acc: Outcome<E, Iterable<T>>, e: Outcome<E, T> ->
-        acc.bind { list -> e.transform { list + it } }
-    }
+    foldOutcome(emptyList()) { acc, e -> e.transform { acc + it } }
 
 
-fun <T, E : OutcomeError> Sequence<Outcome<E, T>>.takeWhileSuccess(): Sequence<Outcome<E, T>> =
-    takeWhile { it.transform { true }.recover { false } }
+fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(
+    initial: U,
+    operation: (acc: U, T) -> Outcome<ERR, U>
+): Outcome<ERR, U> {
 
+    val iter = iterator()
+
+    tailrec fun loop(acc: U): Outcome<ERR, U> =
+        if (!iter.hasNext()) acc.asSuccess()
+        else when (val el = operation(acc, iter.next())) {
+            is Failure -> el
+            is Success -> loop(el.value)
+        }
+
+    return loop(initial)
+}
