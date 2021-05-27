@@ -74,9 +74,13 @@ class ParserFailuresTest {
     fun `parsing illegal Json with duplicate keys returns an error`() {
         val illegalJson = """{ "id": 1, "id": 2, "name": "alice"}"""
 
-        val error = JPerson.fromJson(illegalJson).expectFailure()
+        //decided to ignore duplicate keys
+//        val error = JPerson.fromJson(illegalJson).expectFailure()
+//        expectThat(error.msg).isEqualTo("error on <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
+        val person = JPerson.fromJson(illegalJson).expectSuccess()
+        expectThat(person).isEqualTo(Person(2, "alice"))
+
     }
 
     @Test
@@ -85,7 +89,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 9: expected ':' but found '2' - missing colon between key and value in object")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 9: expected ':' but found '2' - invalid Json")
     }
 
     @Test
@@ -94,7 +98,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a new node but found ',' - ',' in wrong position")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a valid key but found ',' - key missing in object field")
     }
 
     @Test
@@ -112,7 +116,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected 'opening quotes' but found 'name' - invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a valid key but found 'name' - key missing in object field")
     }
 
     @Test

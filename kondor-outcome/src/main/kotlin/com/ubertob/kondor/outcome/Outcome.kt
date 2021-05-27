@@ -103,6 +103,10 @@ fun <T> T.asSuccess(): Outcome<Nothing, T> = Success(this)
 
 fun <T : Any, E : OutcomeError> T?.failIfNull(error: E): Outcome<E, T> = this?.asSuccess() ?: error.asFailure()
 
+fun <T, E : OutcomeError> T.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
+    if (predicate(this)) asSuccess() else error(this).asFailure()
+
+
 data class ThrowableError(val throwable: Throwable) : OutcomeError {
     override val msg: String = throwable.message.orEmpty()
 }

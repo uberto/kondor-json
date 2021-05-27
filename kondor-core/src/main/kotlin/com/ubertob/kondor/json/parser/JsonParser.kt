@@ -120,7 +120,7 @@ fun parseJsonNodeObject(
     tryParseBind(
         "an Object", tokens, path,
         surrounded(
-            OpeningCurly, TokensPath::jsonobject, ClosingCurly
+            OpeningCurly, TokensPath::jsonObject, ClosingCurly
         )
     )
 
@@ -168,31 +168,49 @@ fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> =
 
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
-    list { parseNewNode(tokens, path) }
+    commaSepared { parseNewNode(tokens, path) }
         .transform { JsonNodeArray(it, path) }
 
-
-fun TokensPath.jsonobject(): JsonOutcome<JsonNodeObject> =
-    list { keyValue { parseNewNode(tokens, path) ?: parsingFailure("sm", "nothing", tokens.position(), path, "!!!") } }
+fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> =
+    commaSepared(withParentNode {
+        keyValue {
+            parseNewNode(tokens, path) ?: parsingFailure("sm", "nothing", tokens.position(), path, "!!!")
+        }
+    })
+        .transform(::checkForDuplicateKeys)
         .transform { JsonNodeObject(it.toMap(), path) }
+
+private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
+    pairs.sortedBy { it.first }
+
+
+fun <T> withParentNode(f: TokensPath.() -> JsonOutcome<T>?): TokensPath.() -> JsonOutcome<T>? =
+    { f(copy(path = path.parent())) }
 
 
 fun <T> TokensPath.keyValue(contentParser: TokensPath.() -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
-    parseNewNode(tokens, path.parent())
-        ?.bind { takeKey(it) }
+    parseOptionalKeyNode()
         ?.bind { key ->
-            fun kv(sep: KondorToken, node: T): Pair<String, T> = key to node
-
-            ::kv `!` take(Colon) `*` contentParser(copy(path = NodePathSegment(key, path.parent())))
+            take(Colon)
+                .bind { contentParser(copy(path = NodePathSegment(key, path))) }
+                .transform { value -> key to value }
         }
 
-private fun TokensPath.takeKey(it: JsonNode): Outcome<JsonError, String> =
-    when (it) {
-        is JsonNodeString -> it.text.asSuccess()
-        else -> parsingFailure("not a key", it.toString(), tokens.position(), path, "invalid Json")
+private fun TokensPath.parseOptionalKeyNode(): JsonOutcome<String>? =
+    parseNewNode(tokens, path)?.transformFailure {
+        parsingError(
+            "a valid key", tokens.last(), tokens.position(), path,
+            "key missing in object field"
+        )
+    }?.bind { takeKey(it) }
+
+private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> =
+    when (keyNode) {
+        is JsonNodeString -> keyNode.text.asSuccess()
+        else -> parsingFailure("not a key", keyNode.toString(), tokens.position(), path, "invalid Json")
     }
 
-fun <T> TokensPath.list(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
+fun <T> TokensPath.commaSepared(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
     extractNodesIndexed {
         contentParser()?.bindAndIgnore {
             takeOrNull(Comma) ?: null.asSuccess()
@@ -238,7 +256,6 @@ fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode>? =
             tokens.position(), path, "'$t' in wrong position"
         ).asFailure()
     }
-
 
 
 inline fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>): Outcome<E, T> =
