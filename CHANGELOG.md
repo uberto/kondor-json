@@ -1,7 +1,10 @@
 <h2 class="github">Changelog</h2>
 
-This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
-rationale when appropriate:
+This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their rationale when appropriate:
+
+### v1.5.2 - 27 May 2021
+
+Improved parsing error messaging and internal refactoring
 
 ### v1.5.1 - 13 May 2021
 

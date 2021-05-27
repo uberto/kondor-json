@@ -10,11 +10,17 @@ fi
 ./gradlew clean build
 
 # update the version in build.gradle
-ver=$(grep "version '" build.gradle)
+ver=$(gradle -q printVersion)
+
 echo currrent: $ver
 #grep from
-echo updating to $1
+echo updating to: $1
 # update the README.md
+sed -i 's/$ver/$1/g' README.md build.gradle
+
+
+exit 0
+
 # check the CHANGELOG.md
 
 # launch:

@@ -5,6 +5,9 @@ plugins {
 
 allprojects{
 
+    group 'com.ubertob.kondor'
+    version '1.5.2'
+
     wrapper {
         gradleVersion = "6.8.3"
     }
@@ -17,9 +20,6 @@ allprojects{
 }
 
 subprojects {
-
-    group 'com.ubertob.kondor'
-    version '1.5.1'
 
     ext {
         junitVersion = "5.7.1"
@@ -39,4 +39,10 @@ subprojects {
         }
     }
 
+}
+
+task printVersion {
+    doLast {
+        println project.version
+    }
 }
