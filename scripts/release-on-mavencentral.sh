@@ -13,23 +13,21 @@ fi
 ver=$(gradle -q printVersion)
 
 echo currrent: $ver
-#grep from
+
 echo updating to: $1
-# update the README.md
-sed -i 's/$ver/$1/g' README.md build.gradle
-
-
-exit 0
-
-# check the CHANGELOG.md
+# update=ing the README.md and gradle
+sed -i "s/$ver/$1/g" README.md build.gradle
 
 # launch:
 ./gradlew uploadArchives -p kondor-core
 ./gradlew uploadArchives -p kondor-tools
 ./gradlew uploadArchives -p kondor-outcome
 
-# then go to sonatype site and login
-# https://oss.sonatype.org/#nexus-search;quick~kondor
+
+echo "check the CHANGELOG.md"
+echo "commit and push"
+echo "then go to sonatype site and login"
+echo "https://oss.sonatype.org/#nexus-search;quick~kondor"
 # select Staging Repositories, and close the corresponding one (empty desc is fine)
 # then click release and wait ~10 min to be able to download it
 # and then bouncing the version with SNAPSHOT in build.gradle
