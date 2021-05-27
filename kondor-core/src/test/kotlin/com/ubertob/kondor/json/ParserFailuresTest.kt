@@ -94,7 +94,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected 'opening quotes' but found ',' - invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a new node but found ',' - ',' in wrong position")
     }
 
     @Test
