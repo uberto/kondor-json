@@ -2,7 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.JsonLexer
 import com.ubertob.kondor.json.parser.parseJsonNodeObject
 import org.junit.jupiter.api.Test
@@ -20,7 +20,8 @@ class OtherParserTest {
 
         """.trimIndent()
 
-        val node = parseJsonNodeObject(JsonLexer.tokenize(json), NodePathRoot).expectSuccess()
+        val tokens = JsonLexer.tokenize(json)
+        val node = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
 //        println(node.fieldMap)
 

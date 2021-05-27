@@ -1,5 +1,8 @@
 package com.ubertob.kondor.json.jsonnode
 
+import com.ubertob.kondor.json.parser.TokensPath
+import com.ubertob.kondor.json.parser.TokensStream
+
 sealed class NodePath()
 object NodePathRoot : NodePath()
 data class NodePathSegment(val nodeName: String, val parent: NodePath) : NodePath()
@@ -20,3 +23,7 @@ fun NodePath.parent(): NodePath =
     }
 
 private infix fun String.append(next: String): String = if (this == ROOT_NODE) "/$next" else "$this/$next"
+
+
+fun TokensStream.onRoot(): TokensPath = TokensPath(this, NodePathRoot)
+

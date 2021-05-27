@@ -40,7 +40,7 @@ interface JsonConverter<T, JN : JsonNode> {
     fun toJsonNode(value: T, path: NodePath): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
-        nodeType.parse(this, NodePathRoot)
+        nodeType.parse(onRoot())
 
     fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 

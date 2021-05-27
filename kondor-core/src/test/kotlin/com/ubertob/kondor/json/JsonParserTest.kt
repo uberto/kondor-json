@@ -22,7 +22,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeBoolean(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeBoolean().expectSuccess()
 
             expectThat(node.value).isEqualTo(value)
             expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -52,7 +52,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeNum(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
             expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -66,7 +66,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeNum(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
             expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -82,7 +82,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeNum(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
             expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -98,7 +98,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeNum(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
             expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -116,7 +116,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val node = parseJsonNodeString(tokens, NodePathRoot).expectSuccess()
+        val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
         expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -131,7 +131,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val node = parseJsonNodeString(tokens, NodePathRoot).expectSuccess()
+        val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
         expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -148,7 +148,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeString(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
 //            println("-> ${node.text}")
 
@@ -168,7 +168,7 @@ class JsonParserTest {
 
             val tokens = JsonLexer(jsonString).tokenize()
 
-            val node = parseJsonNodeString(tokens, NodePathRoot).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
 //            println("-> ${node.text}")
 
@@ -184,7 +184,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        parseJsonNodeNull(tokens, NodePathRoot).expectSuccess()
+        tokens.onRoot().parseJsonNodeNull().expectSuccess()
 
         expectThat(tokens.position()).isEqualTo(jsonString.length)
     }
@@ -199,7 +199,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val nodes = parseJsonNodeArray(tokens, NodePathRoot).expectSuccess()
+        val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
         expectThat(nodes.values.count()).isEqualTo(3)
         expectThat(nodes.render()).isEqualTo("""["abc", "def"]""")
@@ -213,7 +213,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val nodes = parseJsonNodeArray(tokens, NodePathRoot).expectSuccess()
+        val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("[[], []]")
         expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -231,10 +231,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val nodes = parseJsonNodeObject(
-            tokens,
-            NodePathRoot
-        ).expectSuccess()
+        val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
@@ -248,7 +245,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val nodes = parseJsonNodeObject(tokens, NodePathRoot).expectSuccess()
+        val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("{}")
         expectThat(tokens.position()).isEqualTo(jsonString.length)
@@ -267,10 +264,7 @@ class JsonParserTest {
 
         val tokens = JsonLexer(jsonString).tokenize()
 
-        val nodes = parseJsonNodeObject(
-            tokens,
-            NodePathRoot
-        ).expectSuccess()
+        val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         expectThat(nodes.fieldMap.size).isEqualTo(3)
 

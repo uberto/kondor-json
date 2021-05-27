@@ -27,14 +27,12 @@ private inline fun <T> tryParse(
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
 
-fun <T> tryParseBind(
+fun <T> TokensPath.tryParseBind(
     expected: String,
-    tokens: TokensStream,
-    path: NodePath,
     f: TokensPath.() -> Outcome<JsonError, T>
 ): Outcome<JsonError, T> =
     try {
-        f(TokensPath(tokens, path))
+        f()
     } catch (t: NumberFormatException) {
         parsingError(expected, "'${tokens.last()}'", tokens.position(), path, t.message.orEmpty()).asFailure()
     } catch (t: Throwable) {
@@ -65,60 +63,41 @@ fun parsingFailure(expected: String, actual: KondorToken, position: Int, path: N
     parsingError(expected, actual, position, path, details).asFailure()
 
 
-//todo delete these and just use TokensPath.boolean in NodeKind directly. Same for the others
-fun parseJsonNodeBoolean(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeBoolean> =
+fun TokensPath.parseJsonNodeBoolean(): JsonOutcome<JsonNodeBoolean> =
     tryParseBind(
-        "a Boolean", tokens, path,
+        "a Boolean",
         TokensPath::boolean
     )
 
-fun parseJsonNodeNum(
-    tokens: TokensStream,
-    path: NodePath
-): Outcome<JsonError, JsonNodeNumber> =
+fun TokensPath.parseJsonNodeNum(): Outcome<JsonError, JsonNodeNumber> =
     tryParseBind(
-        "a Number", tokens, path,
+        "a Number",
         TokensPath::number
     )
 
-fun parseJsonNodeNull(
-    tokens: TokensStream,
-    path: NodePath
-): Outcome<JsonError, JsonNodeNull> =
+fun TokensPath.parseJsonNodeNull(): Outcome<JsonError, JsonNodeNull> =
     tryParseBind(
-        "a Null", tokens, path,
+        "a Null",
         TokensPath::explicitNull
     )
 
-fun parseJsonNodeString(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeString> =
+fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
     tryParseBind(
-        "a String", tokens, path,
+        "a String",
         surrounded(OpeningQuotes, TokensPath::string, ClosingQuotes)
     )
 
-fun parseJsonNodeArray(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeArray> =
+fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> =
     tryParseBind(
-        "an Array", tokens, path,
+        "an Array",
         surrounded(
             OpeningBracket, TokensPath::array, ClosingBracket
         )
     )
 
-fun parseJsonNodeObject(
-    tokens: TokensStream,
-    path: NodePath
-): JsonOutcome<JsonNodeObject> =
+fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> =
     tryParseBind(
-        "an Object", tokens, path,
+        "an Object",
         surrounded(
             OpeningCurly, TokensPath::jsonObject, ClosingCurly
         )
@@ -168,13 +147,13 @@ fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> =
 
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
-    commaSepared { parseNewNode(tokens, path) }
+    commaSepared { parseNewNode() }
         .transform { JsonNodeArray(it, path) }
 
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> =
     commaSepared(withParentNode {
         keyValue {
-            parseNewNode(tokens, path) ?: parsingFailure("sm", "nothing", tokens.position(), path, "!!!")
+            parseNewNode() ?: parsingFailure("sm", "nothing", tokens.position(), path, "!!!")
         }
     })
         .transform(::checkForDuplicateKeys)
@@ -197,7 +176,7 @@ fun <T> TokensPath.keyValue(contentParser: TokensPath.() -> JsonOutcome<T>): Jso
         }
 
 private fun TokensPath.parseOptionalKeyNode(): JsonOutcome<String>? =
-    parseNewNode(tokens, path)?.transformFailure {
+    parseNewNode()?.transformFailure {
         parsingError(
             "a valid key", tokens.last(), tokens.position(), path,
             "key missing in object field"
@@ -242,14 +221,14 @@ private fun TokensPath.takeOrNull(kondorToken: KondorToken): JsonOutcome<KondorT
 
 //---
 
-fun parseNewNode(tokens: TokensStream, path: NodePath): JsonOutcome<JsonNode>? =
+fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
     when (val t = tokens.peek()) {
-        Value("null") -> parseJsonNodeNull(tokens, path)
-        Value("false"), Value("true") -> parseJsonNodeBoolean(tokens, path)
-        is Value -> parseJsonNodeNum(tokens, path)
-        OpeningQuotes -> parseJsonNodeString(tokens, path)
-        OpeningBracket -> parseJsonNodeArray(tokens, path)
-        OpeningCurly -> parseJsonNodeObject(tokens, path)
+        Value("null") -> parseJsonNodeNull()
+        Value("false"), Value("true") -> parseJsonNodeBoolean()
+        is Value -> parseJsonNodeNum()
+        OpeningQuotes -> parseJsonNodeString()
+        OpeningBracket -> parseJsonNodeArray()
+        OpeningCurly -> parseJsonNodeObject()
         ClosingBracket, ClosingCurly -> null //no more nodes
         ClosingQuotes, Comma, Colon -> parsingError(
             "a new node", tokens.last(),

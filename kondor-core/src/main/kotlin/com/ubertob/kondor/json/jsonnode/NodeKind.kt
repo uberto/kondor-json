@@ -5,12 +5,12 @@ import com.ubertob.kondor.json.parser.*
 
 sealed class NodeKind<JN : JsonNode>(
     val desc: String,
-    val parse: (tokensStream: TokensStream, path: NodePath) -> JsonOutcome<JN>
+    val parse: TokensPath.() -> JsonOutcome<JN>
 )
 
-object ArrayNode : NodeKind<JsonNodeArray>("Array", ::parseJsonNodeArray)
-object BooleanNode : NodeKind<JsonNodeBoolean>("Boolean", ::parseJsonNodeBoolean)
-object NullNode : NodeKind<JsonNodeNull>("Null", ::parseJsonNodeNull)
-object NumberNode : NodeKind<JsonNodeNumber>("Number", ::parseJsonNodeNum)
-object ObjectNode : NodeKind<JsonNodeObject>("Object", ::parseJsonNodeObject)
-object StringNode : NodeKind<JsonNodeString>("String", ::parseJsonNodeString)
+object ArrayNode : NodeKind<JsonNodeArray>("Array", TokensPath::parseJsonNodeArray)
+object BooleanNode : NodeKind<JsonNodeBoolean>("Boolean", TokensPath::parseJsonNodeBoolean)
+object NullNode : NodeKind<JsonNodeNull>("Null", TokensPath::parseJsonNodeNull)
+object NumberNode : NodeKind<JsonNodeNumber>("Number", TokensPath::parseJsonNodeNum)
+object ObjectNode : NodeKind<JsonNodeObject>("Object", TokensPath::parseJsonNodeObject)
+object StringNode : NodeKind<JsonNodeString>("String", TokensPath::parseJsonNodeString)
