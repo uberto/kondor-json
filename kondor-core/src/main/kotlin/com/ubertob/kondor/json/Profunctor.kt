@@ -9,6 +9,10 @@ data class ProfunctorConverter<S, A, B, E : OutcomeError>(
 ): Profunctor<A,B> {
     override fun <C, D> dimap(f: (C) -> A, g: (B) -> D): ProfunctorConverter<S, C, D, E> =
         ProfunctorConverter ({parse(it).transform(g)} , {render(f(it))})
+
+    override fun <C> lmap(f: (C) -> A): ProfunctorConverter<S, C, B, E> = super.lmap(f) as ProfunctorConverter<S, C, B, E>
+
+    override fun <D> rmap(g: (B) -> D): ProfunctorConverter<S, A, D, E> = super.rmap(g) as ProfunctorConverter<S, A, D, E>
 }
 
 
