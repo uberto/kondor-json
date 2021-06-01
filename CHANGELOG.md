@@ -2,6 +2,11 @@
 
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their rationale when appropriate:
 
+
+### v1.5.3 - 1 June 2021
+
+Added Profunctor methods
+
 ### v1.5.2 - 27 May 2021
 
 Improved parsing error messaging and internal refactoring
