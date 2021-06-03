@@ -4,12 +4,9 @@
 
 A library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
 
-With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high
-level DSL.
+With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high level DSL.
 
-No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need
-tovuse. You can also define more than one converter for each class if you want to have multiple formats for the same
-types,vfor example in case of versioned api or different formats for Json in HTTP and persistence.
+No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to use. You can also define more than one converter for each class if you want to have multiple formats for the same types, for example in case of versioned api or different formats for Json in HTTP and persistence.
 
 ## Dependency declaration
 
@@ -28,6 +25,10 @@ Gradle
 ```groovy
 implementation 'com.ubertob.kondor:kondor-core:1.5.3'
 ```
+
+## The Video Presentation
+
+[![Watch the video](https://secure.meetupstatic.com/photos/event/2/2/c/0/highres_496289655.jpeg)](https://www.youtube.com/watch?v=hIKruBc6aeg&t=3200s)
 
 ## Quick Start
 
@@ -61,8 +62,7 @@ Each field (id,name) need to be associated to a decoder and a field in the mappe
 
 ## Do We Need another Json Parser?
 
-We wrote this library to solve a specific problem.
-It was useful for us, so there could be other people that could find this beneficial.
+We wrote this library to solve a specific problem. It was useful for us, so there could be other people that could find this beneficial.
 
 To describe the problem, let's say you need to map a Json like this:
 ```json
@@ -127,9 +127,8 @@ The possible solutions we examined were:
 So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple
 DSL.
 
-The idea is inspired by functional adjuctions, which are a couple of functors that work in opposite direction. So
-instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the
-adjuntion (aka the converter) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
+Theoretically each converter is a profunctor, which is a special kind of bifunctor where one of the functors is covariant and the other is contravariant. 
+So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the converter (technically a profunctor) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
 
 And here is the result, we need to describe the Json format using a converter object called Jxxx where xxx is the name
 of your class:
@@ -456,8 +455,7 @@ object JSelectedFile : JAny<SelectedFile>() {
 }
 ```
 
-Note that it only works with non-nullable fields and it requires that there are no fields with same name
-on `SelectedFile` and `FileInfo`.
+Note that it only works with non-nullable fields and it requires that there are no fields with same name on `SelectedFile` and `FileInfo`.
 
 ### Storing a Map as Json
 
@@ -469,8 +467,7 @@ For example a map of things to do, with a short key and a longer description:
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 ```
 
-You just need to use the `JMap` converter and passing it the converter for the value type of the Map (the keys have to
-be `String` because of Json syntax):
+You just need to use the `JMap` converter and passing it the converter for the value type of the Map (the keys have to be `String` because of Json syntax):
 
 ```kotlin
 object JNotes : JAny<Notes>() {
@@ -546,11 +543,9 @@ And it will be rendered as a standard Json array:
 
 ### Xml->Json Format
 
-When it comes to convert an Xml format to json, a common practice is to map the Xml nodes to a Json array of objects
-with a single field that contains the type of the object as key and the object content as value.
+When it comes to convert an Xml format to json, a common practice is to map the Xml nodes to a Json array of objects with a single field that contains the type of the object as key and the object content as value.
 
-For example an extract of the Liquibase Json format to describe a ChangeSet with two changes, one of type `addColumn`and
-the other one of type `addLookupTable`:
+For example an extract of the Liquibase Json format to describe a ChangeSet with two changes, one of type `addColumn`and the other one of type `addLookupTable`:
 
 ```json
 {
@@ -604,8 +599,7 @@ sealed class Change {
 }
 ```
 
-With Kondor we can abstract on the protocol, and we can create a specific converter for this format, let's call
-it `NestedPolyConverter`.
+With Kondor we can abstract on the protocol, and we can create a specific converter for this format, let's call it `NestedPolyConverter`.
 
 We can now easily define our converters using the new format that will parse and output the Json example correctly:
 
@@ -640,8 +634,7 @@ object JChange : NestedPolyConverter<Change> {
 
 It's very easy to create new converters to follow your team conventions.
 
-Converters are defined using `JsonNode`, so you don't have to handle the parsing, and the serializing separately (which
-can be a source of bugs). They are easier to write than other libraries custom serialisers.
+Converters are defined using `JsonNode`, so you don't have to handle the parsing, and the serializing separately (which can be a source of bugs). They are easier to write than other libraries custom serialisers.
 
 There are some converters in Kondor ready-to-use:
 
@@ -707,10 +700,18 @@ TODO: comparison of performance
 
 - Add integration with Snodge for fuzzy testing
 
-## Adjunctions
+## Profunctor
 
-I've got the inspiration for Kondor while studying Adjoint functors. Adjunctions are a fascinating part of Category
-Theory, you can find some more materials about them here:
+I've got the inspiration for Kondor while studying Adjoint functors. But further studies showed me that Kondor two functors don't form an adjunction but instead they form a profunctor.
+
+Profunctor and Adjunctions are a fascinating part of Category Theory, you can find some more materials about them here:
+
+https://en.wikipedia.org/wiki/Profunctor
+
+https://typeclasses.com/profunctors
+
+https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
+
 
 https://en.wikipedia.org/wiki/Adjoint_functors
 
