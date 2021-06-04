@@ -5,9 +5,9 @@ import java.util.concurrent.atomic.AtomicReference
 
 typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
 
-interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
+abstract class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
-    fun JsonNodeObject.deserializeOrThrow(): T?
+   abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
         tryFromNode(node) {
@@ -16,7 +16,7 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
             )
         }
 
-    fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
+   abstract fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
 
     override fun toJsonNode(value: T): JsonNodeObject =
         getWriters(value)
@@ -24,12 +24,12 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
                 writer(acc, value)
             }
 
-    override val nodeType get() = ObjectNode
+    override val parse = TokensStream::jsonObject
 
 }
 
 
-abstract class JAny<T : Any> : ObjectNodeConverter<T> {
+abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
 

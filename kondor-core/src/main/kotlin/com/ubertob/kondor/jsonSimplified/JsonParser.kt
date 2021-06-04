@@ -20,8 +20,6 @@ fun parsingFailure(expected: String, actual: KondorToken) =
     parsingError(expected, actual).asFailure()
 
 
-
-
 typealias JsonParser<T> = TokensStream.() -> JsonOutcome<T>
 
 
@@ -35,8 +33,8 @@ fun <T> TokensStream.surrounded(
     )
 
 
-fun <T> TokensStream.extractNodesIndexed(f: TokensStream.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
-    naturals().map { f() }
+fun <T> TokensStream.extractNodes(f: TokensStream.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
+    generateSequence{ f() }
         .takeWhileNotNull()
         .extractList()
 
@@ -56,10 +54,10 @@ fun TokensStream.number(): JsonOutcome<JsonNodeNumber> =
     }.transform { JsonNodeNumber(it) }
 
 
-fun TokensStream.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> =
+fun TokensStream.string(): JsonOutcome<JsonNodeString> =
     surrounded(
         OpeningQuotes,
-        { value(allowEmpty) },
+        { value(true) },
         ClosingQuotes
     ).transform { JsonNodeString(it) }
 
@@ -90,8 +88,7 @@ fun TokensStream.jsonObject(): JsonOutcome<JsonNodeObject> =
             }
         },
         ClosingQuotes
-    )
-        .transform { JsonNodeObject(it.toMap()) }
+    ).transform { JsonNodeObject(it.toMap()) }
 
 
 fun <T> TokensStream.keyValue(contentParser: TokensStream.() -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
@@ -103,11 +100,7 @@ fun <T> TokensStream.keyValue(contentParser: TokensStream.() -> JsonOutcome<T>):
         }
 
 private fun TokensStream.parseOptionalKeyNode(): JsonOutcome<String>? =
-    parseNewNode()?.transformFailure {
-        parsingError(
-            "a valid key", last()
-        )
-    }?.bind { takeKey(it) }
+    parseNewNode()?.bind { takeKey(it) }
 
 private fun takeKey(keyNode: JsonNode): JsonOutcome<String> =
     when (keyNode) {
@@ -116,7 +109,7 @@ private fun takeKey(keyNode: JsonNode): JsonOutcome<String> =
     }
 
 fun <T> TokensStream.commaSepared(contentParser: TokensStream.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
-    extractNodesIndexed {
+    extractNodes {
         contentParser()?.bindAndIgnore {
             takeOrNull(Comma) ?: null.asSuccess()
         }

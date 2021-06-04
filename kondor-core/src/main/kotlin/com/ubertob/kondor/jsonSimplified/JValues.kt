@@ -12,7 +12,7 @@ object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
     override fun toJsonNode(value: Boolean): JsonNodeBoolean =
         JsonNodeBoolean(value)
 
-    override val nodeType = BooleanNode
+    override val parse = TokensStream::boolean
 
 }
 
@@ -22,7 +22,7 @@ object JString : JsonConverter<String, JsonNodeString> {
     override fun toJsonNode(value: String): JsonNodeString =
         JsonNodeString(value)
 
-    override val nodeType = StringNode
+    override val parse = TokensStream::string
 }
 
 object JDouble : JNumRepresentable<Double>() {
@@ -61,7 +61,8 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     override fun toJsonNode(value: T): JsonNodeNumber =
         JsonNodeNumber(render(value))
 
-    override val nodeType = NumberNode
+    override val parse = TokensStream::number
+
 }
 
 abstract class JStringRepresentable<T : Any>() : JsonConverter<T, JsonNodeString> {
@@ -72,7 +73,8 @@ abstract class JStringRepresentable<T : Any>() : JsonConverter<T, JsonNodeString
     override fun toJsonNode(value: T): JsonNodeString =
         JsonNodeString(render(value))
 
-    override val nodeType = StringNode
+    override val parse = TokensStream::string
+
 
 }
 
@@ -103,10 +105,11 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
 data class JList<T : Any>(override val converter: JConverter<T>) : JArray<T, List<T>> {
     override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
-    override val nodeType = ArrayNode
+    override val parse = TokensStream::array
+
 }
 
 data class JSet<T : Any>(override val converter: JConverter<T>) : JArray<T, Set<T>> {
     override fun convertToCollection(from: Iterable<T>): Set<T> = from.toSet()
-    override val nodeType = ArrayNode
+    override val parse = TokensStream::array
 }

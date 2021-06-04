@@ -17,16 +17,10 @@ typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
 interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
-    val nodeType: NodeKind<JN>
+    val parse: TokensStream.() -> JsonOutcome<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
-        if (node.nodeKind() == nodeType)
-            (node as JN).asSuccess()
-        else if (node.nodeKind() == NullNode)
-            null.asSuccess()
-        else
-            JsonError("expected a ${nodeType.desc} but found ${node.nodeKind().desc}").asFailure()
+    private fun safeCast(node: JsonNode): JsonOutcome<JN?> = (node as JN).asSuccess()
 
     fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
 
@@ -36,14 +30,11 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
     fun toJsonNode(value: T): JN
 
-    private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
-        nodeType.parse(this)
-
     fun toJson(value: T): String = toJsonNode(value).render()
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
         JsonLexer.tokenize(jsonString).run {
-            parseFromRoot()
+            parse(this)
                 .bind { fromJsonNode(it) }
                 .bind {
                     if (hasNext())
