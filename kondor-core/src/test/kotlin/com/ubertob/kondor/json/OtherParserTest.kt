@@ -117,7 +117,7 @@ class OtherParserTest {
             when (obj) {
                 is Preconditions -> "preConditions"
                 is ChangeSet -> "changeSet"
-                else -> error("!!! $obj not expected")
+                else -> error( "$obj not expected")
             }
 
         override val subConverters: Map<String, ObjectNodeConverter<out ChangeLogItem>> =

@@ -153,7 +153,7 @@ fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> =
     commaSepared(withParentNode {
         keyValue {
-            parseNewNode() ?: parsingFailure("sm", "nothing", tokens.position(), path, "!!!")
+            parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.position(), path, "invalid Json")
         }
     })
         .transform(::checkForDuplicateKeys)
