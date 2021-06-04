@@ -11,7 +11,7 @@ class ProfunctorTest {
     @Test
     fun `dimap maps the Product to an Int both ways`() {
 
-        val productClone = JProduct.asProfunctor().dimap(
+        val productClone = JProduct.dimap(
             { pnum: Int -> Product(pnum, "Clone", "Not very interesting product", 100.0) },
             { product: Product -> product.id }
         )
@@ -30,8 +30,7 @@ class ProfunctorTest {
     fun `lmap maps the Product to an Int but only in render`() {
 
         val productClone =
-            JProduct.asProfunctor()
-                .lmap { pnum: Int -> Product(pnum, "Clone", "Not very interesting product", 100.0) }
+            JProduct.lmap { pnum: Int -> Product(pnum, "Clone", "Not very interesting product", 100.0) }
 
         val json = productClone.render(124)
 
@@ -46,8 +45,7 @@ class ProfunctorTest {
     @Test
     fun `rmap maps the Product to an Int only in parsing`() {
 
-        val productClone = JProduct.asProfunctor()
-            .rmap { product: Product -> product.id }
+        val productClone = JProduct.rmap { product: Product -> product.id }
 
         val json = productClone.render(Product(125, "Clone", "Not very interesting product", 100.0))
 

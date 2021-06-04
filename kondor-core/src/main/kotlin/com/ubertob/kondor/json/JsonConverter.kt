@@ -18,7 +18,7 @@ typealias JConverter<T> = JsonConverter<T, *>
 
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
-interface JsonConverter<T, JN : JsonNode> {
+interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
     val nodeType: NodeKind<JN>
 
@@ -56,7 +56,12 @@ interface JsonConverter<T, JN : JsonNode> {
                 }
         }
 
-    fun asProfunctor(): JsonProfunctor<T> = ProfunctorConverter(::fromJson, ::toJson)
+    override fun <C, D> dimap(f: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).dimap(f,g)
+
+    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> = ProfunctorConverter(::fromJson, ::toJson).lmap(f)
+
+    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).rmap(g)
+
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =

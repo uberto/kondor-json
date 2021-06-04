@@ -3,6 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.OutcomeError
 
+@Suppress("UNCHECKED_CAST")
 data class ProfunctorConverter<S, A, B, E : OutcomeError>(
     val parse: (S) -> Outcome<E, B>,
     val render: (A) -> S
