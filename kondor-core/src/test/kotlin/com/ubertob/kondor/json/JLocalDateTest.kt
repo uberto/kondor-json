@@ -6,6 +6,7 @@ import com.ubertob.kondor.json.datetime.localDate
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -51,16 +52,52 @@ class JLocalDateTest {
             val json =
                 // language=json
                 """
-            {
-              "id": "abcd",
-              "date": "22/05/2021"
-            }
-        """.trimIndent()
+                    {
+                      "id": "abcd",
+                      "date": "22/05/2021"
+                    }
+                """.trimIndent()
 
             val result = JTransaction.fromJson(json)
 
             expectThat(result.expectSuccess().date).isEqualTo(LocalDate.of(2021, 5, 22))
         }
+
+        @Nested
+        @DisplayName("reads an object with optional date")
+        inner class OptionalDate {
+            @Test
+            fun `date missing`() {
+                val json =
+                    // language=json
+                    """
+                        {
+                          "id": "abcd"
+                        }
+                    """.trimIndent()
+
+                val result = JTransactionWithOptionalDate.fromJson(json)
+
+                expectThat(result.expectSuccess().date).isEqualTo(null)
+            }
+
+            @Test
+            fun `date present`() {
+                val json =
+                    // language=json
+                    """
+                    {
+                      "id": "abcd",
+                      "date": "01-02-2021"
+                    }
+                """.trimIndent()
+
+                val result = JTransactionWithOptionalDate.fromJson(json)
+
+                expectThat(result.expectSuccess().date).isEqualTo(LocalDate.of(2021, 2, 1))
+            }
+        }
+
     }
 
     data class Transaction(val id: String, val date: LocalDate)
@@ -71,6 +108,19 @@ class JLocalDateTest {
 
         override fun JsonNodeObject.deserializeOrThrow(): Transaction =
             Transaction(
+                id = +id,
+                date = +date,
+            )
+    }
+
+    data class TransactionWithOptionalDate(val id: String, val date: LocalDate?)
+
+    object JTransactionWithOptionalDate : JAny<TransactionWithOptionalDate>() {
+        private val id by str(TransactionWithOptionalDate::id)
+        private val date by localDate("dd-MM-yyyy", TransactionWithOptionalDate::date)
+
+        override fun JsonNodeObject.deserializeOrThrow(): TransactionWithOptionalDate =
+            TransactionWithOptionalDate(
                 id = +id,
                 date = +date,
             )
