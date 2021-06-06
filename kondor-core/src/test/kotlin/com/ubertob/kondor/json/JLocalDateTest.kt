@@ -2,7 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.json.datetime.JLocalDate
-import com.ubertob.kondor.json.datetime.localDate
+import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
@@ -104,7 +104,7 @@ class JLocalDateTest {
 
     object JTransaction : JAny<Transaction>() {
         private val id by str(Transaction::id)
-        private val date by localDate("dd/MM/yyyy", Transaction::date)
+        private val date by str("dd/MM/yyyy", Transaction::date)
 
         override fun JsonNodeObject.deserializeOrThrow(): Transaction =
             Transaction(
@@ -117,7 +117,7 @@ class JLocalDateTest {
 
     object JTransactionWithOptionalDate : JAny<TransactionWithOptionalDate>() {
         private val id by str(TransactionWithOptionalDate::id)
-        private val date by localDate("dd-MM-yyyy", TransactionWithOptionalDate::date)
+        private val date by str("dd-MM-yyyy", TransactionWithOptionalDate::date)
 
         override fun JsonNodeObject.deserializeOrThrow(): TransactionWithOptionalDate =
             TransactionWithOptionalDate(
