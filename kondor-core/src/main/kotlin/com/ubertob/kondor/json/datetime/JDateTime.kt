@@ -3,7 +3,12 @@ package com.ubertob.kondor.json.datetime
 import com.ubertob.kondor.json.JNumRepresentable
 import com.ubertob.kondor.json.JStringRepresentable
 import java.math.BigDecimal
-import java.time.*
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 
@@ -20,6 +25,15 @@ object JLocalTime : JStringRepresentable<LocalTime>() {
 object JLocalDateTime : JStringRepresentable<LocalDateTime>() {
     override val cons: (String) -> LocalDateTime = LocalDateTime::parse
     override val render: (LocalDateTime) -> String = LocalDateTime::toString
+
+    fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalDateTime> = Custom(formatter)
+
+    fun withPattern(pattern: String): JStringRepresentable<LocalDateTime> = Custom(DateTimeFormatter.ofPattern(pattern))
+
+    private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalDateTime>() {
+        override val cons: (String) -> LocalDateTime = { LocalDateTime.parse(it, formatter) }
+        override val render: (LocalDateTime) -> String = { formatter.format(it) }
+    }
 }
 
 object JDuration : JStringRepresentable<Duration>() {

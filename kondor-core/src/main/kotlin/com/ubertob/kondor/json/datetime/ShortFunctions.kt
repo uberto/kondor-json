@@ -17,6 +17,12 @@ fun <PT : Any> str(binder: PT.() -> LocalDateTime) = JField(binder, JLocalDateTi
 @JvmName("bindLocalDateTimeNull")
 fun <PT : Any> str(binder: PT.() -> LocalDateTime?) = JFieldMaybe(binder, JLocalDateTime)
 
+@JvmName("bindLocalDateTimeWithPattern")
+fun <PT : Any> str(pattern: String, binder: PT.() -> LocalDateTime) = JField(binder, JLocalDateTime.withPattern(pattern))
+
+@JvmName("bindLocalDateTimeWithPatternNull")
+fun <PT : Any> str(pattern: String, binder: PT.() -> LocalDateTime?) = JFieldMaybe(binder, JLocalDateTime.withPattern(pattern))
+
 @JvmName("bindLocalDate")
 fun <PT : Any> str(binder: PT.() -> LocalDate) = JField(binder, JLocalDate)
 
