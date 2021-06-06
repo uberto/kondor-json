@@ -238,16 +238,31 @@ class JValuesTest {
     @Test
     fun `Json LocalDate with custom format`() {
         val date = LocalDate.of(2020, 10, 15)
-        val format = DateTimeFormatter.ofPattern("dd/MM/yyy")
+        val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
         val jLocalDate = JLocalDate.withFormat(format)
 
-        val expectedJsonNode = JsonNodeString("15/10/2020", NodePathRoot)
-        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(expectedJsonNode)
-        expectThat(jLocalDate.fromJsonNode(expectedJsonNode).expectSuccess()).isEqualTo(date)
+        val dateAsdJsonNode = JsonNodeString("15/10/2020", NodePathRoot)
+        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsdJsonNode)
+        expectThat(jLocalDate.fromJsonNode(dateAsdJsonNode).expectSuccess()).isEqualTo(date)
 
-        val expectedJsonString = "\"15/10/2020\""
-        expectThat(jLocalDate.fromJson(expectedJsonString).expectSuccess()).isEqualTo(date)
-        expectThat(jLocalDate.toJson(date)).isEqualTo(expectedJsonString)
+        val dateAsString = "\"15/10/2020\""
+        expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
+        expectThat(jLocalDate.fromJson(dateAsString).expectSuccess()).isEqualTo(date)
+    }
+
+    @Test
+    fun `Json LocalDate with custom format as String`() {
+        val date = LocalDate.of(2021, 1, 6)
+        val format = "dd-MM-yyyy"
+        val jLocalDate = JLocalDate.withFormat(format)
+
+        val dateAsJsonNode = JsonNodeString("06-01-2021", NodePathRoot)
+        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsJsonNode)
+        expectThat(jLocalDate.fromJsonNode(dateAsJsonNode).expectSuccess()).isEqualTo(date)
+
+        val dateAsString = "\"06-01-2021\""
+        expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
+        expectThat(jLocalDate.fromJson(dateAsString).expectSuccess()).isEqualTo(date)
     }
 }
 
