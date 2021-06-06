@@ -1,8 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
-import com.ubertob.kondor.json.datetime.JLocalDate
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
@@ -10,8 +8,6 @@ import com.ubertob.kondor.text
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 class JValuesTest {
@@ -233,36 +229,6 @@ class JValuesTest {
 
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
-    }
-
-    @Test
-    fun `Json LocalDate with custom format`() {
-        val date = LocalDate.of(2020, 10, 15)
-        val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        val jLocalDate = JLocalDate.withFormatter(format)
-
-        val dateAsdJsonNode = JsonNodeString("15/10/2020", NodePathRoot)
-        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsdJsonNode)
-        expectThat(jLocalDate.fromJsonNode(dateAsdJsonNode).expectSuccess()).isEqualTo(date)
-
-        val dateAsString = "\"15/10/2020\""
-        expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
-        expectThat(jLocalDate.fromJson(dateAsString).expectSuccess()).isEqualTo(date)
-    }
-
-    @Test
-    fun `Json LocalDate with custom format as String`() {
-        val date = LocalDate.of(2021, 1, 6)
-        val format = "dd-MM-yyyy"
-        val jLocalDate = JLocalDate.withPattern(format)
-
-        val dateAsJsonNode = JsonNodeString("06-01-2021", NodePathRoot)
-        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsJsonNode)
-        expectThat(jLocalDate.fromJsonNode(dateAsJsonNode).expectSuccess()).isEqualTo(date)
-
-        val dateAsString = "\"06-01-2021\""
-        expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
-        expectThat(jLocalDate.fromJson(dateAsString).expectSuccess()).isEqualTo(date)
     }
 }
 
