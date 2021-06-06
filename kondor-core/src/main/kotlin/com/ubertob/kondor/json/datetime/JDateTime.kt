@@ -20,6 +20,15 @@ object JZoneId : JStringRepresentable<ZoneId>() {
 object JLocalTime : JStringRepresentable<LocalTime>() {
     override val cons: (String) -> LocalTime = LocalTime::parse
     override val render: (LocalTime) -> String = LocalTime::toString
+
+    fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalTime> = Custom(formatter)
+
+    fun withPattern(pattern: String): JStringRepresentable<LocalTime> = Custom(DateTimeFormatter.ofPattern(pattern))
+
+    private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalTime>() {
+        override val cons: (String) -> LocalTime = { LocalTime.parse(it, formatter) }
+        override val render: (LocalTime) -> String = { formatter.format(it) }
+    }
 }
 
 object JLocalDateTime : JStringRepresentable<LocalDateTime>() {
