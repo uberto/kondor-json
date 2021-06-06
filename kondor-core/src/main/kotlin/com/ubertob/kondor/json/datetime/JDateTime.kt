@@ -31,9 +31,9 @@ object JLocalDate : JStringRepresentable<LocalDate>() {
     override val cons: (String) -> LocalDate = LocalDate::parse
     override val render: (LocalDate) -> String = LocalDate::toString
 
-    fun withFormat(formatter: DateTimeFormatter): JStringRepresentable<LocalDate> = Custom(formatter)
+    fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalDate> = Custom(formatter)
 
-    fun withFormat(pattern: String): JStringRepresentable<LocalDate> = Custom(DateTimeFormatter.ofPattern(pattern))
+    fun withPattern(pattern: String): JStringRepresentable<LocalDate> = Custom(DateTimeFormatter.ofPattern(pattern))
 
     private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalDate>() {
         override val cons: (String) -> LocalDate = { LocalDate.parse(it, formatter) }

@@ -24,7 +24,7 @@ fun <PT : Any> str(binder: PT.() -> LocalDate) = JField(binder, JLocalDate)
 fun <PT : Any> str(binder: PT.() -> LocalDate?) = JFieldMaybe(binder, JLocalDate)
 
 @JvmName("bindLocalDateWithPattern")
-fun <PT : Any> localDate(pattern: String, binder: PT.() -> LocalDate) = JField(binder, JLocalDate.withFormat(pattern))
+fun <PT : Any> localDate(pattern: String, binder: PT.() -> LocalDate) = JField(binder, JLocalDate.withPattern(pattern))
 
 @JvmName("bindZoneId")
 fun <PT : Any> str(binder: PT.() -> ZoneId) = JField(binder, JZoneId)

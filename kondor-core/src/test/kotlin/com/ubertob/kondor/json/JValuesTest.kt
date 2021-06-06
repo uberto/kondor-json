@@ -239,7 +239,7 @@ class JValuesTest {
     fun `Json LocalDate with custom format`() {
         val date = LocalDate.of(2020, 10, 15)
         val format = DateTimeFormatter.ofPattern("dd/MM/yyyy")
-        val jLocalDate = JLocalDate.withFormat(format)
+        val jLocalDate = JLocalDate.withFormatter(format)
 
         val dateAsdJsonNode = JsonNodeString("15/10/2020", NodePathRoot)
         expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsdJsonNode)
@@ -254,7 +254,7 @@ class JValuesTest {
     fun `Json LocalDate with custom format as String`() {
         val date = LocalDate.of(2021, 1, 6)
         val format = "dd-MM-yyyy"
-        val jLocalDate = JLocalDate.withFormat(format)
+        val jLocalDate = JLocalDate.withPattern(format)
 
         val dateAsJsonNode = JsonNodeString("06-01-2021", NodePathRoot)
         expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(dateAsJsonNode)
