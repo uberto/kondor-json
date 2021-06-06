@@ -1,6 +1,8 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondor.json.datetime.JLocalDate
+import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
@@ -8,6 +10,8 @@ import com.ubertob.kondor.text
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 class JValuesTest {
@@ -229,6 +233,21 @@ class JValuesTest {
 
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
+    }
+
+    @Test
+    fun `Json LocalDate with custom format`() {
+        val date = LocalDate.of(2020, 10, 15)
+        val format = DateTimeFormatter.ofPattern("dd/MM/yyy")
+        val jLocalDate = JLocalDate.withFormat(format)
+
+        val expectedJsonNode = JsonNodeString("15/10/2020", NodePathRoot)
+        expectThat(jLocalDate.toJsonNode(date, NodePathRoot)).isEqualTo(expectedJsonNode)
+        expectThat(jLocalDate.fromJsonNode(expectedJsonNode).expectSuccess()).isEqualTo(date)
+
+        val expectedJsonString = "\"15/10/2020\""
+        expectThat(jLocalDate.fromJson(expectedJsonString).expectSuccess()).isEqualTo(date)
+        expectThat(jLocalDate.toJson(date)).isEqualTo(expectedJsonString)
     }
 }
 

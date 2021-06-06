@@ -4,6 +4,7 @@ import com.ubertob.kondor.json.JNumRepresentable
 import com.ubertob.kondor.json.JStringRepresentable
 import java.math.BigDecimal
 import java.time.*
+import java.time.format.DateTimeFormatter
 
 
 object JZoneId : JStringRepresentable<ZoneId>() {
@@ -29,6 +30,13 @@ object JDuration : JStringRepresentable<Duration>() {
 object JLocalDate : JStringRepresentable<LocalDate>() {
     override val cons: (String) -> LocalDate = LocalDate::parse
     override val render: (LocalDate) -> String = LocalDate::toString
+
+    fun withFormat(formatter: DateTimeFormatter): JStringRepresentable<LocalDate> = Custom(formatter)
+
+    private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalDate>() {
+        override val cons: (String) -> LocalDate = { LocalDate.parse(it, formatter) }
+        override val render: (LocalDate) -> String = { formatter.format(it) }
+    }
 }
 
 
