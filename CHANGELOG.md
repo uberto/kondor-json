@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their rationale when appropriate:
 
 
+### v1.5.4 - 7 June 2021
+
+Made JLocalDate using a configurable pattern
+
 ### v1.5.3 - 1 June 2021
 
 Added Profunctor methods

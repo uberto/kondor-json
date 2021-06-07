@@ -2,7 +2,7 @@
 
 # KondorJson
 
-A library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
+A functional Kotlin library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
 
 With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high level DSL.
 
@@ -17,13 +17,13 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
    <artifactId>kondor-core</artifactId>
-   <version>1.5.3</version>
+   <version>1.5.4</version>
 </dependency>
 ```
 
 Gradle
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:1.5.3'
+implementation 'com.ubertob.kondor:kondor-core:1.5.4'
 ```
 
 ## The Video Presentation
