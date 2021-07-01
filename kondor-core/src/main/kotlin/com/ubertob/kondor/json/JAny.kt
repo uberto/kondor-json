@@ -37,14 +37,20 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
+    private val properties: AtomicReference<List<JsonProperty<*>>> = AtomicReference(emptyList())
 
     override fun getWriters(value: T): List<NodeWriter<T>> = nodeWriters.get()
+
+    fun getProperties(): List<JsonProperty<*>> = properties.get()
 
     private fun registerSetter(nodeWriter: NodeWriter<T>) {
         nodeWriters.getAndUpdate { list -> list + nodeWriter }
     }
 
+
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
+        properties.getAndUpdate { list -> list + jsonProperty }
+
         registerSetter { jno, obj -> jsonProperty.setter(binder(obj))(jno) }
     }
 
