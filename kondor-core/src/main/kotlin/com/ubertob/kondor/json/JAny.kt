@@ -1,9 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.NodePathSegment
-import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
 
@@ -47,7 +44,6 @@ abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
         nodeWriters.getAndUpdate { list -> list + nodeWriter }
     }
 
-
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
 
@@ -88,6 +84,36 @@ class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConve
         }
 
 }
+
+
+fun JAny<*>.description(): String =
+
+    getProperties().map { prop ->
+        val converter = when (prop) {
+            is JsonPropMandatory<*, *> -> prop.converter
+            is JsonPropMandatoryFlatten<*> -> prop.converter
+            is JsonPropOptional<*, *> -> prop.converter
+        }
+
+        when (converter.nodeType) {
+            BooleanNode -> TODO()
+            NullNode -> TODO()
+            NumberNode -> TODO()
+            StringNode -> TODO()
+            ArrayNode -> when (converter) {
+                is JArray<*, *> -> TODO()
+                else -> TODO()
+            }
+            ObjectNode -> when (converter) {
+                is ObjectNodeConverter<*> -> when (converter) {
+                    is JAny -> description()
+                    is JMap<*> -> TODO()
+                    is PolymorphicConverter -> TODO()
+                }
+                else -> TODO()
+            }
+        }
+    }.joinToString()
 
 
 
