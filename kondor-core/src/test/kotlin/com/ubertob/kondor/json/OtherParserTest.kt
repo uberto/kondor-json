@@ -86,7 +86,7 @@ class OtherParserTest {
 
     }
 
-    object JChange : NestedPolyConverter<Change> {
+    object JChange : NestedPolyConverter<Change>() {
 
         override fun extractTypeName(obj: Change): String =
             when (obj) {
@@ -112,7 +112,7 @@ class OtherParserTest {
     }
 
 
-    object JChangeLogItem : NestedPolyConverter<ChangeLogItem> {
+    object JChangeLogItem : NestedPolyConverter<ChangeLogItem>() {
         override fun extractTypeName(obj: ChangeLogItem): String =
             when (obj) {
                 is Preconditions -> "preConditions"

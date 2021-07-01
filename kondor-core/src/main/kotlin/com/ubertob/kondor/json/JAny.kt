@@ -2,15 +2,18 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.NodePathSegment
 import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
 
 
 typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
 
-interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
-    fun JsonNodeObject.deserializeOrThrow(): T?
+sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
+
+    abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
         tryFromNode(node) {
@@ -19,8 +22,7 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
             )
         }
 
-    fun getWriters(value: T): List<NodeWriter<T>> //todo: simplify to a single NodeWriter
-
+    abstract fun getWriters(value: T): List<NodeWriter<T>>
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
         getWriters(value)
             .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
@@ -32,7 +34,7 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 }
 
 
-abstract class JAny<T : Any> : ObjectNodeConverter<T> {
+abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
 
@@ -47,5 +49,39 @@ abstract class JAny<T : Any> : ObjectNodeConverter<T> {
     }
 
 }
+
+
+abstract class PolymorphicConverter<T : Any> : ObjectNodeConverter<T>() {
+
+    abstract fun extractTypeName(obj: T): String
+    abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
+
+
+    @Suppress("UNCHECKED_CAST") //todo: add tests for this
+    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
+        subConverters[typeName] as? ObjectNodeConverter<T>
+
+}
+
+class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>>() {
+    override fun JsonNodeObject.deserializeOrThrow() =
+        fieldMap.mapValues { entry ->
+            valueConverter.fromJsonNodeBase(entry.value)
+                .failIfNull(JsonError(path, "Found null node in map!"))
+                .orThrow()
+        }
+
+    override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =
+        value.entries.toList().sortedBy { it.key }.map { (key, value) ->
+            { jno: JsonNodeObject, _: Map<String, T> ->
+                jno.copy(
+                    fieldMap = jno.fieldMap +
+                        (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
+                )
+            }
+        }
+
+}
+
 
 

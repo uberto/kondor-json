@@ -132,7 +132,7 @@ object JCompany : JAny<Company>() {
         )
 }
 
-object JCustomer : JSealed<Customer> {
+object JCustomer : JSealed<Customer>() {
 
     override val discriminatorFieldName = "type"
 

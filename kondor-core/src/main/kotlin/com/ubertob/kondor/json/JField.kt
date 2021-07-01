@@ -42,8 +42,7 @@ class JFieldFlatten<T : Any, PT : Any>(
 
 class JFieldMaybe<T : Any, PT : Any>(
     override val binder: (PT) -> T?,
-    private val converter: JConverter<T>,
-    private val flatten: Boolean = false
+    private val converter: JConverter<T>
 ) : JFieldBase<T?, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T?> =

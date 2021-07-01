@@ -42,21 +42,11 @@ data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
 }
 
 
-interface PolymorphicConverter<T : Any> : ObjectNodeConverter<T> {
-
-    fun extractTypeName(obj: T): String
-    val subConverters: Map<String, ObjectNodeConverter<out T>>
 
 
-    @Suppress("UNCHECKED_CAST") //todo: add tests for this
-    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
-        subConverters[typeName] as? ObjectNodeConverter<T>
+abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
-}
-
-interface JSealed<T : Any> : PolymorphicConverter<T> {
-
-    val discriminatorFieldName: String
+    open val discriminatorFieldName: String
         get() = "_type"
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
@@ -87,7 +77,7 @@ interface JSealed<T : Any> : PolymorphicConverter<T> {
 }
 
 //to map polimorphic object with xml->json standard convention
-interface NestedPolyConverter<T : Any> : PolymorphicConverter<T> {
+abstract class NestedPolyConverter<T : Any> : PolymorphicConverter<T>() {
 
     override fun JsonNodeObject.deserializeOrThrow(): T {
         val typeName = fieldMap.keys.first()
@@ -101,25 +91,5 @@ interface NestedPolyConverter<T : Any> : PolymorphicConverter<T> {
                 ?.getWriters(value)
                 ?: error("subtype not known $typeName")
         }
-}
-
-class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>> {
-    override fun JsonNodeObject.deserializeOrThrow() =
-        fieldMap.mapValues { entry ->
-            valueConverter.fromJsonNodeBase(entry.value)
-                .failIfNull(JsonError(path, "Found null node in map!"))
-                .orThrow()
-        }
-
-    override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =
-        value.entries.toList().sortedBy { it.key }.map { (key, value) ->
-            { jno: JsonNodeObject, _: Map<String, T> ->
-                jno.copy(
-                    fieldMap = jno.fieldMap +
-                            (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
-                )
-            }
-        }
-
 }
 
