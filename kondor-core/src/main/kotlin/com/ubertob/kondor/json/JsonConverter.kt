@@ -3,6 +3,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondor.json.schema.createSchema
 import com.ubertob.kondor.outcome.*
 
 
@@ -19,6 +20,13 @@ typealias JConverter<T> = JsonConverter<T, *>
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
 interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
+
+    override fun <C, D> dimap(f: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).dimap(f,g)
+
+    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> = ProfunctorConverter(::fromJson, ::toJson).lmap(f)
+
+    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).rmap(g)
+
 
     val nodeType: NodeKind<JN>
 
@@ -56,11 +64,7 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
                 }
         }
 
-    override fun <C, D> dimap(f: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).dimap(f,g)
-
-    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> = ProfunctorConverter(::fromJson, ::toJson).lmap(f)
-
-    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).rmap(g)
+    fun schema(): JsonNodeObject = nodeType.createSchema()
 
 }
 
