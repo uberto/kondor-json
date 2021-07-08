@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.parser.pretty
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -22,6 +23,10 @@ class JsonSchemaTest {
               |          "type": "String"
               |        }
               |    },
+              |  "required": [
+              |      "id",
+              |      "name"
+              |    ],
               |  "type": "object"
               |}""".trimMargin()
         )
@@ -45,7 +50,29 @@ class JsonSchemaTest {
               |          "type": "String"
               |        },
               |      "items": {
-              |          "type": "Array"
+              |          "items": {
+              |              "properties": {
+              |                  "id": {
+              |                      "type": "Number"
+              |                    },
+              |                  "long_description": {
+              |                      "type": "String"
+              |                    },
+              |                  "price": {
+              |                      "type": "Number"
+              |                    },
+              |                  "short-desc": {
+              |                      "type": "String"
+              |                    }
+              |                },
+              |              "required": [
+              |                  "id",
+              |                  "long_description",
+              |                  "short-desc"
+              |                ],
+              |              "type": "object"
+              |            },
+              |          "type": "array"
               |        },
               |      "paid_datetime": {
               |          "type": "Number"
@@ -57,13 +84,21 @@ class JsonSchemaTest {
               |          "type": "Boolean"
               |        }
               |    },
+              |  "required": [
+              |      "id",
+              |      "vat-to-pay",
+              |      "customer",
+              |      "items",
+              |      "total",
+              |      "created_date"
+              |    ],
               |  "type": "object"
               |}""".trimMargin()
         )
     }
 
     @Test
-    fun `schema for medium object`(){
+    fun `schema for object with optional fields`(){
 
         val schema = JProduct.schema().pretty(false, 2)
 
@@ -83,6 +118,37 @@ class JsonSchemaTest {
               |          "type": "String"
               |        }
               |    },
+              |  "required": [
+              |      "id",
+              |      "long_description",
+              |      "short-desc"
+              |    ],
+              |  "type": "object"
+              |}""".trimMargin()
+        )
+    }
+
+    @Disabled
+    @Test
+    fun `schema for object with enums fields`(){
+
+        val schema = JCompany.schema().pretty(false, 2)
+
+        //making it work with Enum
+        expectThat(schema).isEqualTo(
+            """{
+              |  "properties": {
+              |      "name": {
+              |          "type": "String"
+              |        },
+              |      "tax_type": {
+              |          "enum": [Domestic, Exempt, EU, US, Other]
+              |        }
+              |    },
+              |  "required": [
+              |      "name",
+              |      "tax_type"
+              |    ],
               |  "type": "object"
               |}""".trimMargin()
         )

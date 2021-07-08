@@ -3,7 +3,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.*
-import com.ubertob.kondor.json.schema.createSchema
+import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.*
 
 
@@ -64,7 +64,7 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
                 }
         }
 
-    fun schema(): JsonNodeObject = nodeType.createSchema()
+    fun schema(): JsonNodeObject = valueSchema(nodeType)
 
 }
 

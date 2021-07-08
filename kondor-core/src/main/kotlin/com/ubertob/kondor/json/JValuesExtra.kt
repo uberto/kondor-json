@@ -3,6 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
+import com.ubertob.kondor.json.schema.enumSchema
 import com.ubertob.kondor.outcome.failIfNull
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -32,8 +33,10 @@ object JCurrency : JStringRepresentable<Currency>() {
     override val render: (Currency) -> String = Currency::getCurrencyCode
 }
 
+//todo get Enum class instead of cons
 data class JEnum<E : Enum<E>>(override val cons: (String) -> E) : JStringRepresentable<E>() {
     override val render: (E) -> String = { it.name }
+//    override fun schema(): JsonNodeObject = enumSchema(cons)
 }
 
 //for serializing Kotlin object and other single instance types

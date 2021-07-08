@@ -1,7 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.schema.createSchema
+import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
 
@@ -51,11 +51,9 @@ abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
         registerSetter { jno, obj -> jsonProperty.setter(binder(obj))(jno) }
     }
 
-    override fun schema(): JsonNodeObject = properties.get().createSchema()
+    override fun schema(): JsonNodeObject = objectSchema(properties.get())
 }
 
-
-fun String.asNode() = JsonNodeString(this, NodePathRoot)
 
 abstract class PolymorphicConverter<T : Any> : ObjectNodeConverter<T>() {
 
@@ -89,35 +87,6 @@ class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConve
 
 }
 
-
-//fun JAny<*>.schema(): JsonNodeObject =
-//
-//    getProperties().map { prop ->
-//        val converter = when (prop) {
-//            is JsonPropMandatory<*, *> -> prop.converter
-//            is JsonPropMandatoryFlatten<*> -> prop.converter
-//            is JsonPropOptional<*, *> -> prop.converter
-//        }
-//
-//        when (converter.nodeType) {
-//            BooleanNode -> TODO()
-//            NullNode -> TODO()
-//            NumberNode -> TODO()
-//            StringNode -> TODO()
-//            ArrayNode -> when (converter) {
-//                is JArray<*, *> -> TODO()
-//                else -> TODO()
-//            }
-//            ObjectNode -> when (converter) {
-//                is ObjectNodeConverter<*> -> when (converter) {
-//                    is JAny -> description()
-//                    is JMap<*> -> TODO()
-//                    is PolymorphicConverter -> TODO()
-//                }
-//                else -> TODO()
-//            }
-//        }
-//    }.joinToString()
 
 
 
