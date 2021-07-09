@@ -14,10 +14,13 @@ internal fun valueSchema(nodeKind: NodeKind<*>): JsonNodeObject =
 
 
 internal fun <E : Enum<E>> enumSchema(values: List<E>): JsonNodeObject =
-    mapOf(
-        "enum" to values.map { it.name }.asNode()
-    ).asNode()
 
+    mapOf(
+        if (values.isEmpty())
+            "type" to "string".asNode()
+        else
+            "enum" to values.map { it.name }.asNode()
+    ).asNode()
 
 
 internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonNodeObject =

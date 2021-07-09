@@ -34,9 +34,9 @@ object JCurrency : JStringRepresentable<Currency>() {
 }
 
 //todo get Enum class instead of cons
-data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: Array<E> ) : JStringRepresentable<E>() {
+data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList() ) : JStringRepresentable<E>() {
     override val render: (E) -> String = { it.name }
-    override fun schema(): JsonNodeObject = enumSchema(values.toList())
+    override fun schema(): JsonNodeObject = enumSchema(values)
 }
 
 //for serializing Kotlin object and other single instance types
