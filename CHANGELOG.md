@@ -1,7 +1,11 @@
 <h2 class="github">Changelog</h2>
 
-This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their rationale when appropriate:
+This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
+rationale when appropriate:
 
+### v1.6.0 - 10 June 2021
+
+Added Json Schema generation
 
 ### v1.5.4 - 7 June 2021
 
