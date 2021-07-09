@@ -54,10 +54,10 @@ fun <PT : Any> str(binder: PT.() -> String) = JField(binder, JString)
 fun <PT : Any> str(binder: PT.() -> String?) = JFieldMaybe(binder, JString)
 
 @JvmName("bindEnum")
-inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E) = JField(binder, JEnum(::enumValueOf))
+inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E) = JField(binder, JEnum(::enumValueOf, enumValues()))
 
 @JvmName("bindEnumNull")
-inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E?) = JFieldMaybe(binder, JEnum(::enumValueOf))
+inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E?) = JFieldMaybe(binder, JEnum(::enumValueOf, enumValues()))
 
 @JvmName("bindWrappedString")
 inline fun <PT : Any, reified E : StringWrapper> str(noinline cons: (String) -> E, noinline binder: PT.() -> E) = JField(binder, JStringWrapper(cons))

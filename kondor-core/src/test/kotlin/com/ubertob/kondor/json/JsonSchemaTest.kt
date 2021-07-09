@@ -128,7 +128,6 @@ class JsonSchemaTest {
         )
     }
 
-    @Disabled
     @Test
     fun `schema for object with enums fields`(){
 
@@ -142,7 +141,13 @@ class JsonSchemaTest {
               |          "type": "String"
               |        },
               |      "tax_type": {
-              |          "enum": [Domestic, Exempt, EU, US, Other]
+              |          "enum": [
+              |              "Domestic",
+              |              "Exempt",
+              |              "EU",
+              |              "US",
+              |              "Other"
+              |            ]
               |        }
               |    },
               |  "required": [

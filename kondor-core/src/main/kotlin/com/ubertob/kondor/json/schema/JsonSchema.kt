@@ -13,9 +13,9 @@ internal fun valueSchema(nodeKind: NodeKind<*>): JsonNodeObject =
     ).asNode()
 
 
-internal inline fun <reified E : Enum<E>> enumSchema(cons: (String) -> E): JsonNodeObject =
+internal fun <E : Enum<E>> enumSchema(values: List<E>): JsonNodeObject =
     mapOf(
-        "enum" to E::class.java.enumConstants.toList().map { it.name }.asNode()
+        "enum" to values.map { it.name }.asNode()
     ).asNode()
 
 
