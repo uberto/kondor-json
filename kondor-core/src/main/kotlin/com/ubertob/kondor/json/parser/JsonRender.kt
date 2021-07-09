@@ -15,7 +15,7 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
     }
 
 
-fun JsonNode.pretty(explicitNull: Boolean, indent: Int, offset: Int = 0): String =
+fun JsonNode.pretty(explicitNull: Boolean = false, indent: Int = 2, offset: Int = 0): String =
     when (this) {
         is JsonNodeNull -> render()
         is JsonNodeString -> render()

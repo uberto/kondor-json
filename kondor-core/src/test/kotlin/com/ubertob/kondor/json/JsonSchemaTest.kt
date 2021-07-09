@@ -131,9 +131,8 @@ class JsonSchemaTest {
     @Test
     fun `schema for object with enums fields`(){
 
-        val schema = JCompany.schema().pretty(false, 2)
+        val schema = JCompany.schema().pretty()
 
-        //making it work with Enum
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
