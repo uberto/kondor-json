@@ -9,7 +9,7 @@ import com.ubertob.kondor.json.jsonnode.*
 
 internal fun valueSchema(nodeKind: NodeKind<*>): JsonNodeObject =
     mapOf(
-        "type" to nodeKind.desc.asNode()
+        "type" to nodeKind.desc.lowercase().asNode()
     ).asNode()
 
 

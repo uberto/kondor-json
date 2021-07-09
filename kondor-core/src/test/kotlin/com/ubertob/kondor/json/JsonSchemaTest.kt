@@ -11,16 +11,16 @@ class JsonSchemaTest {
     @Test
     fun `schema for simple object`(){
 
-        val schema = JPerson.schema().pretty(false, 2)
+        val schema = JPerson.schema().pretty()
 
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
               |      "id": {
-              |          "type": "Number"
+              |          "type": "number"
               |        },
               |      "name": {
-              |          "type": "String"
+              |          "type": "string"
               |        }
               |    },
               |  "required": [
@@ -32,90 +32,26 @@ class JsonSchemaTest {
         )
     }
 
-    @Test
-    fun `schema for complex object`(){
-
-        val schema = JInvoice.schema().pretty(false, 2)
-
-        expectThat(schema).isEqualTo(
-            """{
-              |  "properties": {
-              |      "created_date": {
-              |          "type": "String"
-              |        },
-              |      "customer": {
-              |          "type": "Object"
-              |        },
-              |      "id": {
-              |          "type": "String"
-              |        },
-              |      "items": {
-              |          "items": {
-              |              "properties": {
-              |                  "id": {
-              |                      "type": "Number"
-              |                    },
-              |                  "long_description": {
-              |                      "type": "String"
-              |                    },
-              |                  "price": {
-              |                      "type": "Number"
-              |                    },
-              |                  "short-desc": {
-              |                      "type": "String"
-              |                    }
-              |                },
-              |              "required": [
-              |                  "id",
-              |                  "long_description",
-              |                  "short-desc"
-              |                ],
-              |              "type": "object"
-              |            },
-              |          "type": "array"
-              |        },
-              |      "paid_datetime": {
-              |          "type": "Number"
-              |        },
-              |      "total": {
-              |          "type": "Number"
-              |        },
-              |      "vat-to-pay": {
-              |          "type": "Boolean"
-              |        }
-              |    },
-              |  "required": [
-              |      "id",
-              |      "vat-to-pay",
-              |      "customer",
-              |      "items",
-              |      "total",
-              |      "created_date"
-              |    ],
-              |  "type": "object"
-              |}""".trimMargin()
-        )
-    }
 
     @Test
     fun `schema for object with optional fields`(){
 
-        val schema = JProduct.schema().pretty(false, 2)
+        val schema = JProduct.schema().pretty()
 
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
               |      "id": {
-              |          "type": "Number"
+              |          "type": "number"
               |        },
               |      "long_description": {
-              |          "type": "String"
+              |          "type": "string"
               |        },
               |      "price": {
-              |          "type": "Number"
+              |          "type": "number"
               |        },
               |      "short-desc": {
-              |          "type": "String"
+              |          "type": "string"
               |        }
               |    },
               |  "required": [
@@ -137,7 +73,7 @@ class JsonSchemaTest {
             """{
               |  "properties": {
               |      "name": {
-              |          "type": "String"
+              |          "type": "string"
               |        },
               |      "tax_type": {
               |          "enum": [
@@ -152,6 +88,131 @@ class JsonSchemaTest {
               |  "required": [
               |      "name",
               |      "tax_type"
+              |    ],
+              |  "type": "object"
+              |}""".trimMargin()
+        )
+    }
+
+    @Test
+    fun `schema for array of objects`(){
+
+        val schema = JProducts.schema().pretty()
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "items": {
+              |      "properties": {
+              |          "id": {
+              |              "type": "number"
+              |            },
+              |          "long_description": {
+              |              "type": "string"
+              |            },
+              |          "price": {
+              |              "type": "number"
+              |            },
+              |          "short-desc": {
+              |              "type": "string"
+              |            }
+              |        },
+              |      "required": [
+              |          "id",
+              |          "long_description",
+              |          "short-desc"
+              |        ],
+              |      "type": "object"
+              |    },
+              |  "type": "array"
+              |}""".trimMargin()
+        )
+    }
+
+
+    @Test
+    fun `schema for object map`(){
+
+        val schema = JNotes.schema().pretty()
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "properties": {
+              |      "things_to_do": {
+              |          "type": "object"
+              |        },
+              |      "updated": {
+              |          "type": "string"
+              |        }
+              |    },
+              |  "required": [
+              |      "updated",
+              |      "things_to_do"
+              |    ],
+              |  "type": "object"
+              |}""".trimMargin()
+        )
+    }
+
+
+    @Test
+    fun `schema for complex object`(){
+
+        val schema = JInvoice.schema().pretty(false, 2)
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "properties": {
+              |      "created_date": {
+              |          "type": "string"
+              |        },
+              |      "customer": {
+              |          "type": "object"
+              |        },
+              |      "id": {
+              |          "type": "string"
+              |        },
+              |      "items": {
+              |          "items": {
+              |              "properties": {
+              |                  "id": {
+              |                      "type": "number"
+              |                    },
+              |                  "long_description": {
+              |                      "type": "string"
+              |                    },
+              |                  "price": {
+              |                      "type": "number"
+              |                    },
+              |                  "short-desc": {
+              |                      "type": "string"
+              |                    }
+              |                },
+              |              "required": [
+              |                  "id",
+              |                  "long_description",
+              |                  "short-desc"
+              |                ],
+              |              "type": "object"
+              |            },
+              |          "type": "array"
+              |        },
+              |      "paid_datetime": {
+              |          "type": "number"
+              |        },
+              |      "total": {
+              |          "type": "number"
+              |        },
+              |      "vat-to-pay": {
+              |          "type": "boolean"
+              |        }
+              |    },
+              |  "required": [
+              |      "id",
+              |      "vat-to-pay",
+              |      "customer",
+              |      "items",
+              |      "total",
+              |      "created_date"
               |    ],
               |  "type": "object"
               |}""".trimMargin()
