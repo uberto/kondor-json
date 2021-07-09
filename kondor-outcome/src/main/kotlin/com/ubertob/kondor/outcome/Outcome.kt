@@ -111,6 +111,10 @@ data class ThrowableError(val throwable: Throwable) : OutcomeError {
     override val msg: String = throwable.message.orEmpty()
 }
 
+data class MessageError(override val msg: String) : OutcomeError
+
+fun String.asFailure() = MessageError(this).asFailure()
+
 fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
     initial: U,
     operation: (acc: U, T) -> Outcome<ERR, U>
