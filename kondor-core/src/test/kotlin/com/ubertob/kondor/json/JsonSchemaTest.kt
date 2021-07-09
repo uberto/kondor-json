@@ -1,15 +1,21 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.parser.pretty
-import org.junit.jupiter.api.Disabled
+import com.ubertob.kondor.json.parser.render
 import org.junit.jupiter.api.Test
+import org.leadpony.justify.api.JsonSchema
+import org.leadpony.justify.api.JsonValidationService
+import strikt.api.expectCatching
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.isEqualTo
+import strikt.assertions.isFailure
+
 
 class JsonSchemaTest {
 
     @Test
-    fun `schema for simple object`(){
+    fun `schema for simple object`() {
 
         val schema = JPerson.schema().pretty()
 
@@ -34,7 +40,7 @@ class JsonSchemaTest {
 
 
     @Test
-    fun `schema for object with optional fields`(){
+    fun `schema for object with optional fields`() {
 
         val schema = JProduct.schema().pretty()
 
@@ -65,7 +71,7 @@ class JsonSchemaTest {
     }
 
     @Test
-    fun `schema for object with enums fields`(){
+    fun `schema for object with enums fields`() {
 
         val schema = JCompany.schema().pretty()
 
@@ -95,7 +101,7 @@ class JsonSchemaTest {
     }
 
     @Test
-    fun `schema for array of objects`(){
+    fun `schema for array of objects`() {
 
         val schema = JProducts.schema().pretty()
 
@@ -130,7 +136,7 @@ class JsonSchemaTest {
 
 
     @Test
-    fun `schema for object map`(){
+    fun `schema for object map`() {
 
         val schema = JNotes.schema().pretty()
 
@@ -155,7 +161,7 @@ class JsonSchemaTest {
 
 
     @Test
-    fun `schema for complex object`(){
+    fun `schema for complex object`() {
 
         val schema = JInvoice.schema().pretty(false, 2)
 
@@ -217,5 +223,42 @@ class JsonSchemaTest {
               |  "type": "object"
               |}""".trimMargin()
         )
+    }
+
+    @Test
+    fun `validate an Json against its Schema`() {
+
+        val schema = JInvoice.schema().render()
+        val schemaJson = schemaService(schema)
+        repeat(10) {
+            val json = JInvoice.toJson(randomInvoice())
+
+            validateJsonAgainstSchema(schemaJson, json)
+        }
+    }
+
+    @Test
+    fun `validating an Json against another Schema will give a failure`() {
+
+        val schema = JPerson.schema().render()
+        val schemaJson = schemaService(schema)
+        val json = JCompany.toJson(randomCompany())
+
+        expectCatching {
+            validateJsonAgainstSchema(schemaJson, json)
+        }.isFailure()
+            .get { message.orEmpty() }.contains("The object must have a property whose name is \"id\"")
+    }
+
+    val service = JsonValidationService.newInstance()
+
+    private fun schemaService(schemaJson: String): JsonSchema =
+        service.readSchema(schemaJson.byteInputStream())
+
+
+    private fun validateJsonAgainstSchema(jsonConfig: JsonSchema, json: String) {
+        val handler = service.createProblemPrinter { error("Schema validation error: $it") }
+        service.createReader(json.byteInputStream(), jsonConfig, handler)
+            .use { reader -> reader.readValue() }
     }
 }
