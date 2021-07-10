@@ -21,11 +21,11 @@ class JLocalDateTimeTest {
         val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
         val jLocalDateTime = JLocalDateTime.withFormatter(format)
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 pm", NodePathRoot)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 PM", NodePathRoot)
         expectThat(jLocalDateTime.toJsonNode(date, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(date)
 
-        val dateTimeAsString = "\"15/10/2020 02:01:34 pm\""
+        val dateTimeAsString = "\"15/10/2020 02:01:34 PM\""
         expectThat(jLocalDateTime.toJson(date)).isEqualTo(dateTimeAsString)
         expectThat(jLocalDateTime.fromJson(dateTimeAsString).expectSuccess()).isEqualTo(date)
     }
@@ -35,11 +35,11 @@ class JLocalDateTimeTest {
         val dateTime = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
         val jLocalDateTime = JLocalDateTime.withPattern("dd/MM/yyyy hh:mm:ss a")
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 pm", NodePathRoot)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 PM", NodePathRoot)
         expectThat(jLocalDateTime.toJsonNode(dateTime, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(dateTime)
 
-        val dateTimeAsString = "\"15/10/2020 02:01:34 pm\""
+        val dateTimeAsString = "\"15/10/2020 02:01:34 PM\""
         expectThat(jLocalDateTime.toJson(dateTime)).isEqualTo(dateTimeAsString)
         expectThat(jLocalDateTime.fromJson(dateTimeAsString).expectSuccess()).isEqualTo(dateTime)
     }
@@ -53,7 +53,7 @@ class JLocalDateTimeTest {
                 """
                     {
                       "id": "abcd",
-                      "date": "15/10/2020 02:01:34 pm"
+                      "date": "15/10/2020 02:01:34 PM"
                     }
                 """.trimIndent()
 
@@ -87,7 +87,7 @@ class JLocalDateTimeTest {
                     """
                     {
                       "id": "abcd",
-                      "date": "01/02/2021 02:15:56 am"
+                      "date": "01/02/2021 02:15:56 AM"
                     }
                 """.trimIndent()
 

@@ -21,11 +21,11 @@ class JLocalTimeTest {
         val format = DateTimeFormatter.ofPattern("hh:mm:ss a")
         val jLocalTime = JLocalTime.withFormatter(format)
 
-        val timeAsJsonNode = JsonNodeString("02:01:34 pm", NodePathRoot)
+        val timeAsJsonNode = JsonNodeString("02:01:34 PM", NodePathRoot)
         expectThat(jLocalTime.toJsonNode(time, NodePathRoot)).isEqualTo(timeAsJsonNode)
         expectThat(jLocalTime.fromJsonNode(timeAsJsonNode).expectSuccess()).isEqualTo(time)
 
-        val timeAsString = "\"02:01:34 pm\""
+        val timeAsString = "\"02:01:34 PM\""
         expectThat(jLocalTime.toJson(time)).isEqualTo(timeAsString)
         expectThat(jLocalTime.fromJson(timeAsString).expectSuccess()).isEqualTo(time)
     }
@@ -35,11 +35,11 @@ class JLocalTimeTest {
         val time = LocalTime.of(14, 1, 34)
         val jLocalTime = JLocalTime.withPattern("hh:mm:ss a")
 
-        val timeAsJsonNode = JsonNodeString("02:01:34 pm", NodePathRoot)
+        val timeAsJsonNode = JsonNodeString("02:01:34 PM", NodePathRoot)
         expectThat(jLocalTime.toJsonNode(time, NodePathRoot)).isEqualTo(timeAsJsonNode)
         expectThat(jLocalTime.fromJsonNode(timeAsJsonNode).expectSuccess()).isEqualTo(time)
 
-        val timeAsString = "\"02:01:34 pm\""
+        val timeAsString = "\"02:01:34 PM\""
         expectThat(jLocalTime.toJson(time)).isEqualTo(timeAsString)
         expectThat(jLocalTime.fromJson(timeAsString).expectSuccess()).isEqualTo(time)
     }
@@ -53,7 +53,7 @@ class JLocalTimeTest {
                 """
                     {
                       "id": "abcd",
-                      "time": "02:01:34 pm"
+                      "time": "02:01:34 PM"
                     }
                 """.trimIndent()
 
@@ -87,7 +87,7 @@ class JLocalTimeTest {
                     """
                     {
                       "id": "abcd",
-                      "time": "02:15:56 am"
+                      "time": "02:15:56 AM"
                     }
                 """.trimIndent()
 
