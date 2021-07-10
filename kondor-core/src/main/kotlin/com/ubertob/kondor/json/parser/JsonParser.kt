@@ -4,25 +4,8 @@ import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.*
-import com.ubertob.kondor.outcome.Outcome.Companion.tryOrFail
 import java.math.BigDecimal
 
-private inline fun <T> tryParse(
-    expected: String,
-    actual: KondorToken,
-    position: Int,
-    path: NodePath,
-    f: () -> T
-): Outcome<JsonError, T> =
-    tryOrFail(f)
-        .transformFailure {
-            when (it.throwable) {
-                is NumberFormatException ->
-                    parsingError(expected, actual, position, path, it.msg)
-                else ->
-                    parsingError(expected, "${it.msg} after $actual", position, path, "Invalid Json")
-            }
-        }
 
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 

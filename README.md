@@ -154,21 +154,44 @@ Will output the following Json schema:
       }
    },
    "required": [
-      "file_name",
-      "creation_date",
-      "is_dir",
-      "size",
-      "folder_path"
+     "file_name",
+     "creation_date",
+     "is_dir",
+     "size",
+     "folder_path"
    ],
-   "type": "object"
+  "type": "object"
 }
 ```
 
-### Tests
+### Tests Utils
 
-TODO: show compare json equivalent content
+In the module `kondor-tools` there are some useful functions for testing:
 
-TODO: test support util for Json and back
+`expectSuccess` and `expectFailure` simplify test expectations:
+
+```kotlin
+val actual = JCustomer.fromJsonNode(json).expectSuccess()
+
+expectThat(actual).isEqualTo(expectedCustomer)
+```
+
+`isEquivalentJson` compare two Json strings and return success if they are equivalent:
+
+```kotlin
+val json1 = """
+    {
+    "name" : "Frank",
+    "age" : 32,
+    "married" : true,
+    "children" : ["Ann", "Bob", "Cathy"] 
+    }
+""".trimIndent()
+
+val json2 = """{"age": 32,"name": "Frank", "children": [  "Ann", "Bob","Cathy"], "married": true} """
+
+json2.isEquivalentJson(json1).expectSuccess()
+```
 
 ## How It Works
 
@@ -627,6 +650,7 @@ use Kondor JsonNode DSL
 TODO: add example of writing Json
 
 TODO: add example of parsing Json
+```parseJsonNode("json here").expectSuccess().pretty()```
 
 ## Integration with Http4k
 

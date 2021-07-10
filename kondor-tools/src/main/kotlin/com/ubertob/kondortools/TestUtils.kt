@@ -14,3 +14,6 @@ fun <T> Outcome<*, T>.expectSuccess(): T =
 fun <E : OutcomeError> Outcome<E, *>.expectFailure(): E =
     this.transform { fail("Should have failed but was $it") }
         .recover { it }
+
+fun <T> T.printIt(prefix: String = ""): T =
+    also { println("$prefix$it") }

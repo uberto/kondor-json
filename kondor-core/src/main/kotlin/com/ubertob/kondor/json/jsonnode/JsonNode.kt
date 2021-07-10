@@ -38,3 +38,7 @@ data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path
             .onFailure { throw JsonParsingException(it) }
 
 }
+
+
+fun parseJsonNode(jsonString: CharSequence): Outcome<JsonError, JsonNode> =
+    JsonLexer(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()

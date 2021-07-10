@@ -5,9 +5,6 @@ import java.math.BigInteger
 import java.util.*
 
 
-fun <T> T.printIt(prefix: String? = null): T =
-        also { println(prefix + it) }
-
 @JvmName("bindBool")
 fun <PT : Any> bool(binder: PT.() -> Boolean) = JField(binder, JBoolean)
 

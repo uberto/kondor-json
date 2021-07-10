@@ -1,8 +1,6 @@
 package com.ubertob.kondortools
 
-import com.ubertob.kondor.json.jsonnode.ObjectNode
-import com.ubertob.kondor.json.jsonnode.onRoot
-import com.ubertob.kondor.json.parser.JsonLexer
+import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.outcome.*
 
@@ -12,10 +10,10 @@ data class MatcherError(val expected: String, val actual: String) : OutcomeError
 }
 
 
-infix fun String.isSameJsonObject(expected: String): Outcome<OutcomeError, Unit> {
-    return ObjectNode.parse(JsonLexer(expected).tokenize().onRoot())
+infix fun String.isEquivalentJson(expected: String): UnitOutcome {
+    return parseJsonNode(expected)
         .bind { j1 ->
-            ObjectNode.parse(JsonLexer(this).tokenize().onRoot()).bind { j2 ->
+            parseJsonNode(this).bind { j2 ->
                 if (j1.pretty(true, 2) == j2.pretty(true, 2))
                     Unit.asSuccess()
                 else

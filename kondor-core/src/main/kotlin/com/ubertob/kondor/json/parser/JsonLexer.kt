@@ -3,6 +3,7 @@ package com.ubertob.kondor.json.parser
 import com.ubertob.kondor.json.parser.LexerState.*
 import java.util.concurrent.atomic.AtomicInteger
 
+
 enum class LexerState {
     OutString, InString, Escaping
 }

@@ -5,9 +5,9 @@ import org.junit.jupiter.api.Test
 internal class KondorMatcherTest {
 
     @Test
-    fun `isSameJsonObject check for equivalent jsons`() {
+    fun `isEquivalentJson check for equivalent jsons`() {
 
-        val expected = """
+        val json1 = """
             {
             "name" : "Frank",
             "age" : 32,
@@ -16,9 +16,47 @@ internal class KondorMatcherTest {
             }
         """.trimIndent()
 
-        val actual = """{"age": 32,"name": "Frank", "children": [  "Ann", "Bob","Cathy"], "married": true} """
+        val json2 = """{"age": 32,"name": "Frank", "children": [  "Ann", "Bob","Cathy"], "married": true} """
 
-        actual.isSameJsonObject(expected).expectSuccess()
+        json2.isEquivalentJson(json1).expectSuccess()
+
+    }
+
+    @Test
+    fun `isEquivalentJson works on json arrays`() {
+
+        val json1 = """
+            [
+              {
+                  "age": 21,
+                  "name": "Greg"
+                },
+              {
+                  "age": 32,
+                  "children": [
+                      
+                    ],
+                  "married": false,
+                  "name": "Ann"
+                },
+              {
+                  "age": 32,
+                  "children": [
+                      "Ann",
+                      "Bob",
+                      "Cathy"
+                    ],
+                  "married": true,
+                  "name": "Frank"
+                }
+            ]
+        """.trimIndent()
+
+
+        val json2 =
+            """[{"age": 21, "name": "Greg"}, {"age": 32, "children": [], "married": false, "name": "Ann"}, {"age": 32, "children": ["Ann", "Bob", "Cathy"], "married": true, "name": "Frank"}]"""
+
+        json2.isEquivalentJson(json1).expectSuccess()
 
     }
 }
