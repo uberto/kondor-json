@@ -66,8 +66,8 @@ And we want to render it to this Json:
 }
 ```
 
-What we need to do is to define a converter. Usually Kondor converters are Kotlin objects named with a J in front of the
-class name, but you can use a different convention.
+What we need to do first, is to define a converter for our class. Usually Kondor converters are Kotlin objects named
+with a J in front of the class name, but you can use a different convention.
 
 With the converter `JFileInfo` we can parse a Json string in this way:
 
@@ -107,20 +107,21 @@ define the function for the deserialization.
 
 ### Why Converters?
 
-The converters itself can be automatically generated from the domain classes, you only have to copy and paste them in
+Converters themselves can be automatically generated from the domain classes, you only have to copy and paste them in
 your code base, and adapting them as you need. Note that there is no automatic update if you change the data class, the
-whole point of Kondor-Json is to have converters that maps your classes to a clearly described Json format. To have a
-play with generators, look at `kondor-tools` module.
+whole point of Kondor-Json is to have converters that maps your classes to a clearly described Json format. To use
+generators, you need to import `kondor-tools` module as test dependency.
 
 Comparing with a solution involving writing DTOs, it's quicker to use converters (especially if you use the generator).
-Even without considering DTOs and the generator, the time needed to write the converters is roughly the same than to
-annotate the classes one by one, but it's easier and more IDE friendly to write the converter. Instead of browsing
-StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write new ones.
+Even without considering DTOs and the generator, the time needed to write the converters is roughly the same of
+annotating the classes one by one, but it's easier and more IDE friendly to write the converter. Instead of having to
+find the right annotation (StackOverflow anyone?), the IDE can suggest the possible converters or you can write new
+ones.
 
 Another advantage of converters is that it's very easy to define different converters for same domain class in different
-api, for example you can define `JFileInfoV2` using a different Json format.
+api, for example we can define `JFileInfoV2` to map the same domain class to a different Json format.
 
-Moreover the converters have all the informations for very friendly and precise error messages:
+Moreover the converters have all the informations to produce very friendly and precise error messages:
 
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
@@ -176,7 +177,7 @@ val actual = JCustomer.fromJsonNode(json).expectSuccess()
 expectThat(actual).isEqualTo(expectedCustomer)
 ```
 
-`isEquivalentJson` compare two Json strings and return success if they are equivalent:
+`isEquivalentJson` compares two Json strings and return Success if they are equivalent:
 
 ```kotlin
 val json1 = """
@@ -195,7 +196,7 @@ json2.isEquivalentJson(json1).expectSuccess()
 
 ## How It Works
 
-To you Kondor you need to define a Converter for each type (or class of types).
+To use Kondor we need to define a Converter for each type (or class of types).
 
 Let's analyze an example in details:
 
@@ -240,10 +241,8 @@ object JProduct : JAny<Product>() { // 2
 When failing to parse a Json, Kondor is not throwing any exception, instead `fromJson` and `fromJsonNode` methods return
 an `Outcome<T>` instead of a simple `T`. Why is that?
 
-`Outcome` is an example of the *Either* monad for error handling pattern, if you are not familiar with it, here is how
-to use it.
-
-Here there are 5 ways to handle errors depending on the case:
+`Outcome` is an example of the *Either* monad specialized for error handling patterns, if you are not familiar with it,
+here there are 5 ways to handle errors depending on the case:
 
 1. orThrow()
 
@@ -251,7 +250,7 @@ Here there are 5 ways to handle errors depending on the case:
 JCustomer.parseJson(jsonString).orThrow()
 ```
 
-this throw an exception if there is an error.
+this throws an exception if there is an error.
 
 1. orNull()
 
@@ -263,7 +262,7 @@ JCustomer.parseJson(jsonString).orNull()
 
 ```
 
-this return null if there is an error, not great because the error is lost but it can be convenient sometime.
+this returns null if there is an error, it's not great because the error is lost but it can be convenient sometime.
 
 1. onFailure{}
 
