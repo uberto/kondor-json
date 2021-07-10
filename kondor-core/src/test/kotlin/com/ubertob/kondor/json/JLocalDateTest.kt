@@ -1,11 +1,11 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.json.datetime.JLocalDate
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test

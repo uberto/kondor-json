@@ -619,6 +619,15 @@ constructor.
 
 TODO: add example of class with private constructor and custom serializer/deserializer
 
+### Arbitrary Json DSL
+
+If you need to parse or produce some arbitrary Json that you don't need to map you any of your domain object, you can
+use Kondor JsonNode DSL
+
+TODO: add example of writing Json
+
+TODO: add example of parsing Json
+
 ## Integration with Http4k
 
 Using Kondor it's easy to integrate with Http4k since they use the same functional approach.

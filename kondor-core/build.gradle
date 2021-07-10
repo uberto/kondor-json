@@ -8,6 +8,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     api project(":kondor-outcome")
 
+    testImplementation project(":kondor-tools")
     testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
     testImplementation "io.strikt:strikt-core:$striktVersion"
 

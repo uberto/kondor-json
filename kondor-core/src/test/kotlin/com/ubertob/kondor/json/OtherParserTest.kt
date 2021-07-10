@@ -2,11 +2,11 @@
 
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.expectSuccess
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.JsonLexer
 import com.ubertob.kondor.json.parser.parseJsonNodeObject
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 
 class OtherParserTest {

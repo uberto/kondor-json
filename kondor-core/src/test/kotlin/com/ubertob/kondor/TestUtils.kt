@@ -1,21 +1,7 @@
 package com.ubertob.kondor
 
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.OutcomeError
-import com.ubertob.kondor.outcome.onFailure
-import com.ubertob.kondor.outcome.recover
-import org.junit.jupiter.api.fail
 
 import kotlin.random.Random
-
-
-fun <T> Outcome<*, T>.expectSuccess(): T =
-    this.onFailure { fail(it.msg) }
-
-fun <E : OutcomeError> Outcome<E, *>.expectFailure(): E =
-    this.transform { fail("Should have failed but was $it") }
-        .recover { it }
-
 
 const val uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const val lowercase = "abcdefghijklmnopqrstuvwxyz"

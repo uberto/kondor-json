@@ -1,7 +1,5 @@
 package com.ubertob.kondortools
 
-import com.ubertob.kondor.outcome.onFailure
-import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.Test
 
 internal class KondorMatcherTest {
@@ -18,10 +16,9 @@ internal class KondorMatcherTest {
             }
         """.trimIndent()
 
-        val actual = """{"age" : 32,"name" : "Frank", "children": [  "Ann", "Bob","Cathy"] , "married": true} """
+        val actual = """{"age": 32,"name": "Frank", "children": [  "Ann", "Bob","Cathy"], "married": true} """
 
-        val res = actual isSameJsonObject expected
-        res.onFailure { fail(it.msg) }
+        actual.isSameJsonObject(expected).expectSuccess()
 
     }
 }

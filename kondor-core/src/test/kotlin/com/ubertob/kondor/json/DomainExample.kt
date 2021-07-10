@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
 import kotlin.random.Random
 
-fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).capitalize())
+fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).replaceFirstChar { it.uppercase() })
 fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.values().random())
 
 fun randomCustomer(): Customer = when (Random.nextBoolean()) {

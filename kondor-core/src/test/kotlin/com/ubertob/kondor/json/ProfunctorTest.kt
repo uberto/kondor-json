@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.expectSuccess
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
