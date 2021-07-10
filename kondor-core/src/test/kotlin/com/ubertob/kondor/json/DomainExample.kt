@@ -13,10 +13,6 @@ import java.time.temporal.ChronoUnit.SECONDS
 import java.util.*
 import kotlin.random.Random
 
-
-val toothpaste = Product(1001, "paste", "toothpaste \"whiter than white\"", 12.34)
-val offer = Product(10001, "special offer", "offer for custom fidality", null)
-
 fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).capitalize())
 fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.values().random())
 
@@ -54,13 +50,15 @@ fun randomNotes() = Notes(
     thingsToDo = randomList(0, 10) { randomString(uppercase, 3, 3) to randomString(lowercase, 1, 20) }.toMap()
 )
 
-private fun randomPath() = randomList(1, 10, { randomString(lowercase, 3, 10) }).joinToString(separator = "/", prefix = "/")
+private fun randomPath() =
+    randomList(1, 10, { randomString(lowercase, 3, 10) }).joinToString(separator = "/", prefix = "/")
 
 private fun randomInstant() = Instant.ofEpochMilli(Random.nextLong())
 
 fun randomFileInfo() = FileInfo(
     name = randomString(lowercase, 1, 20),
     date = randomInstant(),
+    isDir = Random.nextBoolean(),
     size = Random.nextLong(100000),
     folderPath = randomPath()
 )
@@ -73,8 +71,8 @@ object JStringList : JArrayConverter<List<String>> by JList(JString)
 
 object JPerson : JAny<Person>() {
 
-    private val id by num(Person::id) // JField(Person::id, JInt)
-    private val name by str(Person::name) //JField(Person::name, JString)
+    private val id by num(Person::id)
+    private val name by str(Person::name)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Person(
@@ -88,10 +86,10 @@ data class Product(val id: Int, val shortDesc: String, val longDesc: String, val
 
 object JProduct : JAny<Product>() {
 
-    private val id by num(Product::id) // JField(Product::id, JInt)
-    private val long_description by str(Product::longDesc) // JField(Product::longDesc, JString)
-    private val `short-desc` by str(Product::shortDesc) // JField(Product::shortDesc, JString)
-    private val price by num(Product::price) // JFieldMaybe(Product::price, JDouble)
+    private val id by num(Product::id)
+    private val long_description by str(Product::longDesc)
+    private val `short-desc` by str(Product::shortDesc)
+    private val price by num(Product::price)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Product(
@@ -122,8 +120,8 @@ data class Invoice(
 
 object JCompany : JAny<Company>() {
 
-    private val name by str(Company::name) // JField(Company::name, JString)
-    private val tax_type by str(Company::taxType) //JField(Company::taxType, JEnum(TaxType::valueOf))
+    private val name by str(Company::name)
+    private val tax_type by str(Company::taxType)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Company(
@@ -149,7 +147,6 @@ object JCustomer : JSealed<Customer>() {
         }
 
 }
-
 
 
 object JInvoice : JAny<Invoice>() {
@@ -180,8 +177,8 @@ data class Money(val currency: Currency, val amount: BigInteger)
 
 object JMoney : JAny<Money>() {
 
-    private val ccy by str(Money::currency) // JField(Money::currency, JCurrency)
-    private val amount by num(Money::amount) // JField(Money::amount, JBigInteger)
+    private val ccy by str(Money::currency)
+    private val amount by num(Money::amount)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Money(
@@ -194,8 +191,8 @@ data class ExpenseReport(val person: Person, val expenses: Map<String, Money>)
 
 object JExpenseReport : JAny<ExpenseReport>() {
 
-    private val person by JField(ExpenseReport::person, JPerson)
-    private val expenses by JField(ExpenseReport::expenses, JMap(JMoney))
+    private val person by obj(JPerson, ExpenseReport::person)
+    private val expenses by obj(JMap(JMoney), ExpenseReport::expenses)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         ExpenseReport(
@@ -207,8 +204,8 @@ object JExpenseReport : JAny<ExpenseReport>() {
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 
 object JNotes : JAny<Notes>() {
-    private val updated by str(Notes::updated) // JField(Notes::updated, JInstant)
-    private val things_to_do by obj(JMap(JString), Notes::thingsToDo) // JField(Notes::thingsToDo, JMap(JString))
+    private val updated by str(Notes::updated)
+    private val things_to_do by obj(JMap(JString), Notes::thingsToDo)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         Notes(
@@ -227,6 +224,7 @@ class Products : ArrayList<Product>() {
     }
 }
 
+//custom collection
 object JProducts : JArray<Product, Products> {
     override val converter = JProduct
 
@@ -237,20 +235,22 @@ object JProducts : JArray<Product, Products> {
 
 }
 
-data class FileInfo(val name: String, val date: Instant, val size: Long, val folderPath: String)
+data class FileInfo(val name: String, val date: Instant, val isDir: Boolean, val size: Long, val folderPath: String)
 
 object JFileInfo : JAny<FileInfo>() {
-    val name by str(FileInfo::name)
-    val date by num(FileInfo::date)
+    val file_name by str(FileInfo::name)
+    val creation_date by num(FileInfo::date)
+    val is_dir by bool(FileInfo::isDir)
     val size by num(FileInfo::size)
-    val folderPath by str(FileInfo::folderPath)
+    val folder_path by str(FileInfo::folderPath)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         FileInfo(
-            name = +name,
-            date = +date,
+            name = +file_name,
+            date = +creation_date,
+            isDir = +is_dir,
             size = +size,
-            folderPath = +folderPath
+            folderPath = +folder_path
         )
 }
 

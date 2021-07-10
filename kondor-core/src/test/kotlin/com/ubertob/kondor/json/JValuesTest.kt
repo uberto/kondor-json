@@ -235,7 +235,6 @@ class JValuesTest {
 
 //todo
 // add parseJson from InputStream
-// add a method to compare json equivalent content
 // add test example with Java
 // add Converters for all java.time, GUUID, URI, etc.
 // measure performance against other libs
