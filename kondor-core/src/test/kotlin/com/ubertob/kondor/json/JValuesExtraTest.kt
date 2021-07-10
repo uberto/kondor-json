@@ -111,15 +111,23 @@ class JValuesExtraTest {
     @Test
     fun `Json render flatten objects like fields`() {
 
-        val selectedFile = SelectedFile(true, FileInfo("filename", Instant.ofEpochMilli(0), false, 123, "/"))
+        val selectedFile = SelectedFile(
+            true, FileInfo(
+                name = "filename",
+                date = Instant.parse("2021-07-01T10:15:30Z"),
+                isDir = false,
+                size = 123,
+                folderPath = "/tmp"
+            )
+        )
 
         val json = JSelectedFile.toPrettyJson(selectedFile)
 
         expectThat(json).isEqualTo(
             """{
-              |  "creation_date": 0,
+              |  "creation_date": 1625134530000,
               |  "file_name": "filename",
-              |  "folder_path": "/",
+              |  "folder_path": "/tmp",
               |  "is_dir": false,
               |  "selected": true,
               |  "size": 123
