@@ -646,10 +646,15 @@ TODO: add example of class with private constructor and custom serializer/deseri
 If you need to parse or produce some arbitrary Json that you don't need to map you any of your domain object, you can
 use Kondor JsonNode DSL
 
+How to "prettify" any json on the fly:
+
+```kotlin
+parseJsonNode("my json here").expectSuccess().pretty()
+```
+
 TODO: add example of writing Json
 
 TODO: add example of parsing Json
-```parseJsonNode("json here").expectSuccess().pretty()```
 
 ## Integration with Http4k
 
