@@ -22,185 +22,153 @@ Maven
 ```
 
 Gradle
+
 ```groovy
 implementation 'com.ubertob.kondor:kondor-core:1.6.0'
 ```
 
 ## The Video Presentation
 
+A live code presentation to see how to use Kondor and some insights on how it works internally:
+
 [![Watch the video](https://secure.meetupstatic.com/photos/event/2/2/c/0/highres_496289655.jpeg)](https://www.youtube.com/watch?v=hIKruBc6aeg&t=3200s)
+
+## What's Changed Recently
+
+- Automatic JsonSchema generation from any converter
+- Code generation of converters from data classes
+- LocalDate, LocalDateTime, and LocalTime converter with configurable pattern (thanks to Alessandro Ciccimarra)
 
 ## Quick Start
 
-To transform a value (string in this case) into and from Json:
-```kotlin
-val jsonString = JString.toJson("my string is here")
-val value = JString.fromJson(jsonString).orThrow()  //"my string is here"
-```
-
-`JString` is the Json decoder, there are others for all primitive types
-
-To transform an object we need to write the decoder first with a simple DSL:
+Let's say we have a class with some fields:
 
 ```kotlin
-data class Customer(val id: Int, val name: String)
-
-object JCustomer : JAny<Customer>() {
-
-   val id by num(Customer::id)
-   val name by str(Customer::name)
-
-   override fun JsonNodeObject.deserializeOrThrow() =
-      Customer(
-         id = +id,
-         name = +name
-      )
-}
-```
-
-Each field (id,name) need to be associated to a decoder and a field in the mapped object. Then we need to explicitely call the function to create the object from the fields.
-
-## Do We Need another Json Parser?
-
-We wrote this library to solve a specific problem. It was useful for us, so there could be other people that could find this beneficial.
-
-To describe the problem, let's say you need to map a Json like this:
-```json
- {
-  "id": "1001",
-  "vat-to-pay": true,
-  "customer": {
-    "id": 1,
-    "name": "ann"
-  },
-  "items": [
-    {
-      "id": 1001,
-      "short_desc": "toothpaste",
-      "long_description": "toothpaste \"whiter than white\"",
-      "price": 125
-    },
-    {
-      "id": 10001,
-      "short_desc": "special offer",
-      "long_description": "bla bla"
-    }
-  ],
-  "total": 123.45
-}
-```
-
-To your own domain objects:
-```kotlin
-data class Person(val id: Int, val name: String)
-
-data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?)
-
-data class InvoiceId(override val raw: String) : StringWrapper
-
-data class Invoice(
-   val id: InvoiceId,
-   val vat: Boolean,
-   val customer: Person,
-   val items: List<Product>,
-   val total: Double
+FileInfo(
+   name = "filename",
+   date = Instant.parse("2021-07-01T10:15:30Z"),
+   isDir = false,
+   size = 123,
+   folderPath = "/tmp"
 )
 ```
 
-The Json format is quite similar to the domain objects but there are some differences:
-- `InvoiceId` is a custom type wrapping a string, but in the Json there is only the string.
-- field names follow a different conventions (snake instead of camel) or totally different (vat-to-pay).
-- nullable fields are optional in Json.
+And we want to render it to this Json:
 
-We also used the same domain classes inside other Json format, with slightly different field mappings, moreover we have to handle different versions of the Json format.
+```json
+{
+   "creation_date": 1625134530000,
+   "file_name": "filename",
+   "folder_path": "/tmp",
+   "is_dir": false,
+   "selected": true,
+   "size": 123
+}
+```
 
-Another big requirement for us was not having reflection on our domain classes, we all got bad experiences with refactors that broke Json api.
+What we need to do is to define a converter. Usually Kondor converters are Kotlin objects named with a J in front of the
+class name, but you can use a different convention.
 
-Finally, we prefer to avoid annotating domain classes with serialization details.
-
-The possible solutions we examined were:
-
-- Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our types with fields heavily annotated.
-
-- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based on reflection.
-
-So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple
-DSL.
-
-Theoretically each converter is a profunctor, which is a special kind of bifunctor where one of the functors is covariant and the other is contravariant. 
-So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the converter (technically a profunctor) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
-
-And here is the result, we need to describe the Json format using a converter object called Jxxx where xxx is the name
-of your class:
+With the converter `JFileInfo` we can parse a Json string in this way:
 
 ```kotlin
-object JProduct : JAny<Product>() {
+val fileInfo: FileInfo = JFileInfo.fromJson(jsonString).orThrow()
+```
 
-   private val id by num(Product::id)
-   private val long_description by str(Product::longDesc)
-   private val `short-desc` by str(Product::shortDesc)
-   private val price by num(Product::price)
+And we can render the object in Json in this way:
+
+```kotlin
+val json: String = JFileInfo.toJson(fileInfo) 
+```
+
+To write the converter we use a simple DSL:
+
+```kotlin
+object JFileInfo : JAny<FileInfo>() {
+   val file_name by str(FileInfo::name)
+   val creation_date by num(FileInfo::date)
+   val is_dir by bool(FileInfo::isDir)
+   val size by num(FileInfo::size)
+   val folder_path by str(FileInfo::folderPath)
 
    override fun JsonNodeObject.deserializeOrThrow() =
-      Product(
-         id = +id,
-         shortDesc = +`short-desc`,
-         longDesc = +long_description,
-         price = +price
+      FileInfo(
+         name = +file_name,
+         date = +creation_date,
+         isDir = +is_dir,
+         size = +size,
+         folderPath = +folder_path
       )
-}
-
-object JInvoice : JAny<Invoice>() {
-
-   private val id by str(::InvoiceId, Invoice::id)
-   private val `vat-to-pay` by bool(Invoice::vat)
-   private val customer by obj(JPerson, Invoice::customer)
-   private val items by array(JProduct, Invoice::items)
-   private val total by num(Invoice::total)
-
-   override fun JsonNodeObject.deserializeOrThrow(): Invoice =
-      Invoice(
-         id = +id,
-         vat = +`vat-to-pay`,
-         customer = +customer,
-         items = +items,
-         total = +total,
-         created = +created_date,
-         paid = +paid_datetime
-      )
-
 }
 ```
 
-Then in your code you only need to invoke the converter:
+Each field (id,name) need to be associated to a decoder and a field in the mapped object. Then we need to explicitly
+define the function for the deserialization.
 
-```kotlin
-val invoice: Invoice = JInvoice.fromJson(invoiceJsonString)
+### Why Converters?
 
-val json: String = JInvoice.toPrettyJson(invoice) 
-```
+The converters itself can be automatically generated from the domain classes, you only have to copy and paste them in
+your code base, and adapting them as you need. Note that there is no automatic update if you change the data class, the
+whole point of Kondor-Json is to have converters that maps your classes to a clearly described Json format. To have a
+play with generators, look at `kondor-tools` module.
 
-The converters itself can be generated from the domain classes, you only have to copy and paste them in your code base,
-and adapting them as you need. Note that there is no automatic update if you change the data class, this is the whole
-point of Kondor-Json.
+Comparing with a solution involving writing DTOs, it's quicker to use converters (especially if you use the generator).
+Even without considering DTOs and the generator, the time needed to write the converters is roughly the same than to
+annotate the classes one by one, but it's easier and more IDE friendly to write the converter. Instead of browsing
+StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write new ones.
 
-To have a play with generators, look at `kondor-tools` module.
+Another advantage of converters is that it's very easy to define different converters for same domain class in different
+api, for example you can define `JFileInfoV2` using a different Json format.
 
-Comparing with a solution involving writing DTOs, you need to much less code using converters (especially if you use the
-generator). Even without considering DTOs, the time needed to write the converters is roughly the same than to annotate
-the classes one by one, but it's easier and more IDE friendly to create the converter. For example if you
-attach `JField` to a nullable field of your domain class, it will not compile.
-
-No need to browse StackOverflow to find the right annotation, IDE can suggest the possible converters or you can write
-new ones.
-
-It's very easy to define different converters for same class in different api.
-
-Finally in case of errors, the messages are very friendly and precise:
+Moreover the converters have all the informations for very friendly and precise error messages:
 
 ```
 error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
 ```
+
+Finally converters know how to generate a Json schema, for example:
+
+```kotlin
+JFileInfo.schema().pretty()
+```
+
+Will output the following Json schema:
+
+```json
+{
+   "properties": {
+      "creation_date": {
+         "type": "number"
+      },
+      "file_name": {
+         "type": "string"
+      },
+      "folder_path": {
+         "type": "string"
+      },
+      "is_dir": {
+         "type": "boolean"
+      },
+      "size": {
+         "type": "number"
+      }
+   },
+   "required": [
+      "file_name",
+      "creation_date",
+      "is_dir",
+      "size",
+      "folder_path"
+   ],
+   "type": "object"
+}
+```
+
+### Tests
+
+TODO: show compare json equivalent content
+
+TODO: test support util for Json and back
 
 ## How It Works
 
@@ -244,7 +212,7 @@ object JProduct : JAny<Product>() { // 2
 9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the
    name of parameter with the fields.
 
-## No Exceptions
+## Avoid Exceptions
 
 When failing to parse a Json, Kondor is not throwing any exception, instead `fromJson` and `fromJsonNode` methods return
 an `Outcome<T>` instead of a simple `T`. Why is that?
@@ -252,7 +220,7 @@ an `Outcome<T>` instead of a simple `T`. Why is that?
 `Outcome` is an example of the *Either* monad for error handling pattern, if you are not familiar with it, here is how
 to use it.
 
-There are 5 ways to handle errors depending on the case:
+Here there are 5 ways to handle errors depending on the case:
 
 1. orThrow()
 
@@ -649,7 +617,7 @@ and so on...
 You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the
 constructor.
 
-TODO: example of class with private constructor and custom serializer/deserializer
+TODO: add example of class with private constructor and custom serializer/deserializer
 
 ## Integration with Http4k
 
@@ -672,9 +640,95 @@ Faster than reflection based parsers.
 
 Immutable node objects are convenient if you want to manipulate Json trees.
 
-No external dependencies.
+Easy DSL to parse arbitrary Json or to produce arbitrary Json.
+
+No external dependencies, not even one apart from Kotlin stdlib, and it will stay so.
 
 Doesn't throw any Exception.
+
+## Why I Finished Writing Just Another Json Parser
+
+I wrote this library to solve a specific problem of our team. It was useful for us, so there could be other people that
+could find this beneficial.
+
+To describe the problem, let's say you need to map a Json like this:
+
+```json
+ {
+   "id": "1001",
+   "vat-to-pay": true,
+   "customer": {
+      "id": 1,
+      "name": "ann"
+   },
+   "items": [
+      {
+         "id": 1001,
+         "short_desc": "toothpaste",
+         "long_description": "toothpaste \"whiter than white\"",
+         "price": 125
+      },
+      {
+         "id": 10001,
+         "short_desc": "special offer",
+         "long_description": "bla bla"
+      }
+   ],
+   "total": 123.45
+}
+```
+
+To your own domain objects:
+
+```kotlin
+data class Person(val id: Int, val name: String)
+
+data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?)
+
+data class InvoiceId(override val raw: String) : StringWrapper
+
+data class Invoice(
+   val id: InvoiceId,
+   val vat: Boolean,
+   val customer: Person,
+   val items: List<Product>,
+   val total: Double
+)
+```
+
+The Json format is quite similar to the domain objects but there are some differences:
+
+- `InvoiceId` is a custom type wrapping a string, but in the Json there is only the string.
+- field names follow a different conventions (snake instead of camel) or totally different (vat-to-pay).
+- nullable fields are optional in Json.
+
+We also used the same domain classes inside other Json format, with slightly different field mappings, moreover we have
+to handle different versions of the Json format.
+
+Another big requirement for us was not having reflection on our domain classes, we all got bad experiences with
+refactors that broke Json api.
+
+Finally, we prefer to avoid annotating domain classes with serialization details.
+
+The possible solutions we examined were:
+
+- Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our
+  types with fields heavily annotated.
+
+- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based
+  on reflection: any changes on the domain classes would be reflected in a Json format change. Moreover KotlinSerializer
+  is also sensible to changes to class packages for sealed classes and it doesn't support Java classes without custom
+  serializers.
+
+So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple
+DSL.
+
+Theoretically each converter is a profunctor, which is a special kind of bifunctor where one of the functors is
+covariant and the other is contravariant. So instead of trying to explain to the Json mapper how to
+serialize/deserialize our class using annotations we define the converter (technically a profunctor) for each class.
+Thanks to Kotlin DSL capabilities, it doesn't require much code.
+
+And after a few iterations, this is how Kondor-Json was born.
 
 ## Comparison
 

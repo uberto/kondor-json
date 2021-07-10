@@ -3,13 +3,17 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v1.6.0 - 10 June 2021
+### v1.6.1 - 10 July 2021
+
+Made JLocalDateTime and JLocalTime using a configurable pattern (Alessandro Ciccimarra)
+
+### v1.6.0 - 9 July 2021
 
 Added Json Schema generation
 
 ### v1.5.4 - 7 June 2021
 
-Made JLocalDate using a configurable pattern
+Made JLocalDate using a configurable pattern (Alessandro Ciccimarra)
 
 ### v1.5.3 - 1 June 2021
 
