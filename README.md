@@ -2,16 +2,11 @@
 
 # KondorJson
 
-A functional Kotlin library to serialize/deserialize Json fast and safely without using reflection, annotations or code
-generation.
+A functional Kotlin library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
 
-Kondor is based on the concept of a JsonConverter, which is a class that maps each domain class to its Json
-representation. The converter defines how the Json would look like for each of the types you want to persist, using a
-high level DSL.
+Kondor is based on the concept of a JsonConverter, which is a class that maps each domain class to its Json representation. The converter defines how the Json would look like for each of the types you want to persist, using a high level DSL.
 
-No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to
-use. You can also define more than one converter for each class if you want to have multiple formats for the same types,
-for example in case of versioned api or different formats for Json in HTTP and persistence.
+No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to use. You can also define more than one converter for each class if you want to have multiple formats for the same types, for example in case of versioned api or different formats for Json in HTTP and persistence.
 
 ## Dependency declaration
 
