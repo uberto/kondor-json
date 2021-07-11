@@ -66,8 +66,7 @@ And we want to render it to this Json:
 }
 ```
 
-What we need to do first, is to define a converter for our class. Usually Kondor converters are Kotlin objects named
-with a J in front of the class name, but you can use a different convention.
+What we need to do first, is to define a converter for our class. Usually Kondor converters are Kotlin objects named with a J in front of the class name, but you can use a different convention.
 
 With the converter `JFileInfo` we can parse a Json string in this way:
 
@@ -102,24 +101,15 @@ object JFileInfo : JAny<FileInfo>() {
 }
 ```
 
-Each field (id,name) need to be associated to a decoder and a field in the mapped object. Then we need to explicitly
-define the function for the deserialization.
+Each field (id,name) need to be associated to a decoder and a field in the mapped object. Then we need to explicitly define the function for the deserialization.
 
 ### Why Converters?
 
-Converters themselves can be automatically generated from the domain classes, you only have to copy and paste them in
-your code base, and adapting them as you need. Note that there is no automatic update if you change the data class, the
-whole point of Kondor-Json is to have converters that maps your classes to a clearly described Json format. To use
-generators, you need to import `kondor-tools` module as test dependency.
+Converters themselves can be automatically generated from the domain classes, you only have to copy and paste them in your code base, and adapting them as you need. Note that there is no automatic update if you change the data class, the whole point of Kondor-Json is to have converters that maps your classes to a clearly described Json format. To use generators, you need to import `kondor-tools` module as test dependency.
 
-Comparing with a solution involving writing DTOs, it's quicker to use converters (especially if you use the generator).
-Even without considering DTOs and the generator, the time needed to write the converters is roughly the same of
-annotating the classes one by one, but it's easier and more IDE friendly to write the converter. Instead of having to
-find the right annotation (StackOverflow anyone?), the IDE can suggest the possible converters or you can write new
-ones.
+Comparing with a solution involving writing DTOs, it's quicker to use converters (especially if you use the generator). Even without considering DTOs and the generator, the time needed to write the converters is roughly the same of annotating the classes one by one, but it's easier and more IDE friendly to write the converter. Instead of having to find the right annotation (StackOverflow anyone?), the IDE can suggest the possible converters or you can write new ones.
 
-Another advantage of converters is that it's very easy to define different converters for same domain class in different
-api, for example we can define `JFileInfoV2` to map the same domain class to a different Json format.
+Another advantage of converters is that it's very easy to define different converters for same domain class in different api, for example we can define `JFileInfoV2` to map the same domain class to a different Json format.
 
 Moreover the converters have all the informations to produce very friendly and precise error messages:
 
@@ -221,28 +211,20 @@ object JProduct : JAny<Product>() { // 2
 ```
 
 1. This is the class we want to serialize/deserialize
-2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection
-   we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
-3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify
-   the getter for the serialization, inside a function that represent the kind of Json node (boolean, number,
-   string,array, object) and the specific converter needed for its type. If the converter or the getter is not correct
-   it won't compile.
+2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
+3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify the getter for the serialization, inside a function that represent the kind of Json node (boolean, number, string,array, object) and the specific converter needed for its type. If the converter or the getter is not correct it won't compile.
 4. The name of the field is taken from the variable name, `long_description` in this case
 5. Using ticks we can also use names illegal for variables in Kotlin
 6. Nullable/optional fields are handled automatically.
-7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization
-   we can leave the method empty.
-8. Here we use the class constructor, but we could have used any function that return a `Product`
-9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the
-   name of parameter with the fields.
+7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty. 8. Here we use the class constructor, but we could have used any function that return a `Product`
+9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the name of parameter with the fields.
 
 ## Avoid Exceptions
 
 When failing to parse a Json, Kondor is not throwing any exception, instead `fromJson` and `fromJsonNode` methods return
 an `Outcome<T>` instead of a simple `T`. Why is that?
 
-`Outcome` is an example of the *Either* monad specialized for error handling patterns, if you are not familiar with it,
-here there are 5 ways to handle errors depending on the case:
+`Outcome` is an example of the *Either* monad specialized for error handling patterns, if you are not familiar with it, here there are 5 ways to handle errors depending on the case:
 
 1. orThrow()
 
@@ -263,7 +245,6 @@ JCustomer.parseJson(jsonString).orNull()
 ```
 
 this returns null if there is an error, it's not great because the error is lost but it can be convenient sometime.
-
 1. onFailure{}
 
 ```kotlin
@@ -287,16 +268,11 @@ val htmlPage = JCustomer.parseJson(jsonString)
    }
 ```
 
-using `transform` we can convert the `Outcome<Customer>` to something else, for example a `Outcome<HtmlPage>`, then
-using `recover` we can convert the error result to the same type and remove the `Outcome`.
+using `transform` we can convert the `Outcome<Customer>` to something else, for example a `Outcome<HtmlPage>`, then using `recover` we can convert the error result to the same type and remove the `Outcome`.
 
 This is my favorite way to handle errors.
 
-There are many other implementations of the Either monad in Kotlin (Result4k, Arrows, Kotlin-Result etc...), rather than
-importing one of these I created a new one, so you can convert Kondor `Outcome` to your specific result type. I choose a
-different name to avoid clashing with `Result` in the Kotlin library which works differently but it will always be
-imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when
-using a collection of results it becomes very confusing.
+There are many other implementations of the Either monad in Kotlin (Result4k, Arrows, Kotlin-Result etc...), rather than importing one of these I created a new one, so you can convert Kondor `Outcome` to your specific result type. I choose a different name to avoid clashing with `Result` in the Kotlin library which works differently but it will always be imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when using a collection of results it becomes very confusing.
 
 ## Special Cases
 
@@ -339,8 +315,7 @@ And it will be mapped to this Json format:
 
 ### Sealed classes and polymorphic Json
 
-To store in Json a sealed class, or an interface with a number of known implementations you can use the `JSealed` base
-converter.
+To store in Json a sealed class, or an interface with a number of known implementations you can use the `JSealed` base converter.
 
 For example assuming `Customer` can be either a `Person` or a `Company`:
 
@@ -636,15 +611,13 @@ There are some converters in Kondor ready-to-use:
 
 and so on...
 
-You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the
-constructor.
+You can choose which fields to serialize or even use functions, and for deserialization you don't have to use the constructor.
 
 TODO: add example of class with private constructor and custom serializer/deserializer
 
 ### Arbitrary Json DSL
 
-If you need to parse or produce some arbitrary Json that you don't need to map you any of your domain object, you can
-use Kondor JsonNode DSL
+If you need to parse or produce some arbitrary Json that you don't need to map you any of your domain object, you can use Kondor JsonNode DSL
 
 How to "prettify" any json on the fly:
 
@@ -739,31 +712,21 @@ The Json format is quite similar to the domain objects but there are some differ
 - field names follow a different conventions (snake instead of camel) or totally different (vat-to-pay).
 - nullable fields are optional in Json.
 
-We also used the same domain classes inside other Json format, with slightly different field mappings, moreover we have
-to handle different versions of the Json format.
+We also used the same domain classes inside other Json format, with slightly different field mappings, moreover we have to handle different versions of the Json format.
 
-Another big requirement for us was not having reflection on our domain classes, we all got bad experiences with
-refactors that broke Json api.
+Another big requirement for us was not having reflection on our domain classes, we all got bad experiences with refactors that broke Json api.
 
 Finally, we prefer to avoid annotating domain classes with serialization details.
 
 The possible solutions we examined were:
 
-- Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our
-  types with fields heavily annotated.
+- Libraries based on reflection like Jackson or Gson: to meet our requirements we would have to create DTO for all our types with fields heavily annotated.
 
-- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based
-  on reflection: any changes on the domain classes would be reflected in a Json format change. Moreover KotlinSerializer
-  is also sensible to changes to class packages for sealed classes and it doesn't support Java classes without custom
-  serializers.
+- KotlinSerializer: even if it's based on compile-time reflection, it has the same problems of the other libraries based on reflection: any changes on the domain classes would be reflected in a Json format change. Moreover KotlinSerializer is also sensible to changes to class packages for sealed classes and it doesn't support Java classes without custom serializers.
 
-So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple
-DSL.
+So we did several progressive improvements over the idea of defining bidirectional converter explicitly using a simple DSL.
 
-Theoretically each converter is a profunctor, which is a special kind of bifunctor where one of the functors is
-covariant and the other is contravariant. So instead of trying to explain to the Json mapper how to
-serialize/deserialize our class using annotations we define the converter (technically a profunctor) for each class.
-Thanks to Kotlin DSL capabilities, it doesn't require much code.
+Technically each converter is a "Profunctor", which is a special kind of bifunctor where one of the functors is covariant and the other is contravariant. So instead of trying to explain to the Json mapper how to serialize/deserialize our class using annotations we define the converter (technically a profunctor) for each class. Thanks to Kotlin DSL capabilities, it doesn't require much code.
 
 And after a few iterations, this is how Kondor-Json was born.
 
