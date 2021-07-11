@@ -2,11 +2,16 @@
 
 # KondorJson
 
-A functional Kotlin library to serialize/deserialize Json fast and safely without using reflection, annotations or code generation.
+A functional Kotlin library to serialize/deserialize Json fast and safely without using reflection, annotations or code
+generation.
 
-With Kondor you need to define how the Json would look like for each of the types you want to persist, using an high level DSL.
+Kondor is based on the concept of a JsonConverter, which is a class that maps each domain class to its Json
+representation. The converter defines how the Json would look like for each of the types you want to persist, using an
+high level DSL.
 
-No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to use. You can also define more than one converter for each class if you want to have multiple formats for the same types, for example in case of versioned api or different formats for Json in HTTP and persistence.
+No need of custom Data Transfer Objects, and custom serializer, no matter how complex is the Json format you need to
+use. You can also define more than one converter for each class if you want to have multiple formats for the same types,
+for example in case of versioned api or different formats for Json in HTTP and persistence.
 
 ## Dependency declaration
 
@@ -292,10 +297,10 @@ using `recover` we can convert the error result to the same type and remove the 
 
 This is my favorite way to handle errors.
 
-There are many other implementations of the Either monad in Kotlin (Result4k, Arrows, Kotlin-Result etc...) if you
-already are using one of these, you can easily convert Kondor `Outcome` to your specific result type. As for me, I
-choose a different name to avoid clashing with `Result` in the Kotlin library which work differently but it will always
-be imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when
+There are many other implementations of the Either monad in Kotlin (Result4k, Arrows, Kotlin-Result etc...), rather than
+importing one of these I created a new one, so you can convert Kondor `Outcome` to your specific result type. I choose a
+different name to avoid clashing with `Result` in the Kotlin library which works differently but it will always be
+imported first by the IDE. I also don't like `map` and `flatmap` be identical to the collections methods because when
 using a collection of results it becomes very confusing.
 
 ## Special Cases
