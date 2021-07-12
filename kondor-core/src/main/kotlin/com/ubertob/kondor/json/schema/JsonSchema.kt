@@ -4,7 +4,9 @@ import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.*
 
 //TODO
-// flatten, sealed class, JMap etc...
+// nullable values should be type: [X, null]
+// sealed class -> one of
+// other types can add more constrain (i.e. date format on string, max, min on Int and Long, Double etc.)
 
 
 internal fun valueSchema(nodeKind: NodeKind<*>): JsonNodeObject =
@@ -32,14 +34,14 @@ internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonNodeObject =
 internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject {
 
     val reqProp = mutableListOf<String>()
-    val pmap = properties.map { prop ->
+    val pmap = properties.flatMap { prop ->
 
-        val converter = when (prop) { //todo add the info mandatory or not...
-            is JsonPropMandatory<*, *> -> prop.converter.also { reqProp.add(prop.propName) }
-            is JsonPropMandatoryFlatten<*> -> prop.converter //this must be flatten
-            is JsonPropOptional<*, *> -> prop.converter
+        when (prop) { //todo add the info mandatory or not...
+            is JsonPropMandatory<*, *> -> listOf(prop.propName to prop.converter.schema()).also { reqProp.add(prop.propName) }
+            is JsonPropMandatoryFlatten<*> -> prop.converter.schemaProperties().also { reqProp.addAll(prop.converter.schemaRequiredProperties())  }
+            is JsonPropOptional<*, *> -> listOf(prop.propName to prop.converter.schema())
         }
-        prop.propName to converter.schema()
+
     }.toMap()
     val propNode = JsonNodeObject(pmap, NodePathRoot)
 
@@ -52,6 +54,11 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
     return JsonNodeObject(map, NodePathRoot)
 }
 
+private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNode>> =
+    (schema().fieldMap["properties"] as JsonNodeObject).fieldMap.entries.map { it.key to it.value }
+
+private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
+    (schema().fieldMap["required"] as JsonNodeArray).values.map { (it as JsonNodeString).text }
 
 internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)

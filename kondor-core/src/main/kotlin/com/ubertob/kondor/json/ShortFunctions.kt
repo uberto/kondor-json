@@ -99,6 +99,3 @@ inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline bi
 @JvmName("bindFlattenObject")
 inline fun <PT : Any, reified T : Any> flatten(converter: ObjectNodeConverter<T>, noinline binder: PT.() -> T) =
         JFieldFlatten(binder, converter)
-
-
-//continue with Instant etc....

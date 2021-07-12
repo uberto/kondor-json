@@ -161,6 +161,47 @@ class JsonSchemaTest {
 
 
     @Test
+    fun `schema for a flattened object`() {
+
+        val schema = JSelectedFile.schema().pretty()
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "properties": {
+              |      "creation_date": {
+              |          "type": "number"
+              |        },
+              |      "file_name": {
+              |          "type": "string"
+              |        },
+              |      "folder_path": {
+              |          "type": "string"
+              |        },
+              |      "is_dir": {
+              |          "type": "boolean"
+              |        },
+              |      "selected": {
+              |          "type": "boolean"
+              |        },
+              |      "size": {
+              |          "type": "number"
+              |        }
+              |    },
+              |  "required": [
+              |      "selected",
+              |      "file_name",
+              |      "creation_date",
+              |      "is_dir",
+              |      "size",
+              |      "folder_path"
+              |    ],
+              |  "type": "object"
+              |}""".trimMargin()
+        )
+    }
+
+
+    @Test
     fun `schema for complex object`() {
 
         val schema = JInvoice.schema().pretty(false, 2)
