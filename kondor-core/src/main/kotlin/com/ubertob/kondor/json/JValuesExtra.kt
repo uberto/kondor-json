@@ -4,7 +4,7 @@ import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
 import com.ubertob.kondor.json.schema.enumSchema
-import com.ubertob.kondor.outcome.failIfNull
+import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
@@ -76,6 +76,8 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
                 ?.plus(::typeWriter)
                 ?: error("subtype not known $typeName")
         }
+
+    override fun schema() = sealedSchema(discriminatorFieldName, subConverters)
 
 }
 

@@ -36,9 +36,10 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
     val reqProp = mutableListOf<String>()
     val pmap = properties.flatMap { prop ->
 
-        when (prop) { //todo add the info mandatory or not...
+        when (prop) {
             is JsonPropMandatory<*, *> -> listOf(prop.propName to prop.converter.schema()).also { reqProp.add(prop.propName) }
-            is JsonPropMandatoryFlatten<*> -> prop.converter.schemaProperties().also { reqProp.addAll(prop.converter.schemaRequiredProperties())  }
+            is JsonPropMandatoryFlatten<*> -> prop.converter.schemaProperties()
+                .also { reqProp.addAll(prop.converter.schemaRequiredProperties()) }
             is JsonPropOptional<*, *> -> listOf(prop.propName to prop.converter.schema())
         }
 
@@ -54,6 +55,34 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
     return JsonNodeObject(map, NodePathRoot)
 }
 
+fun sealedSchema(
+    discriminatorFieldName: String,
+    subConverters: Map<String, ObjectNodeConverter<*>>
+): JsonNodeObject {
+    val subMaps: List<JsonNode> = subConverters.map { (name, conv) ->
+        val required = conv.schema().fieldMap["required"]
+        conv.schema().fieldMap["properties"]
+            .let { it as JsonNodeObject }
+            .let { it.fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
+            .let { mapOf("properties" to it) }
+            .let {
+                if (required != null && (required as JsonNodeArray).values.count() > 0 )
+                    it + ("required" to required)
+                else
+                    it
+            }.asNode()
+    }
+
+    val map = mapOf(
+        "type" to "object".asNode(),
+        "description" to "discriminant field: $discriminatorFieldName".asNode(),
+        "oneOf" to subMaps.asNodes()
+    )
+
+    return JsonNodeObject(map, NodePathRoot)
+}
+
+
 private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNode>> =
     (schema().fieldMap["properties"] as JsonNodeObject).fieldMap.entries.map { it.key to it.value }
 
@@ -62,4 +91,8 @@ private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
 
 internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)
+internal fun List<JsonNode>.asNodes() = JsonNodeArray(this, NodePathRoot)
 internal fun Map<String, JsonNode>.asNode() = JsonNodeObject(this, NodePathRoot)
+internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
+    map { it.first to it.second.asNode() }.toMap()
+, NodePathRoot)

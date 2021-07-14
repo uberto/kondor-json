@@ -200,6 +200,60 @@ class JsonSchemaTest {
         )
     }
 
+    @Test
+    fun `schema for polimorphic object`() {
+        val schema = JCustomer.schema().pretty(false, 2)
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "description": "discriminant field: type",
+              |  "oneOf": [
+              |      {
+              |          "properties": {
+              |              "id": {
+              |                  "type": "number"
+              |                },
+              |              "name": {
+              |                  "type": "string"
+              |                },
+              |              "type": {
+              |                  "const": "private",
+              |                  "type": "string"
+              |                }
+              |            },
+              |          "required": [
+              |              "id",
+              |              "name"
+              |            ]
+              |        },
+              |      {
+              |          "properties": {
+              |              "name": {
+              |                  "type": "string"
+              |                },
+              |              "tax_type": {
+              |                  "enum": [
+              |                      "Domestic",
+              |                      "Exempt",
+              |                      "EU",
+              |                      "US",
+              |                      "Other"
+              |                    ]
+              |                },
+              |              "type": {
+              |                  "const": "company",
+              |                  "type": "string"
+              |                }
+              |            },
+              |          "required": [
+              |              "name",
+              |              "tax_type"
+              |            ]
+              |        }
+              |    ],
+              |  "type": "object"
+              |}""".trimMargin())
+    }
 
     @Test
     fun `schema for complex object`() {
@@ -213,6 +267,51 @@ class JsonSchemaTest {
               |          "type": "string"
               |        },
               |      "customer": {
+              |          "description": "discriminant field: type",
+              |          "oneOf": [
+              |              {
+              |                  "properties": {
+              |                      "id": {
+              |                          "type": "number"
+              |                        },
+              |                      "name": {
+              |                          "type": "string"
+              |                        },
+              |                      "type": {
+              |                          "const": "private",
+              |                          "type": "string"
+              |                        }
+              |                    },
+              |                  "required": [
+              |                      "id",
+              |                      "name"
+              |                    ]
+              |                },
+              |              {
+              |                  "properties": {
+              |                      "name": {
+              |                          "type": "string"
+              |                        },
+              |                      "tax_type": {
+              |                          "enum": [
+              |                              "Domestic",
+              |                              "Exempt",
+              |                              "EU",
+              |                              "US",
+              |                              "Other"
+              |                            ]
+              |                        },
+              |                      "type": {
+              |                          "const": "company",
+              |                          "type": "string"
+              |                        }
+              |                    },
+              |                  "required": [
+              |                      "name",
+              |                      "tax_type"
+              |                    ]
+              |                }
+              |            ],
               |          "type": "object"
               |        },
               |      "id": {
@@ -271,7 +370,7 @@ class JsonSchemaTest {
 
         val schema = JInvoice.schema().render()
         val schemaJson = schemaService(schema)
-        repeat(10) {
+        repeat(100) {
             val json = JInvoice.toJson(randomInvoice())
 
             validateJsonAgainstSchema(schemaJson, json)
