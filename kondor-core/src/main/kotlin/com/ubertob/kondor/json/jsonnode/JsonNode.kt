@@ -1,37 +1,33 @@
 package com.ubertob.kondor.json.jsonnode
 
-import com.ubertob.kondor.json.*
-import com.ubertob.kondor.json.parser.*
-import com.ubertob.kondor.outcome.*
+import com.ubertob.kondor.json.JsonError
+import com.ubertob.kondor.json.JsonParsingException
+import com.ubertob.kondor.json.JsonProperty
+import com.ubertob.kondor.json.parser.JsonLexer
+import com.ubertob.kondor.json.parser.parseNewNode
+import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
-
-sealed class JsonNode {
-    abstract val path: NodePath
-
-    fun nodeKind(): NodeKind<*> =
-        when (this) {
-            is JsonNodeArray -> ArrayNode
-            is JsonNodeBoolean -> BooleanNode
-            is JsonNodeNull -> NullNode
-            is JsonNodeNumber -> NumberNode
-            is JsonNodeObject -> ObjectNode
-            is JsonNodeString -> StringNode
-        }
-}
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
-data class JsonNodeNull(override val path: NodePath) : JsonNode()
-data class JsonNodeBoolean(val value: Boolean, override val path: NodePath) : JsonNode()
-data class JsonNodeNumber(val num: BigDecimal, override val path: NodePath) : JsonNode()
-data class JsonNodeString(val text: String, override val path: NodePath) : JsonNode()
-data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: NodePath) : JsonNode() {
-    val notNullValues: List<JsonNode> = values.filter { it.nodeKind() != NullNode }
+sealed class JsonNode(val nodeKind: NodeKind<*>) {
+    abstract val path: NodePath
 }
 
-data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path: NodePath) : JsonNode() {
+data class JsonNodeNull(override val path: NodePath) : JsonNode(NullNode)
 
-    val notNullFields: List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind() != NullNode }
+data class JsonNodeBoolean(val value: Boolean, override val path: NodePath) : JsonNode(BooleanNode)
+data class JsonNodeNumber(val num: BigDecimal, override val path: NodePath) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String, override val path: NodePath) : JsonNode(StringNode)
+data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: NodePath) : JsonNode(ArrayNode) {
+    val notNullValues: List<JsonNode> = values.filter { it.nodeKind != NullNode }
+}
+
+data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path: NodePath) : JsonNode(ObjectNode) {
+
+    val notNullFields: List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind != NullNode }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(this@JsonNodeObject)

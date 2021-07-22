@@ -32,12 +32,12 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
     private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
-        if (node.nodeKind() == nodeType)
+        if (node.nodeKind == nodeType)
             (node as JN).asSuccess()
-        else if (node.nodeKind() == NullNode)
+        else if (node.nodeKind == NullNode)
             null.asSuccess()
         else
-            JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind().desc}").asFailure()
+            JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
 
     fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
 
