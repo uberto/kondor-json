@@ -39,11 +39,11 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
         else
             JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
 
+    private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
+
     fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
 
     fun fromJsonNode(node: JN): JsonOutcome<T>
-
-    fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
     fun toJsonNode(value: T, path: NodePath): JN
 
@@ -53,7 +53,7 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
     fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
-        JsonLexer.tokenize(jsonString).run {
+        KondorTokenizer.tokenize(jsonString).run {
             parseFromRoot()
                 .bind { fromJsonNode(it) }
                 .bind {

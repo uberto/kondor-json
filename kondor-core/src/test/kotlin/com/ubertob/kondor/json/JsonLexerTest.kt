@@ -10,7 +10,7 @@ class JsonLexerTest {
     @Test
     fun `single word`() {
         val json = "abc"
-        val seq = JsonLexer(json).tokenize()
+        val seq = JsonLexerLazy(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(listOf(Value(json)))
     }
@@ -18,7 +18,7 @@ class JsonLexerTest {
     @Test
     fun `spaces tab and new lines word`() {
         val json = "  abc   def\ngh\tijk\r lmn \n\n opq"
-        val seq = JsonLexer(json).tokenize()
+        val seq = JsonLexerLazy(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
@@ -30,7 +30,7 @@ class JsonLexerTest {
     @Test
     fun `json special tokens`() {
         val json = "[]{}:, \"\" [a,b,c]  {d:e}"
-        val seq = JsonLexer(json).tokenize()
+        val seq = JsonLexerLazy(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
@@ -63,7 +63,7 @@ class JsonLexerTest {
         val json = """
             { "abc": 123}
         """.trimIndent()
-        val seq = JsonLexer(json).tokenize()
+        val seq = JsonLexerLazy(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
@@ -77,7 +77,7 @@ class JsonLexerTest {
         val json = """
             {"abc":"abc\"\\ \n}"}
         """.trimIndent()
-        val seq = JsonLexer(json).tokenize()
+        val seq = JsonLexerLazy(json).tokenize()
 
         expectThat(seq.asSequence().toList()).isEqualTo(
             listOf(
