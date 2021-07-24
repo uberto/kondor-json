@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.randomInvoice
 import com.ubertob.kondor.outcome.bind
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
 
@@ -25,7 +26,7 @@ marshalling 691 ms
 class LoadTest {
 
 
-    //    @Disabled
+        @Disabled
     @Test
     fun `serialize and parse invoices`() {
 
