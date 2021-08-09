@@ -6,7 +6,7 @@ plugins {
 allprojects{
 
     group 'com.ubertob.kondor'
-    version '1.6.1'
+    version '1.6.2'
 
     wrapper {
         gradleVersion = "6.8.3"
@@ -14,7 +14,6 @@ allprojects{
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 
 }

@@ -17,14 +17,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>1.6.1</version>
+    <version>1.6.2</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:1.6.1'
+implementation 'com.ubertob.kondor:kondor-core:1.6.2'
 ```
 
 ## The Video Presentation
