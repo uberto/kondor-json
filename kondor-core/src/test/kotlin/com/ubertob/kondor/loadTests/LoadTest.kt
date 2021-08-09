@@ -1,62 +1,123 @@
 package com.ubertob.kondor.loadTests
 
-import com.ubertob.kondor.json.InvoiceId
-import com.ubertob.kondor.json.JInvoice
-import com.ubertob.kondor.json.JList
+import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.ArrayNode
 import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.KondorTokenizer
-import com.ubertob.kondor.json.randomInvoice
-import com.ubertob.kondor.outcome.bind
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 
-
-// 2021 07 22 - 30k Invoices, 37MB, ser 1400ms. parsing 5300ms.  [tokenizing 2800 ms toJsonNode 1800 ms marshalling 700 ms]
 /*
-24 July
-serialization 1575 ms
-total parsing 3326 ms
-tokenizing 648 ms
-toJsonNode 2321 ms
-marshalling 691 ms
+JInvoices 50k Invoices, 63MB
+serialization 2399 ms
+total parsing 2885 ms
+tokenizing 1364 ms
+toJsonNode 957 ms
+marshalling 997 ms
+
+
+JFileInfo 100k 15MB
+
+serialization 313 ms
+total parsing 696 ms
+tokenizing 224 ms
+toJsonNode 217 ms
+marshalling 321 ms
+
+
+JStrings 100k 1.6Mb
+serialization 14 ms
+total parsing 30 ms
+tokenizing 16 ms
+toJsonNode 11 ms
+marshalling 3 ms
+
  */
 
-
+@Disabled
 class LoadTest {
 
 
-        @Disabled
     @Test
     fun `serialize and parse invoices`() {
 
         val JInvoices = JList(JInvoice)
 
-        val invoices = generateSequence(0) { it + 1 }.take(30_000).map {
+        val invoices = generateSequence(0) { it + 1 }.take(50_000).map {
             randomInvoice().copy(id = InvoiceId(it.toString()))
         }.toList()
 
         println("Json String length ${JInvoices.toJson(invoices).length}")
         repeat(100) {
 
-
-            System.gc()
-
             val jsonString = chronoAndLog("serialization") { JInvoices.toJson(invoices) }
 
             chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
 
-            chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for each for lazy
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for each for lazy
 
-            chronoAndLog("toJsonNode") { KondorTokenizer.tokenize(jsonString).run { ArrayNode.parse(onRoot()) } }.bind {
-               chronoAndLog("marshalling") { JInvoices.fromJsonNode(it) }
-            }
+            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
+            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes) }
 
         }
 
     }
 
+
+
+    @Test
+    fun `serialize and parse FileInfo`() {
+
+        val jFileInfos = JList(JFileInfo)
+
+        val invoices = generateSequence(0) { it + 1 }.take(100_000).map {
+            randomFileInfo().copy(name = it.toString())
+        }.toList()
+
+        println("Json String length ${jFileInfos.toJson(invoices).length}")
+        repeat(100) {
+
+            val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(invoices) }
+
+            chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
+
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+
+            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+
+            chronoAndLog("marshalling") { jFileInfos.fromJsonNode(nodes) }
+
+        }
+
+    }
+
+    @Test
+    fun `serialize and parse array of strings`() {
+
+        val jStrings = JList(JString)
+
+        val strings = generateSequence(0) { it + 1 }.take(100_000).map {
+            "string $it"
+        }.toList()
+
+        println("Json String length ${jStrings.toJson(strings).length}")
+        repeat(100) {
+
+            val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
+
+            chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
+
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+
+            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+
+            chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes) }
+
+        }
+
+    }
 
 }
 

@@ -1,44 +1,33 @@
 package com.ubertob.kondor.json.parser
 
-sealed class KondorToken
-object ClosingBracket : KondorToken() {
-    override fun toString(): String = "]"
+
+enum class KondorSeparator(val sign: Char) {
+    Colon(':'), Comma(','), OpeningBracket('['), OpeningCurly('{'), OpeningQuotes('"'), ClosingBracket(']'), ClosingCurly('}'), ClosingQuotes('"')
 }
 
-object ClosingCurly : KondorToken() {
-    override fun toString(): String = "}"
+sealed class KondorToken{
+    abstract fun sameValueAs(text: String): Boolean
+    abstract fun sameAs(separator: KondorSeparator): Boolean
+
+    abstract val pos: Int
+    abstract val desc: String
 }
 
-object ClosingQuotes : KondorToken() {
-    override fun toString(): String = "closing quotes"
+data class Separator(val sep: KondorSeparator, override val pos: Int): KondorToken() {
+    override fun sameValueAs(text: String): Boolean = false
+
+    override fun sameAs(separator: KondorSeparator): Boolean = sep == separator
+    override val desc: String = sep.name
 }
 
-object Colon : KondorToken() {
-    override fun toString(): String = ":"
-}
+data class Value(val text: String, override val pos: Int) : KondorToken() {
+    override fun sameValueAs(textValue: String): Boolean = text == textValue
 
-object Comma : KondorToken() {
-    override fun toString(): String = ","
-}
+    override fun sameAs(separator: KondorSeparator): Boolean = false
+    override val desc: String = "'$text'"
 
-object OpeningBracket : KondorToken() {
-    override fun toString(): String = "["
-}
-
-object OpeningCurly : KondorToken() {
-    override fun toString(): String = "{"
-}
-
-object OpeningQuotes : KondorToken() {
-    override fun toString(): String = "opening quotes"
-}
-
-data class Value(val text: String) : KondorToken() {
-    override fun toString(): String = text
 }
 
 
-data class TokensStream(private val tracer: () -> Int, private val iterator: PeekingIterator<KondorToken>) :
-    PeekingIterator<KondorToken> by iterator {
-    fun position(): Int = tracer()
-}
+data class TokensStream(private val iterator: PeekingIterator<KondorToken>) :
+    PeekingIterator<KondorToken> by iterator

@@ -11,7 +11,7 @@ class PeekingIteratorWrapper<T>(val innerIterator: Iterator<T>) : PeekingIterato
     private var last: T? = null
 
     override fun peek(): T = next ?: run {
-        val nn = innerIterator.next()
+        val nn = advanceIterator()
         next = nn
         nn
     }
@@ -27,10 +27,12 @@ class PeekingIteratorWrapper<T>(val innerIterator: Iterator<T>) : PeekingIterato
         if (innerIterator.hasNext())
             innerIterator.next()
         else
-            error("unexpected end of file")
+            throw EndOfCollection
 
     override fun last(): T? = next ?: last  //last seen
 
 }
 
 fun <T> Sequence<T>.peekingIterator(): PeekingIterator<T> = PeekingIteratorWrapper(iterator())
+
+object EndOfCollection: IllegalStateException()

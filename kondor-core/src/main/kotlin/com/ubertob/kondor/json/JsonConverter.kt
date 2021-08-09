@@ -18,7 +18,6 @@ typealias JsonOutcome<T> = Outcome<JsonError, T>
 typealias JConverter<T> = JsonConverter<T, *>
 
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
-
 interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
     override fun <C, D> dimap(f: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).dimap(f,g)
@@ -48,17 +47,23 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
     fun toJsonNode(value: T, path: NodePath): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
-        nodeType.parse(onRoot())
+        try {
+            nodeType.parse(onRoot())
+        } catch (e: EndOfCollection){
+            parsingFailure("a valid Json", lastToken(), NodePathRoot, "Unexpected end of file - Invalid Json")
+        }catch (t: Throwable){
+            parsingFailure("a valid Json", lastToken(), NodePathRoot, t.message.orEmpty())
+        }
 
     fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonString).run {
-            parseFromRoot()
+        safeTokenize(jsonString).bind { tokens ->
+            tokens.parseFromRoot()
                 .bind { fromJsonNode(it) }
                 .bind {
-                    if (hasNext())
-                        parsingFailure("EOF", next(), position(), NodePathRoot, "json continue after end")
+                    if (tokens.hasNext())
+                        parsingFailure("EOF", tokens.next(), NodePathRoot, "json continue after end")
                     else
                         it.asSuccess()
                 }
@@ -68,6 +73,7 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
 }
 
+
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(false, 2)
 
@@ -75,5 +81,10 @@ fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(true, 2)
 
 
-
+private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =
+    try {
+        KondorTokenizer.tokenize(jsonString).asSuccess()
+    } catch (e: JsonParsingException) {
+        e.error.asFailure()
+}
 

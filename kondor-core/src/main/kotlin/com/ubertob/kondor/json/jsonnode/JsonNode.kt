@@ -3,7 +3,8 @@ package com.ubertob.kondor.json.jsonnode
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonParsingException
 import com.ubertob.kondor.json.JsonProperty
-import com.ubertob.kondor.json.parser.JsonLexerLazy
+import com.ubertob.kondor.json.parser.JsonLexerEager
+//import com.ubertob.kondor.json.parser.JsonLexerLazy
 import com.ubertob.kondor.json.parser.parseNewNode
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
@@ -37,4 +38,5 @@ data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path
 
 
 fun parseJsonNode(jsonString: CharSequence): Outcome<JsonError, JsonNode> =
-    JsonLexerLazy(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
+    JsonLexerEager(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
+//    JsonLexerLazy(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()

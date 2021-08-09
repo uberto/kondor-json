@@ -24,7 +24,7 @@ class ParserFailuresTest {
 
         val error = JBoolean.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected a Boolean but found 'False' - valid values: false, true")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
     }
 
     @Test
@@ -34,7 +34,7 @@ class ParserFailuresTest {
         try {
             JBoolean.fromJson(illegalJson).orThrow()
         } catch (e: Exception) {
-            expectThat(e.message).isEqualTo("error on <[root]> at position 5: expected a Boolean but found 'False' - valid values: false, true")
+            expectThat(e.message).isEqualTo("error on <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
         }
     }
 
@@ -46,7 +46,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a String but found unexpected end of file after unclosed string - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 2: expected a valid Json but found 'unclosed string' - Unexpected end of file - Invalid Json")
     }
 
     @Test
@@ -57,7 +57,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a String but found wrongly escaped char '\\ ' in Json string after opening quotes - Invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' in Json string after 'foo ' - Invalid Json")
     }
 
     @Test
@@ -66,7 +66,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
     @Test
@@ -88,7 +88,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 9: expected ':' but found '2' - invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 8: expected Colon but found '2' - invalid Json")
     }
 
     @Test
@@ -97,7 +97,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a valid key but found ',' - key missing in object field")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a valid key but found Comma - key missing in object field")
     }
 
     @Test
@@ -115,7 +115,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 16: expected a valid key but found 'name' - key missing in object field")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected a valid key but found 'name' - key missing in object field")
     }
 
     @Test
@@ -133,7 +133,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a new node but found ',' - ',' in wrong position")
+        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a new node but found Comma - Comma in wrong position")
 
     }
 
@@ -144,7 +144,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </[0]> at position 2: expected a new node but found ',' - ',' in wrong position")
+        expectThat(error.msg).isEqualTo("error on </[0]> at position 2: expected a new node but found Comma - Comma in wrong position")
     }
 
     @Test
@@ -154,7 +154,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ']' but found '}' - invalid Json")
+        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
     @Test

@@ -123,11 +123,11 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
 
 
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    foldOutcome(emptyList()) { acc, e -> e.transform { acc + it } }
+    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc } } //todo
 
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    foldOutcome(emptyList()) { acc, e -> e.transform { acc + it } }
+    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc }  }
 
 
 fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(

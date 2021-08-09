@@ -12,6 +12,8 @@ import kotlin.random.Random
 
 class JsonParserTest {
 
+    private fun tokenize(jsonStr: String) = KondorTokenizer.tokenize(jsonStr)
+
     @Test
     fun `parse Boolean`() {
 
@@ -21,12 +23,12 @@ class JsonParserTest {
 
             val jsonString = JsonNodeBoolean(value, NodePathRoot).render()
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeBoolean().expectSuccess()
 
             expectThat(node.value).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -51,12 +53,12 @@ class JsonParserTest {
 
             val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -65,12 +67,12 @@ class JsonParserTest {
 
             val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -81,12 +83,12 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -97,12 +99,12 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
     }
@@ -115,12 +117,12 @@ class JsonParserTest {
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -130,12 +132,12 @@ class JsonParserTest {
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -147,14 +149,14 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
 //            println("-> ${node.text}")
 
             expectThat(node.text).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -167,14 +169,14 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = JsonLexerLazy(jsonString).tokenize()
+            val tokens = tokenize(jsonString)
 
             val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
 //            println("-> ${node.text}")
 
             expectThat(node.text).isEqualTo(value)
-            expectThat(tokens.position()).isEqualTo(jsonString.length)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -183,11 +185,11 @@ class JsonParserTest {
 
         val jsonString = JsonNodeNull(NodePathRoot).render()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         tokens.onRoot().parseJsonNodeNull().expectSuccess()
 
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
 
@@ -198,13 +200,13 @@ class JsonParserTest {
             ["abc", null, "def"]
         """.trimIndent()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
         expectThat(nodes.values.count()).isEqualTo(3)
         expectThat(nodes.render()).isEqualTo("""["abc", "def"]""")
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -212,12 +214,12 @@ class JsonParserTest {
 
         val jsonString = "[[],[]]".trimIndent()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("[[], []]")
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -230,13 +232,13 @@ class JsonParserTest {
           }
         """.trimIndent()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -244,12 +246,12 @@ class JsonParserTest {
 
         val jsonString = "{}".trimIndent()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("{}")
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -263,7 +265,7 @@ class JsonParserTest {
           }
         """.trimIndent()
 
-        val tokens = JsonLexerLazy(jsonString).tokenize()
+        val tokens = tokenize(jsonString)
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
@@ -271,7 +273,14 @@ class JsonParserTest {
 
         val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
-        expectThat(tokens.position()).isEqualTo(jsonString.length)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
+
+    private fun lastPosRead(tokens: TokensStream): Int =
+        when(val t = tokens.last()){
+            is Separator -> t.pos
+            is Value -> t.pos + t.text.length - 1
+            null -> 0
+        }
 
 }
