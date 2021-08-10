@@ -52,13 +52,14 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(
 
     override fun setter(value: T?): (JsonNodeObject) -> JsonNodeObject = { wrapped ->
         wrapped.copy(
-            fieldMap = wrapped.fieldMap + (propName to toJsonNode(value, wrapped))
+            fieldMap = wrapped.fieldMap +
+                    (propName to toNullableJsonNode(value, wrapped.path))
         )
     }
 
-    private fun toJsonNode(value: T?, wrapped: JsonNodeObject) =
-        value?.let { converter.toJsonNode(it, NodePathSegment(propName, wrapped.path)) }
-            ?: JsonNodeNull(wrapped.path)
+    private fun toNullableJsonNode(value: T?, nodePath: NodePath) =
+        value?.let { converter.toJsonNode(it, NodePathSegment(propName, nodePath)) }
+            ?: JsonNodeNull(nodePath)
 
 }
 

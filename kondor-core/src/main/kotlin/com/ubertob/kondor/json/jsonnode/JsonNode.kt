@@ -28,7 +28,9 @@ data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: Node
 
 data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path: NodePath) : JsonNode(ObjectNode) {
 
-    val notNullFields: List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind != NullNode }
+    internal fun calcNotNullFields(): List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind != NullNode }
+
+    val notNullFields: List<EntryJsonNode> = calcNotNullFields()
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(this@JsonNodeObject)

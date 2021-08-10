@@ -1,6 +1,9 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.NodePathSegment
+import com.ubertob.kondor.json.jsonnode.ObjectNode
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
@@ -20,10 +23,10 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
             )
         }
 
-    abstract fun getWriters(value: T): List<NodeWriter<T>>
+    abstract fun getWriters(value: T): List<NodeWriter<T>> //todo getWriters shouldn't need value, but it's a problem on JMap
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
-        getWriters(value)
-            .fold(JsonNodeObject(emptyMap(), path)) { acc, writer ->
+        getWriters(value) //todo: this can be make faster since we know how many prop there are...
+            .fold(JsonNodeObject(mutableMapOf(), path)) { acc, writer ->
                 writer(acc, value)
             }
 
