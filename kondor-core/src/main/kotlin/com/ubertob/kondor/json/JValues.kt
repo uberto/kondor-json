@@ -43,15 +43,14 @@ object JLong : JNumRepresentable<Long>() {
 }
 
 fun <T : Any> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
-    Outcome.tryOrFail {
-        f()
-    }.transformFailure { throwableError ->
-        when (val throwable = throwableError.throwable) {
-            is JsonParsingException -> throwable.error // keep path info
-            is IllegalStateException -> JsonError(node.path, throwableError.msg)
-            else -> JsonError(node.path, "Caught exception: $throwable")
+    Outcome.tryOrFail { f() }
+        .transformFailure { throwableError ->
+            when (val throwable = throwableError.throwable) {
+                is JsonParsingException -> throwable.error // keep path info
+                is IllegalStateException -> JsonError(node.path, throwableError.msg)
+                else -> JsonError(node.path, "Caught exception: $throwable")
+            }
         }
-    }
 
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (BigDecimal) -> T

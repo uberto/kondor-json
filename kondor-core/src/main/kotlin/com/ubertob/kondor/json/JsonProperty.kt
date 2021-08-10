@@ -22,7 +22,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.fieldMap[propName]
             ?.let(converter::fromJsonNodeBase)
-            ?.failIfNull(JsonError(wrapped.path, "Found null for non-nullable '$propName'"))
+            ?.failIfNull{JsonError(wrapped.path, "Found null for non-nullable '$propName'")}
             ?: JsonError(wrapped.path, "Not found key '$propName'").asFailure()
 
 
@@ -71,7 +71,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped
             .let(converter::fromJsonNodeBase)
-            .failIfNull(JsonError(wrapped.path, "Found null for non-nullable '$propName'"))
+            .failIfNull { JsonError(wrapped.path, "Found null for non-nullable '$propName'") }
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->

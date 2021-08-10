@@ -10,21 +10,20 @@ import org.junit.jupiter.api.Test
 
 /*
 JInvoices 50k Invoices, 63MB
-serialization 2399 ms
-total parsing 2885 ms
-tokenizing 1364 ms
-toJsonNode 957 ms
-marshalling 997 ms
+serialization 2175 ms
+total parsing 2501 ms
+tokenizing 1146 ms
+toJsonNode 757 ms
+marshalling 297 ms
 
 
 JFileInfo 100k 15MB
 
-serialization 313 ms
-total parsing 696 ms
-tokenizing 224 ms
-toJsonNode 217 ms
-marshalling 321 ms
-
+serialization 318 ms
+total parsing 592 ms
+tokenizing 248 ms
+toJsonNode 233 ms
+marshalling 101 ms
 
 JStrings 100k 1.6Mb
 serialization 14 ms

@@ -76,9 +76,9 @@ fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error:
         is Failure -> this
     }
 
-fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: E): Outcome<E, T> =
+fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: () ->  E): Outcome<E, T> =
     when (this) {
-        is Success -> if (value != null) value.asSuccess() else error.asFailure()
+        is Success -> if (value != null) value.asSuccess() else error().asFailure()
         is Failure -> this
     }
 
@@ -101,7 +101,7 @@ fun <E : OutcomeError> E.asFailure(): Outcome<E, Nothing> = Failure(this)
 fun <T> T.asSuccess(): Outcome<Nothing, T> = Success(this)
 
 
-fun <T : Any, E : OutcomeError> T?.failIfNull(error: E): Outcome<E, T> = this?.asSuccess() ?: error.asFailure()
+fun <T : Any, E : OutcomeError> T?.failIfNull(error: () -> E): Outcome<E, T> = this?.asSuccess() ?: error().asFailure()
 
 fun <T, E : OutcomeError> T.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
     if (predicate(this)) asSuccess() else error(this).asFailure()

@@ -74,7 +74,7 @@ class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConve
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.mapValues { entry ->
             valueConverter.fromJsonNodeBase(entry.value)
-                .failIfNull(JsonError(path, "Found null node in map!"))
+                .failIfNull{ JsonError(path, "Found null node in map!") }
                 .orThrow()
         }
 
