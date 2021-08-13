@@ -1,9 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.NodePathSegment
-import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
@@ -70,26 +67,33 @@ abstract class PolymorphicConverter<T : Any> : ObjectNodeConverter<T>() {
 
 }
 
-class JMap<T : Any>(private val valueConverter: JConverter<T>) : ObjectNodeConverter<Map<String, T>>() {
+class JMap<K : Any, V : Any>(
+    private val keyConverter: JsonConverter<K, JsonNodeString>,
+    private val valueConverter: JConverter<V>
+) : ObjectNodeConverter<Map<K, V>>() {
+
     override fun JsonNodeObject.deserializeOrThrow() =
-        fieldMap.mapValues { entry ->
-            valueConverter.fromJsonNodeBase(entry.value)
-                .failIfNull{ JsonError(path, "Found null node in map!") }
-                .orThrow()
+        fieldMap.entries.associate { (key, value) ->
+            keyConverter.fromJson(key).orThrow() to
+                    valueConverter.fromJsonNodeBase(value)
+                        .failIfNull { JsonError(path, "Found null node in map!") }
+                        .orThrow()
         }
 
-    override fun getWriters(value: Map<String, T>): List<NodeWriter<Map<String, T>>> =
-        value.entries.toList().sortedBy { it.key }.map { (key, value) ->
-            { jno: JsonNodeObject, _: Map<String, T> ->
-                jno.copy(
-                    fieldMap = jno.fieldMap +
-                        (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
-                )
+    override fun getWriters(value: Map<K, V>): List<NodeWriter<Map<K, V>>> =
+        value
+            .map { (key, value) -> keyConverter.toJson(key) to value }
+            .sortedBy { it.first }
+            .map { (key, value) ->
+                { jno: JsonNodeObject, _: Map<K, V> ->
+                    jno.copy(
+                        fieldMap = jno.fieldMap +
+                                (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
+                    )
+                }
             }
-        }
 
 }
 
-
-
-
+@Suppress("FunctionName") //Using capital function for backwards compatibility
+fun <V : Any> JMap(valueConverter: JConverter<V>): JMap<String, V> = JMap(JString, valueConverter)

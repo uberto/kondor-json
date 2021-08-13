@@ -159,6 +159,17 @@ class JsonSchemaTest {
         )
     }
 
+    @Test
+    fun `schema for non-string keyed object map`() {
+        val schema = JTasks.schema().pretty()
+
+        expectThat(schema).isEqualTo(
+            """{
+              |  "type": "object"
+              |}""".trimMargin()
+        )
+    }
+
 
     @Test
     fun `schema for a flattened object`() {

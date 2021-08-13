@@ -88,6 +88,23 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `Json Tasks`() {
+        repeat(10) {
+            val value = randomTasks()
+
+            val json = JTasks.toJsonNode(value, NodePathRoot)
+
+            val actual = JTasks.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JTasks.toPrettyJson(value)
+
+            expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
     fun `Json Products`() {
 
         repeat(10) {
