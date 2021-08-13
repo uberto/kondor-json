@@ -71,6 +71,9 @@ class JMap<K : Any, V : Any>(
     private val keyConverter: JsonConverter<K, JsonNodeString>,
     private val valueConverter: JConverter<V>
 ) : ObjectNodeConverter<Map<K, V>>() {
+    companion object {
+        operator fun <V: Any> invoke(valueConverter: JConverter<V>): JMap<String, V> = JMap(JString, valueConverter)
+    }
 
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.entries.associate { (key, value) ->
@@ -94,6 +97,3 @@ class JMap<K : Any, V : Any>(
             }
 
 }
-
-@Suppress("FunctionName") //Using capital function for backwards compatibility
-fun <V : Any> JMap(valueConverter: JConverter<V>): JMap<String, V> = JMap(JString, valueConverter)
