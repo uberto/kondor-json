@@ -21,7 +21,7 @@ data class Separator(val sep: KondorSeparator, override val pos: Int): KondorTok
 }
 
 data class Value(val text: String, override val pos: Int) : KondorToken() {
-    override fun sameValueAs(textValue: String): Boolean = text == textValue
+    override fun sameValueAs(text: String): Boolean = this.text == text
 
     override fun sameAs(separator: KondorSeparator): Boolean = false
     override val desc: String = "'$text'"

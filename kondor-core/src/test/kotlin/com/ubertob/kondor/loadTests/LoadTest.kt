@@ -38,6 +38,7 @@ marshalling 3 ms
 class LoadTest {
 
 
+    @Disabled
     @Test
     fun `serialize and parse invoices`() {
 
