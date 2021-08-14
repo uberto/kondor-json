@@ -11,21 +11,27 @@ import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.text.DateFormatSymbols
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import java.util.*
 
 class JLocalDateTimeTest {
+    
+    val am = DateFormatSymbols(Locale.getDefault()).amPmStrings[0]
+    val pm = DateFormatSymbols(Locale.getDefault()).amPmStrings[1]
+    
     @Test
     fun `Json LocalDateTime with custom format`() {
         val date = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
         val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
         val jLocalDateTime = JLocalDateTime.withFormatter(format)
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 PM", NodePathRoot)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
         expectThat(jLocalDateTime.toJsonNode(date, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(date)
 
-        val dateTimeAsString = "\"15/10/2020 02:01:34 PM\""
+        val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""
         expectThat(jLocalDateTime.toJson(date)).isEqualTo(dateTimeAsString)
         expectThat(jLocalDateTime.fromJson(dateTimeAsString).expectSuccess()).isEqualTo(date)
     }
@@ -35,11 +41,11 @@ class JLocalDateTimeTest {
         val dateTime = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
         val jLocalDateTime = JLocalDateTime.withPattern("dd/MM/yyyy hh:mm:ss a")
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 PM", NodePathRoot)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
         expectThat(jLocalDateTime.toJsonNode(dateTime, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(dateTime)
 
-        val dateTimeAsString = "\"15/10/2020 02:01:34 PM\""
+        val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""
         expectThat(jLocalDateTime.toJson(dateTime)).isEqualTo(dateTimeAsString)
         expectThat(jLocalDateTime.fromJson(dateTimeAsString).expectSuccess()).isEqualTo(dateTime)
     }
@@ -53,7 +59,7 @@ class JLocalDateTimeTest {
                 """
                     {
                       "id": "abcd",
-                      "date": "15/10/2020 02:01:34 PM"
+                      "date": "15/10/2020 02:01:34 $pm"
                     }
                 """.trimIndent()
 
@@ -87,7 +93,7 @@ class JLocalDateTimeTest {
                     """
                     {
                       "id": "abcd",
-                      "date": "01/02/2021 02:15:56 AM"
+                      "date": "01/02/2021 02:15:56 $am"
                     }
                 """.trimIndent()
 
