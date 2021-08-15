@@ -237,9 +237,6 @@ class JValuesTest {
 // add parseJson from InputStream
 // add test example with Java
 // add Converters for all java.time, GUUID, URI, etc.
-// measure performance against other libs
-// measure performance under concurrency
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)
 // add support to serialize calculated fields
-// use Kotlin require() and check() contracts
