@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.6.3 - 9 August 2021
+
+Made JMap work with any type representable by a String as key (Alistair O'Neill)
+
 ### v1.6.2 - 9 August 2021
 
 Performance improvements for big Json arrays

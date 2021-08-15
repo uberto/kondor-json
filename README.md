@@ -17,14 +17,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>1.6.2</version>
+    <version>1.6.3</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:1.6.2'
+implementation 'com.ubertob.kondor:kondor-core:1.6.3'
 ```
 
 ## The Video Presentation
@@ -37,7 +37,7 @@ A live code presentation to see how to use Kondor and some insights on how it wo
 
 - Automatic JsonSchema generation from any converter
 - Code generation of converters from data classes
-- LocalDate, LocalDateTime, and LocalTime converter with configurable pattern (thanks to Alessandro Ciccimarra)
+- JMap works with any type as key (thanks to Alistair O'Neill)
 
 ## Quick Start
 
