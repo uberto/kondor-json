@@ -50,6 +50,10 @@ fun randomNotes() = Notes(
     thingsToDo = randomList(0, 10) { randomString(uppercase, 3, 3) to randomString(lowercase, 1, 20) }.toMap()
 )
 
+fun randomTaskId(): TaskId = UUID.randomUUID().toString().let(::TaskId)
+fun randomTask(): Task = Task(randomString(uppercase, 3, 10), randomString(lowercase, 1, 20))
+fun randomTasks(): Map<TaskId, Task> = randomList(0, 10) { randomTaskId() to randomTask() }.toMap()
+
 private fun randomPath() =
     randomList(1, 10, { randomString(lowercase, 3, 10) }).joinToString(separator = "/", prefix = "/")
 
@@ -214,6 +218,27 @@ object JNotes : JAny<Notes>() {
         )
 }
 
+data class TaskId(val value: String)
+object JTaskId: JStringRepresentable<TaskId>() {
+    override val cons: (String) -> TaskId = ::TaskId
+    override val render: (TaskId) -> String = TaskId::value
+
+}
+
+data class Task(val name: String, val description: String)
+object JTask: JAny<Task>() {
+    private val name by str(Task::name)
+    private val description by str(Task::description)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        Task(
+            name = +name,
+            description = +description
+        )
+}
+
+val JTasks: JMap<TaskId, Task> = JMap(JTaskId, JTask)
+
 
 class Products : ArrayList<Product>() {
     fun total(): Double = sumOf { it.price ?: 0.0 }
@@ -267,6 +292,3 @@ object JSelectedFile : JAny<SelectedFile>() {
         )
 
 }
-
-
-
