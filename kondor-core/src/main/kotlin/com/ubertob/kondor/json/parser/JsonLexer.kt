@@ -197,7 +197,7 @@ object KondorTokenizer {
 
 
 /*
-without StringBuilder, faster but there is a problem with escaping Json
+without StringBuilder, it's faster but it doesn't de-escape string (see String.translateEscapes)
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 
@@ -277,7 +277,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     'b',
                     '"' -> char //nothing
                     else -> error("wrongly escaped char '\\$char' in Json string")
-                }.also { state = InString }
+                }.also { state = InStringWithEsc }
             }
             pos += 1
         }

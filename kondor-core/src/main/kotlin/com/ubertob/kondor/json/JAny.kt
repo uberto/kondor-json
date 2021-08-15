@@ -6,7 +6,7 @@ import com.ubertob.kondor.outcome.failIfNull
 import java.util.concurrent.atomic.AtomicReference
 
 
-typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
+typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert to (T) -> Pair<String, JsonNode>
 
 
 sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
