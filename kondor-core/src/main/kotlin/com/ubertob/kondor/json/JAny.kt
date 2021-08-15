@@ -68,18 +68,24 @@ abstract class PolymorphicConverter<T : Any> : ObjectNodeConverter<T>() {
 }
 
 class JMap<K : Any, V : Any>(
-    private val keyConverter: JsonConverter<K, JsonNodeString>,
+    private val keyConverter: JStringRepresentable<K>,
     private val valueConverter: JConverter<V>
 ) : ObjectNodeConverter<Map<K, V>>() {
 
     companion object {
         operator fun <V: Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
-            JMap(JString, valueConverter) //default using String
+            JMap(
+                object: JStringRepresentable<String>() {
+                    override val cons: (String) -> String = { it }
+                    override val render: (String) -> String = { it }
+                },
+                valueConverter
+            )
     }
 
     override fun JsonNodeObject.deserializeOrThrow() =
         fieldMap.entries.associate { (key, value) ->
-            keyConverter.fromJson(key).orThrow() to
+            keyConverter.cons(key) to
                     valueConverter.fromJsonNodeBase(value)
                         .failIfNull { JsonError(path, "Found null node in map!") }
                         .orThrow()
@@ -87,7 +93,7 @@ class JMap<K : Any, V : Any>(
 
     override fun getWriters(value: Map<K, V>): List<NodeWriter<Map<K, V>>> =
         value
-            .map { (key, value) -> keyConverter.toJson(key) to value }
+            .map { (key, value) -> keyConverter.render(key) to value }
             .sortedBy { it.first }
             .map { (key, value) ->
                 { jno: JsonNodeObject, _: Map<K, V> ->
