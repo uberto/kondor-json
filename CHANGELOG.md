@@ -3,7 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v1.6.3 - 9 August 2021
+### v1.6.4 - 16 August 2021
+
+Fix double quotation in JMap
+
+### v1.6.3 - 15 August 2021
 
 Made JMap work with any type representable by a String as key (Alistair O'Neill)
 
