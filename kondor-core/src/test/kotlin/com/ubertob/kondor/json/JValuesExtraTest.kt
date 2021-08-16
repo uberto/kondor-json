@@ -105,6 +105,22 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `JMaps without a specified keyConverter do not double quote`() {
+        val map = mapOf(
+            "foo1" to "bar1",
+            "foo2" to "bar2"
+        )
+
+        expectThat(JMap(JString).toPrettyJson(map)).isEqualTo(
+            """{
+                |  "foo1": "bar1",
+                |  "foo2": "bar2"
+                |}
+            """.trimMargin()
+        )
+    }
+
+    @Test
     fun `Json Products`() {
 
         repeat(10) {
