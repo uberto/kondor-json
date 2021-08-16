@@ -1,7 +1,9 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.randomList
+import com.ubertob.kondor.validateJsonAgainstSchema
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -102,6 +104,16 @@ class JValuesExtraTest {
 
             expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
+    }
+
+    @Test
+    fun `JMap schema is valid`(){
+        val value = randomTasks()
+
+        val json = JTasks.toJson(value)
+        val schemaJson = JTasks.schema().pretty()
+
+        validateJsonAgainstSchema(schemaJson, json)
     }
 
     @Test

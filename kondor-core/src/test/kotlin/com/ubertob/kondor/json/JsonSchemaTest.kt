@@ -2,9 +2,8 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.json.parser.render
+import com.ubertob.kondor.validateJsonAgainstSchema
 import org.junit.jupiter.api.Test
-import org.leadpony.justify.api.JsonSchema
-import org.leadpony.justify.api.JsonValidationService
 import strikt.api.expectCatching
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -380,19 +379,17 @@ class JsonSchemaTest {
     fun `validate an Json against its Schema`() {
 
         val schema = JInvoice.schema().render()
-        val schemaJson = schemaService(schema)
         repeat(100) {
             val json = JInvoice.toJson(randomInvoice())
 
-            validateJsonAgainstSchema(schemaJson, json)
+            validateJsonAgainstSchema(schema, json)
         }
     }
 
     @Test
     fun `validating an Json against another Schema will give a failure`() {
 
-        val schema = JPerson.schema().render()
-        val schemaJson = schemaService(schema)
+        val schemaJson = JPerson.schema().render()
         val json = JCompany.toJson(randomCompany())
 
         expectCatching {
@@ -401,15 +398,5 @@ class JsonSchemaTest {
             .get { message.orEmpty() }.contains("The object must have a property whose name is \"id\"")
     }
 
-    val service = JsonValidationService.newInstance()
 
-    private fun schemaService(schemaJson: String): JsonSchema =
-        service.readSchema(schemaJson.byteInputStream())
-
-
-    private fun validateJsonAgainstSchema(jsonConfig: JsonSchema, json: String) {
-        val handler = service.createProblemPrinter { error("Schema validation error: $it") }
-        service.createReader(json.byteInputStream(), jsonConfig, handler)
-            .use { reader -> reader.readValue() }
-    }
 }

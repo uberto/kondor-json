@@ -1,6 +1,8 @@
 package com.ubertob.kondor
 
 
+import org.leadpony.justify.api.JsonSchema
+import org.leadpony.justify.api.JsonValidationService
 import kotlin.random.Random
 
 const val uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -36,3 +38,20 @@ fun <T> randomList(minLen: Int, maxLen: Int, f: (index: Int) -> T): List<T> =
 fun <T> randomNullable(f: () -> T): T? = if (Random.nextBoolean()) f() else null
 
 fun randomPrice(min: Int, max: Int) = Random.nextInt(min * 100, max * 100) / 100.0
+
+
+
+private val service = JsonValidationService.newInstance()
+
+private fun schemaService(schemaJson: String): JsonSchema =
+    service.readSchema(schemaJson.byteInputStream())
+
+
+fun validateJsonAgainstSchema(schemaJson: String, json: String) {
+    val jsonConfig = schemaService(schemaJson)
+
+
+    val handler = service.createProblemPrinter { error("Schema validation error: $it") }
+    service.createReader(json.byteInputStream(), jsonConfig, handler)
+        .use { reader -> reader.readValue() }
+}
