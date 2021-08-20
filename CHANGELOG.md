@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.6.5 - 20 August 2021
+
+Allow JMap field to be flatten
+
 ### v1.6.4 - 16 August 2021
 
 Fix double quotation in JMap
