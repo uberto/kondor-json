@@ -2,7 +2,9 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.pretty
+import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomList
+import com.ubertob.kondor.randomString
 import com.ubertob.kondor.validateJsonAgainstSchema
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -107,7 +109,7 @@ class JValuesExtraTest {
     }
 
     @Test
-    fun `JMap schema is valid`(){
+    fun `JMap schema is valid`() {
         val value = randomTasks()
 
         val json = JTasks.toJson(value)
@@ -181,6 +183,26 @@ class JValuesExtraTest {
 
     }
 
+    @Test
+    fun `Json render flatten maps like fields`() {
+
+        val metadataFile = MetadataFile(
+            filename = "myfile",
+            metadata = mapOf("type" to "picture", "owner" to "uberto")
+        )
+
+        val json = JMetadataFile.toPrettyJson(metadataFile)
+
+        expectThat(json).isEqualTo(
+            """{
+              |  "fileName": "myfile",
+              |  "owner": "uberto",
+              |  "type": "picture"
+              |}""".trimMargin()
+        )
+
+    }
+
 
     @Test
     fun `Json SelectedFile`() {
@@ -200,6 +222,24 @@ class JValuesExtraTest {
         }
     }
 
+
+    @Test
+    fun `Json MetadataFile`() {
+
+        repeat(10) {
+
+            val value = MetadataFile(randomString(lowercase, 3, 20), randomMetadata())
+            val json = JMetadataFile.toJsonNode(value, NodePathRoot)
+
+            val actual = JMetadataFile.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JMetadataFile.toJson(value)
+
+            expectThat(JMetadataFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
 
 }
 

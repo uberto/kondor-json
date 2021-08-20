@@ -97,5 +97,5 @@ inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline bi
         JFieldMaybe(binder, converter)
 
 @JvmName("bindFlattenObject")
-inline fun <PT : Any, reified T : Any> flatten(converter: ObjectNodeConverter<T>, noinline binder: PT.() -> T) =
-        JFieldFlatten(binder, converter)
+inline fun <PT : Any, reified T : Any> JAny<PT>.flatten(converter: ObjectNodeConverter<T>, noinline binder: PT.() -> T) =
+        JFieldFlatten(binder, converter, this)

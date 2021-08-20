@@ -18,6 +18,9 @@ class JMap<K : Any, V : Any>(
                 },
                 valueConverter
             )
+
+        operator fun invoke(): JMap<String, String> =
+            JMap(JString)
     }
 
     override fun JsonNodeObject.deserializeOrThrow() =

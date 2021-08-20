@@ -67,6 +67,13 @@ fun randomFileInfo() = FileInfo(
     folderPath = randomPath()
 )
 
+fun randomMetadata(): Map<String, String> =
+    randomList(0, 10) {
+        randomString(lowercase, 4, 6) to randomString(text, 1, 50)
+    }.toMap()
+
+//------------
+
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
@@ -279,7 +286,22 @@ object JFileInfo : JAny<FileInfo>() {
         )
 }
 
+data class MetadataFile(val filename: String, val metadata: Map<String, String>)
+
+object JMetadataFile : JAny<MetadataFile>() {
+
+    val fileName by str( MetadataFile::filename)
+    val metadata by flatten(JMap(), MetadataFile::metadata)
+
+    override fun JsonNodeObject.deserializeOrThrow()=
+        MetadataFile(
+            filename = +fileName,
+            metadata = +metadata
+        )
+}
+
 data class SelectedFile(val selected: Boolean, val file: FileInfo)
+
 object JSelectedFile : JAny<SelectedFile>() {
 
     val selected by bool(SelectedFile::selected)
@@ -287,8 +309,9 @@ object JSelectedFile : JAny<SelectedFile>() {
 
     override fun JsonNodeObject.deserializeOrThrow() =
         SelectedFile(
-            +selected,
-            +file_info
+            selected = +selected,
+            file = +file_info,
         )
 
 }
+

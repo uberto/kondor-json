@@ -65,13 +65,20 @@ data class JsonPropOptional<T : Any, JN : JsonNode>(
 
 data class JsonPropMandatoryFlatten<T : Any>(
     override val propName: String,
-    val converter: ObjectNodeConverter<T>
+    val converter: ObjectNodeConverter<T>,
+    val parent: JAny<*>
 ) : JsonProperty<T>() {
 
+    private val parentProperties = parent.getProperties().map { it.propName }
+
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
-        wrapped
-            .let(converter::fromJsonNodeBase)
+        wrapped.removeFieldsFromParent()
+            .let { JsonNodeObject(it, wrapped.path) }
+            .let(converter::fromJsonNode)
             .failIfNull { JsonError(wrapped.path, "Found null for non-nullable '$propName'") }
+
+    private fun JsonNodeObject.removeFieldsFromParent() =
+        fieldMap.filterKeys { key -> !parentProperties.contains(key) }
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->

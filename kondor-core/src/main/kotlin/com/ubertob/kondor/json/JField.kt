@@ -32,11 +32,12 @@ class JField<T : Any, PT : Any>(
 
 class JFieldFlatten<T : Any, PT : Any>(
     override val binder: (PT) -> T,
-    private val converter: ObjectNodeConverter<T>
+    private val converter: ObjectNodeConverter<T>,
+    private val parent: JAny<PT>
 ) : JFieldBase<T, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T> =
-        JsonPropMandatoryFlatten(property.name, converter)
+        JsonPropMandatoryFlatten(property.name, converter, parent)
 
 }
 
