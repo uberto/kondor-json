@@ -157,3 +157,28 @@ infix fun <A, B, C, D, ER : OutcomeError> ((A, B, C) -> D).`!`(other: Outcome<ER
 @Suppress("DANGEROUS_CHARACTERS")
 infix fun <A, B, ER : OutcomeError> Outcome<ER, (A) -> B>.`*`(a: Outcome<ER, A>): Outcome<ER, B> =
     bind { a.transform(it) }
+
+
+//for side effects
+
+fun <E : OutcomeError, T> Outcome<E, T>.withSuccess(block: (T) -> Unit): Outcome<E, T> =
+    transform { it.also(block) }
+
+fun <E : OutcomeError, T> Outcome<E, T>.withFailure(block: (E) -> Unit): Outcome<E, T> =
+    transformFailure { it.also(block) }
+
+//for operating with collections inside Outcome
+fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.map(f: (T) -> U): Outcome<E, Iterable<U>> =
+    transform { it.map(f) }
+
+fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Outcome<E, Iterable<T>> =
+    transform { it.filter(f) }
+
+fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, Iterable<U>> =
+    bind { it.map(f).extractList() }
+
+//null as error
+fun <E : OutcomeError, T> Outcome<E, T>.orNull(): T? =
+    transform { it }.recover { null }
+
+//TODO add tests showing the usage
