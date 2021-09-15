@@ -76,7 +76,7 @@ fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error:
         is Failure -> this
     }
 
-fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: () ->  E): Outcome<E, T> =
+fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: () -> E): Outcome<E, T> =
     when (this) {
         is Success -> if (value != null) value.asSuccess() else error().asFailure()
         is Failure -> this
@@ -127,7 +127,7 @@ fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List
 
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc }  }
+    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc } }
 
 
 fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(
@@ -166,6 +166,9 @@ fun <E : OutcomeError, T> Outcome<E, T>.withSuccess(block: (T) -> Unit): Outcome
 
 fun <E : OutcomeError, T> Outcome<E, T>.withFailure(block: (E) -> Unit): Outcome<E, T> =
     transformFailure { it.also(block) }
+
+fun <E : OutcomeError, T> Outcome<E, T>.alsoBind(f: (T) -> Outcome<E, Unit>): Outcome<E, T> =
+    bind { value -> f(value).transform { value } }
 
 //for operating with collections inside Outcome
 fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.map(f: (T) -> U): Outcome<E, Iterable<U>> =
