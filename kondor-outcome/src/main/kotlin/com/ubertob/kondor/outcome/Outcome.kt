@@ -22,8 +22,14 @@ sealed class Outcome<out E : OutcomeError, out T> {
         }
 
     companion object {
-        fun <T, U, E : OutcomeError> lift(f: (T) -> U): (Outcome<E, T>) -> Outcome<E, U> =
+        fun <E : OutcomeError, T, U> lift(f: (T) -> U): (Outcome<E, T>) -> Outcome<E, U> =
             { o -> o.transform { f(it) } }
+
+        fun <E : OutcomeError, T, U, R> transform2(
+            first: Outcome<E, T>,
+            second: Outcome<E, U>,
+            f: (T, U) -> R
+        ): Outcome<E, R> = f `!` first `*` second
 
         inline fun <T> tryOrFail(block: () -> T): Outcome<ThrowableError, T> =
             try {
@@ -122,12 +128,21 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
     fold(initial.asSuccess() as Outcome<ERR, U>) { acc, el -> acc.bind { operation(it, el) } }
 
 
-fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc } } //todo
+fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
+    foldOutcome(mutableListOf()) { acc, e ->
+        f(e).transform { acc.add(it); acc }
+    }
 
+fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
+    traverse{it}
+
+fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
+    foldOutcome(mutableListOf()) { acc, e ->
+        f(e).transform { acc.add(it); acc }
+    }
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    foldOutcome(mutableListOf()) { acc, e -> e.transform { acc.add(it); acc } }
+    traverse{it}
 
 
 fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(
@@ -167,7 +182,7 @@ fun <E : OutcomeError, T> Outcome<E, T>.withSuccess(block: (T) -> Unit): Outcome
 fun <E : OutcomeError, T> Outcome<E, T>.withFailure(block: (E) -> Unit): Outcome<E, T> =
     transformFailure { it.also(block) }
 
-fun <E : OutcomeError, T> Outcome<E, T>.alsoBind(f: (T) -> Outcome<E, Unit>): Outcome<E, T> =
+fun <E : OutcomeError, T, U> Outcome<E, T>.bindAlso(f: (T) -> Outcome<E, U>): Outcome<E, T> =
     bind { value -> f(value).transform { value } }
 
 //for operating with collections inside Outcome
@@ -178,7 +193,7 @@ fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Out
     transform { it.filter(f) }
 
 fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, Iterable<U>> =
-    bind { it.map(f).extractList() }
+    bind { it.traverse(f) }
 
 //null as error
 fun <E : OutcomeError, T> Outcome<E, T>.orNull(): T? =
