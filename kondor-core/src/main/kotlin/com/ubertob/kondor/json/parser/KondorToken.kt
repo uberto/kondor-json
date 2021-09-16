@@ -30,4 +30,6 @@ data class Value(val text: String, override val pos: Int) : KondorToken() {
 
 
 data class TokensStream(private val iterator: PeekingIterator<KondorToken>) :
-    PeekingIterator<KondorToken> by iterator
+    PeekingIterator<KondorToken> by iterator {
+        fun toList(): List<KondorToken> = iterator.asSequence().toList()
+    }

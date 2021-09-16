@@ -3,96 +3,111 @@ package com.ubertob.kondor.json.parser
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.json.parser.LexerState.*
+import java.io.InputStream
+import java.io.InputStreamReader
+import java.nio.charset.Charset
 
 
 enum class LexerState {
     OutString, InString, Escaping
 }
 
-/*
-    //todo extract the logic of tokenization
-class JsonLexerLazy(val jsonStr: ByteArrayInputStream) {
 
-    private val pos = AtomicInteger(0)
+class JsonLexerLazy(val inputStream: InputStream) {
+
+    private var currPos = 1
 
     fun tokenize(): TokensStream =
         sequence {
             val currToken = StringBuilder()
             var state = OutString
-            jsonStr.forEach { char ->
-                pos.incrementAndGet()
-                when (state) {
-                    OutString ->
-                        when (char) {
-                            ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken)
-                            '{' -> {
-                                yieldValue(currToken)
-                                yield(OpeningCurly)
+
+            inputStream
+                .reader(Charset.forName("UTF-8"))
+                .forEach { char ->
+                    when (state) {
+                        OutString ->
+                            when (char) {
+                                ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
+                                '{' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(OpeningCurly, currPos))
+                                }
+                                '}' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(ClosingCurly, currPos))
+                                }
+                                '[' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(OpeningBracket, currPos))
+                                }
+                                ']' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(ClosingBracket, currPos))
+                                }
+                                ',' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(Comma, currPos))
+                                }
+                                ':' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(Colon, currPos))
+                                }
+                                '"' -> {
+                                    yieldValue(currToken, currPos)
+                                    yield(Separator(OpeningQuotes, currPos))
+                                    state = InString
+                                }
+                                else -> currToken.append(char)
                             }
-                            '}' -> {
-                                yieldValue(currToken)
-                                yield(ClosingCurly)
-                            }
-                            '[' -> {
-                                yieldValue(currToken)
-                                yield(OpeningBracket)
-                            }
-                            ']' -> {
-                                yieldValue(currToken)
-                                yield(ClosingBracket)
-                            }
-                            ',' -> {
-                                yieldValue(currToken)
-                                yield(Comma)
-                            }
-                            ':' -> {
-                                yieldValue(currToken)
-                                yield(Colon)
+
+                        InString -> when (char) {
+                            '\\' -> {
+                                state = Escaping
                             }
                             '"' -> {
-                                yieldValue(currToken)
-                                yield(OpeningQuotes)
-                                state = InString
+                                yieldValue(currToken, currPos)
+                                yield(Separator(ClosingQuotes, currPos))
+                                state = OutString
                             }
-                            else -> currToken.append(char)
+                            else -> currToken += char
                         }
-
-                    InString -> when (char) {
-                        '\\' -> {
-                            state = Escaping
-                        }
-                        '"' -> {
-                            yieldValue(currToken)
-                            yield(ClosingQuotes)
-                            state = OutString
-                        }
-                        else -> currToken += char
+                        Escaping -> when (char) {
+                            '\\' -> currToken += '\\'
+                            'n' -> currToken += '\n'
+                            'f' -> currToken += '\t'
+                            't' -> currToken += '\t'
+                            'r' -> currToken += '\r'
+                            'b' -> currToken += '\b'
+                            '"' -> currToken += '\"'
+                            else -> error("wrongly escaped char '\\$char' in Json string")
+                        }.also { state = InString }
                     }
-                    Escaping -> when (char) {
-                        '\\' -> currToken += '\\'
-                        'n' -> currToken += '\n'
-                        'f' -> currToken += '\t'
-                        't' -> currToken += '\t'
-                        'r' -> currToken += '\r'
-                        'b' -> currToken += '\b'
-                        '"' -> currToken += '\"'
-                        else -> error("wrongly escaped char '\\$char' in Json string")
-                    }.also { state = InString }
+                    currPos++
                 }
-            }
-            yieldValue(currToken)
-        }.peekingIterator().let { TokensStream(pos::get, it) }
+            yieldValue(currToken, currPos)
 
-    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: StringBuilder) {
+        }.peekingIterator().let { TokensStream(it) }
+
+    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: StringBuilder, pos: Int) {
         if (currWord.isNotEmpty()) {
-            yield(Value(currWord.toString()))
+            val text = currWord.toString()
+            yield(Value(text, pos - text.length))
         }
         currWord.clear()
     }
-
 }
 
-*/
+private inline fun InputStreamReader.forEach(block: (Char) -> Unit) =
+    use {
+        var c = read()
+        while (c >= 0) {
+            block(c.toChar())
+            c = read()
+        }
+    }
+
+
 operator fun StringBuilder.plusAssign(c: Char) {
     append(c)
 }
@@ -173,7 +188,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                         else -> error("wrongly escaped char '\\$char' in Json string")
                     }.also { state = InString }
                 }
-                pos += 1
+                pos++
             }
             tokens.addValue(currToken, pos)
 
@@ -192,15 +207,15 @@ class JsonLexerEager(val jsonStr: CharSequence) {
 
 object KondorTokenizer {
     fun tokenize(jsonString: CharSequence): TokensStream = JsonLexerEager(jsonString).tokenize()
-//    fun tokenize(jsonString: InputStream): TokensStream = JsonLexerLazy(TODO("")).tokenize()
+    fun tokenize(jsonStream: InputStream): TokensStream = JsonLexerLazy(jsonStream).tokenize()
 }
 
 
 /*
 without StringBuilder, it's faster but it doesn't de-escape string (see String.translateEscapes)
+todo: de-escape only if needed when creating string token
 
 class JsonLexerEager(val jsonStr: CharSequence) {
-
 
 
     //todo extract the logic of tokenization
