@@ -110,4 +110,21 @@ abstract class JsonLexerTestAbstract {
         )
     }
 
+
+    @Test
+    fun `json strings with unicode`() {
+        val json = """
+            "abc \u263A"
+        """.trimIndent()
+        val tokens = tokenize(json)
+
+        expectThat(tokens.toList()).isEqualTo(
+            listOf(
+                Separator(OpeningQuotes, 1),
+                Value("abc \\u263A", 2),
+                Separator(ClosingQuotes, 12),
+            )
+        )
+    }
+
 }
