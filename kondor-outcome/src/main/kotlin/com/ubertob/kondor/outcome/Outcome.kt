@@ -22,8 +22,6 @@ sealed class Outcome<out E : OutcomeError, out T> {
         }
 
     companion object {
-        fun <E : OutcomeError, T, U> lift(f: (T) -> U): (Outcome<E, T>) -> Outcome<E, U> =
-            { o -> o.transform { f(it) } }
 
         fun <E : OutcomeError, T, U, R> transform2(
             first: Outcome<E, T>,
@@ -186,13 +184,13 @@ fun <E : OutcomeError, T, U> Outcome<E, T>.bindAlso(f: (T) -> Outcome<E, U>): Ou
     bind { value -> f(value).transform { value } }
 
 //for operating with collections inside Outcome
-fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.map(f: (T) -> U): Outcome<E, Iterable<U>> =
+fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.map(f: (T) -> U): Outcome<E, List<U>> =
     transform { it.map(f) }
 
-fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Outcome<E, Iterable<T>> =
+fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Outcome<E, List<T>> =
     transform { it.filter(f) }
 
-fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, Iterable<U>> =
+fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     bind { it.traverse(f) }
 
 //null as error
