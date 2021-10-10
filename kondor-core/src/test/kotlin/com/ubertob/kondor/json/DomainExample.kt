@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.*
+import com.ubertob.kondor.json.TitleType.Companion.fromLabel
 import com.ubertob.kondor.json.datetime.num
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.ArrayNode
@@ -315,3 +316,36 @@ object JSelectedFile : JAny<SelectedFile>() {
 
 }
 
+
+// Using other field of Enum
+
+
+data class TitleRequest(
+    val id: String,
+    val type: TitleType?
+)
+
+enum class TitleType(val label: String) {
+    Movie("movie"), Series("series"), Episoode("episode");
+
+    companion object {
+        fun fromLabel(label: String) = values().firstOrNull() { it.label == label}
+    }
+}
+
+object JTitleType : JStringRepresentable<TitleType?>() {
+    override val cons: (String) -> TitleType? = ::fromLabel
+    override val render: (TitleType?) -> String = {it?.label ?: "" }
+}
+
+object JTitleRequest : JAny<TitleRequest>() {
+    private val id by str(TitleRequest::id)
+
+    private val type by str(TitleRequest::type)
+
+    override fun JsonNodeObject.deserializeOrThrow(): TitleRequest =
+        TitleRequest(
+            id = +id,
+            type = +type
+        )
+}

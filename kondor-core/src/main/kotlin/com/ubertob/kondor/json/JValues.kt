@@ -42,7 +42,7 @@ object JLong : JNumRepresentable<Long>() {
     override val render: (Long) -> BigDecimal = Long::toBigDecimal
 }
 
-fun <T : Any> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
+fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val throwable = throwableError.throwable) {
@@ -63,7 +63,7 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     override val nodeType = NumberNode
 }
 
-abstract class JStringRepresentable<T : Any>() : JsonConverter<T, JsonNodeString> {
+abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
 
@@ -72,6 +72,5 @@ abstract class JStringRepresentable<T : Any>() : JsonConverter<T, JsonNodeString
         JsonNodeString(render(value), path)
 
     override val nodeType = StringNode
-
 }
 
