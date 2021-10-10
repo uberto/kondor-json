@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v1.6.8 - 10 October 2021
+
+JStringRepresentable can work with nullable types
+
 ### v1.6.7 - 21 September 2021
 
 Letting Unicode escape sequence to be parsed
