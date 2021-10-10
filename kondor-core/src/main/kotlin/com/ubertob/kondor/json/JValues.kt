@@ -16,7 +16,6 @@ object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
 
 }
 
-
 object JString : JStringRepresentable<String>() {
     override val cons: (String) -> String = {it}
     override val render: (String) -> String = {it}
