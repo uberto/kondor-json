@@ -12,8 +12,6 @@ internal class OutcomeTest {
 
     data class User(val name: String, val email: String)
 
-    fun strLen(s: String): Int = s.length
-
     fun getUser(id: Int): BaseOutcome<User> =
         if (id > 0) User("user$id", "$id@example.com").asSuccess() else Err("wrong id").asFailure()
 
@@ -139,9 +137,39 @@ internal class OutcomeTest {
 
     }
 
+    @Test
+    fun `bindFailure allow to retry another way`() {
+         val user = getUser(-23)
+             .bindFailure { getUser(23) }
+             .expectSuccess()
+
+        expectThat(user.name).isEqualTo("user23")
+    }
+
+    @Test
+    fun `bindAlso ignores the result of second fun if success`() {
+        val user = getUser(42)
+            .bindAlso { user -> sendEmailUser(user.email, "Hello ${user.name}")}
+            .expectSuccess()
+
+        expectThat(user.name).isEqualTo("user42")
+    }
+
+    @Test
+    fun `bindAlso fails the result if second fun fails`() {
+        val error = getUser(42)
+            .bindAlso { user -> sendEmailUser(user.email, "")}
+            .expectFailure()
+
+        expectThat(error.msg).isEqualTo("empty text or email")
+    }
 
     //combine, compose, join
 
+    //withSuccess, withFailure
+
     //tranform2, '!', `*`
+
+    //map flatmap
 
 }
