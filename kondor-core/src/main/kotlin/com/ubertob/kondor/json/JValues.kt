@@ -16,13 +16,10 @@ object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
 
 }
 
-object JString : JsonConverter<String, JsonNodeString> {
 
-    override fun fromJsonNode(node: JsonNodeString): JsonOutcome<String> = node.text.asSuccess()
-    override fun toJsonNode(value: String, path: NodePath): JsonNodeString =
-        JsonNodeString(value, path)
-
-    override val nodeType = StringNode
+object JString : JStringRepresentable<String>() {
+    override val cons: (String) -> String = {it}
+    override val render: (String) -> String = {it}
 }
 
 object JDouble : JNumRepresentable<Double>() {
