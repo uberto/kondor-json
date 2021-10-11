@@ -41,7 +41,7 @@ class JFieldFlatten<T : Any, PT : Any>(
 
 }
 
-class JFieldMaybe<T : Any, PT : Any>(
+class JFieldMaybe<T, PT : Any>(
     override val binder: (PT) -> T?,
     private val converter: JConverter<T>
 ) : JFieldBase<T?, PT>() {

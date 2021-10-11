@@ -39,7 +39,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
 }
 
 
-data class JsonPropOptional<T : Any, JN : JsonNode>(
+data class JsonPropOptional<T, JN : JsonNode>(
     override val propName: String,
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T?>() {

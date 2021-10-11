@@ -50,6 +50,12 @@ fun <PT : Any> str(binder: PT.() -> String) = JField(binder, JString)
 @JvmName("bindStringNull")
 fun <PT : Any> str(binder: PT.() -> String?) = JFieldMaybe(binder, JString)
 
+@JvmName("bindString")
+fun <PT : Any, T: Any> str(converter: JStringRepresentable<T>, binder: PT.() -> T) = JField(binder, converter)
+
+@JvmName("bindStringNull")
+fun <PT : Any, T> str(converter: JStringRepresentable<T>, binder: PT.() -> T?) = JFieldMaybe(binder, converter)
+
 @JvmName("bindEnum")
 inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E): JField<E, PT> =
         JField(binder, JEnum(::enumValueOf, enumValues<E>().toList()))

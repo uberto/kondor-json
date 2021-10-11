@@ -341,7 +341,7 @@ object JTitleType : JStringRepresentable<TitleType?>() {
 object JTitleRequest : JAny<TitleRequest>() {
     private val id by str(TitleRequest::id)
 
-    private val type by str(TitleRequest::type)
+    private val type by str(JTitleType, TitleRequest::type)
 
     override fun JsonNodeObject.deserializeOrThrow(): TitleRequest =
         TitleRequest(
