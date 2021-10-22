@@ -335,7 +335,7 @@ enum class TitleType(val label: String) {
 
 object JTitleType : JStringRepresentable<TitleType?>() {
     override val cons: (String) -> TitleType? = ::fromLabel
-    override val render: (TitleType?) -> String = {it?.label ?: "" }
+    override val render: (TitleType?) -> String = {it?.label.orEmpty()}
 }
 
 object JTitleRequest : JAny<TitleRequest>() {

@@ -157,8 +157,21 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
+
     @Test
     fun `parsing json without a field returns an error`() {
+        val jsonWithDifferentField =
+            """
+ "{ "id": 1, "fullname": "alice" }
+ """
+
+        val error = JPerson.fromJson(jsonWithDifferentField).expectFailure()
+
+        expectThat(error.msg).isEqualTo("error on <[root]> Not found key 'name'. Found ['id','fullname']")
+    }
+
+    @Test
+    fun `parsing sealed class json without the discriminator field returns an error`() {
         val jsonWithDifferentField =
             """
  {
@@ -185,7 +198,8 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </customer> expected discriminator field \"type\" not found")
+        expectThat(error.msg).isEqualTo("error on </customer> expected discriminator field \"type\" not found. Fields[]")
+        //if an object is valid json but fail the parser it should use a different error with the node reference
     }
 
 

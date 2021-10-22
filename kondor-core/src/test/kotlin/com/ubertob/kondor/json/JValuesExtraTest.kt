@@ -257,7 +257,27 @@ class JValuesExtraTest {
 
             val jsonStr = JTitleRequest.toJson(value)
 
-            println( jsonStr)
+//            println( jsonStr)
+
+            expectThat(JTitleRequest.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json With Errors to Null`() {
+
+        repeat(5) {
+
+            val value = TitleRequest(randomString(lowercase, 5,5), TitleType.values().random())
+            val json = JTitleRequest.toJsonNode(value, NodePathRoot)
+
+            val actual = JTitleRequest.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JTitleRequest.toJson(value)
+
+//            println( jsonStr)
 
             expectThat(JTitleRequest.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
