@@ -7,6 +7,8 @@ import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
+import strikt.api.expectThat
+import strikt.assertions.isEqualTo
 
 /*
 JInvoices 50k Invoices, 63MB
@@ -38,7 +40,6 @@ marshalling 3 ms
 class LoadTest {
 
 
-    @Disabled
     @Test
     fun `serialize and parse invoices`() {
 
@@ -66,7 +67,6 @@ class LoadTest {
     }
 
 
-
     @Test
     fun `serialize and parse FileInfo`() {
 
@@ -83,7 +83,8 @@ class LoadTest {
 
             chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
 
-            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+            val tokens =
+                chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
 
             val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
@@ -109,7 +110,8 @@ class LoadTest {
 
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
 
-            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+            val tokens =
+                chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
 
             val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
@@ -119,6 +121,29 @@ class LoadTest {
 
     }
 
+
+    @Test
+    fun `using inputstream to parse invoices`() {
+
+        val JInvoices = JList(JInvoice)
+
+        val fixtureName = "/fixtures/invoices.json"
+
+//        val invoices = generateSequence(0) { it + 1 }.take(500_000).map {
+//            randomInvoice().copy(id = InvoiceId(it.toString()))
+//        }.toList()
+//
+//        File("./src/test/resources/$fixtureName").writeText(JInvoices.toJson(invoices))
+
+
+        val inputStream = javaClass.getResourceAsStream(fixtureName) ?: error("resource $fixtureName not found!")
+
+        chronoAndLog("parsing from stream") {
+            val invoices = JInvoices.fromJson(inputStream).expectSuccess()
+            expectThat(invoices.size).isEqualTo(500_000)
+        }
+
+    }
 }
 
 fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T {

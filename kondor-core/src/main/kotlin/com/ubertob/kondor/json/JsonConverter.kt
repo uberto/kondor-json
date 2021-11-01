@@ -7,6 +7,7 @@ import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
+import java.io.InputStream
 
 
 typealias JConverter<T> = JsonConverter<T, *>
@@ -52,16 +53,20 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
     fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 
     fun fromJson(jsonString: String): JsonOutcome<T> =
-        safeTokenize(jsonString).bind { tokens ->
-            tokens.parseFromRoot()
-                .bind { fromJsonNode(it) }
-                .bind {
-                    if (tokens.hasNext())
-                        parsingFailure("EOF", tokens.next(), NodePathRoot, "json continue after end")
-                    else
-                        it.asSuccess()
-                }
-        }
+        safeTokenize(jsonString).bind(::parseAndConvert)
+
+    fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
+        safeLazyTokenize(jsonStream).bind(::parseAndConvert)
+
+    fun parseAndConvert(tokens: TokensStream) =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it) }
+            .bind {
+                if (tokens.hasNext())
+                    parsingFailure("EOF", tokens.next(), NodePathRoot, "json continue after end")
+                else
+                    it.asSuccess()
+            }
 
     fun schema(): JsonNodeObject = valueSchema(nodeType)
 
@@ -76,6 +81,13 @@ fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
 
 
 private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =
+    try {
+        KondorTokenizer.tokenize(jsonString).asSuccess()
+    } catch (e: JsonParsingException) {
+        e.error.asFailure()
+}
+
+private fun safeLazyTokenize(jsonString: InputStream): JsonOutcome<TokensStream> =
     try {
         KondorTokenizer.tokenize(jsonString).asSuccess()
     } catch (e: JsonParsingException) {
