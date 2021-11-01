@@ -22,8 +22,8 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.fieldMap[propName]
             ?.let(converter::fromJsonNodeBase)
-            ?.failIfNull{JsonError(wrapped.path, "Found null for non-nullable '$propName'")}
-            ?: JsonError(wrapped.path, "Not found key '$propName'").asFailure()
+            ?.failIfNull{JsonPropertyError(wrapped.path, propName, "Found null for non-nullable")}
+            ?: JsonPropertyError(wrapped.path,propName, "Not found key '$propName'. Keys found: [${wrapped.fieldMap.keys.joinToString()}]").asFailure()
 
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
@@ -75,7 +75,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
         wrapped.removeFieldsFromParent()
             .let { JsonNodeObject(it, wrapped.path) }
             .let(converter::fromJsonNode)
-            .failIfNull { JsonError(wrapped.path, "Found null for non-nullable '$propName'") }
+            .failIfNull { JsonPropertyError(wrapped.path, propName,"Found null for non-nullable") }
 
     private fun JsonNodeObject.removeFieldsFromParent() =
         fieldMap.filterKeys { key -> !parentProperties.contains(key) }

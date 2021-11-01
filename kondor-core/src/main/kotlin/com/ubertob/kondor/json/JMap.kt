@@ -27,7 +27,7 @@ class JMap<K : Any, V : Any>(
         fieldMap.entries.associate { (key, value) ->
             keyConverter.cons(key) to
                     valueConverter.fromJsonNodeBase(value)
-                        .failIfNull { JsonError(path, "Found null node in map!") }
+                        .failIfNull { ConverterJsonError(path, "Found null node in map!") }
                         .orThrow()
         }
 

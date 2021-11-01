@@ -15,7 +15,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 5: expected EOF but found 'b' - json continue after end")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 5: expected EOF but found 'b' - json continue after end")
     }
 
     @Test
@@ -24,7 +24,7 @@ class ParserFailuresTest {
 
         val error = JBoolean.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
     }
 
     @Test
@@ -34,7 +34,7 @@ class ParserFailuresTest {
         try {
             JBoolean.fromJson(illegalJson).orThrow()
         } catch (e: Exception) {
-            expectThat(e.message).isEqualTo("error on <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
+            expectThat(e.message).isEqualTo("Error parsing node <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
         }
     }
 
@@ -46,7 +46,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 2: expected a valid Json but found 'unclosed string' - Unexpected end of file - Invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 2: expected a valid Json but found 'unclosed string' - Unexpected end of file - Invalid Json")
     }
 
     @Test
@@ -57,7 +57,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' in Json string after 'foo ' - Invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' in Json string after 'foo ' - Invalid Json")
     }
 
     @Test
@@ -66,7 +66,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
     @Test
@@ -75,7 +75,7 @@ class ParserFailuresTest {
 
         //decided to ignore duplicate keys
 //        val error = JPerson.fromJson(illegalJson).expectFailure()
-//        expectThat(error.msg).isEqualTo("error on <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
+//        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
 
         val person = JPerson.fromJson(illegalJson).expectSuccess()
         expectThat(person).isEqualTo(Person(2, "alice"))
@@ -88,7 +88,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 8: expected Colon but found '2' - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 8: expected Colon but found '2' - invalid Json")
     }
 
     @Test
@@ -97,16 +97,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 11: expected a valid key but found Comma - key missing in object field")
-    }
-
-    @Test
-    fun `parsing illegal Json Object with empty key returns an error`() {
-        val illegalJson = """{ "": 1, "name": "alice" }"""
-
-        val error = JPerson.fromJson(illegalJson).expectFailure()
-
-        expectThat(error.msg).isEqualTo("error on <[root]> Not found key 'id'")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected a valid key but found Comma - key missing in object field")
     }
 
     @Test
@@ -115,7 +106,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected a valid key but found 'name' - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected a valid key but found 'name' - key missing in object field")
     }
 
     @Test
@@ -133,7 +124,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </[2]> at position 12: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 12: expected a new node but found Comma - Comma in wrong position")
 
     }
 
@@ -144,7 +135,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </[0]> at position 2: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 2: expected a new node but found Comma - Comma in wrong position")
     }
 
     @Test
@@ -154,20 +145,18 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
 
     @Test
     fun `parsing json without a field returns an error`() {
         val jsonWithDifferentField =
-            """
- "{ "id": 1, "fullname": "alice" }
- """
+            """{ "id": 1, "fullname": "alice" }"""
 
         val error = JPerson.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> Not found key 'name'. Found ['id','fullname']")
+        expectThat(error.msg).isEqualTo("Error reading property <name> of node <[root]> Not found key 'name'. Keys found: [fullname, id]")
     }
 
     @Test
@@ -198,7 +187,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </customer> expected discriminator field \"type\" not found. Fields[]")
+        expectThat(error.msg).isEqualTo("Error converting node </customer> expected discriminator field \"type\" not found")
         //if an object is valid json but fail the parser it should use a different error with the node reference
     }
 
@@ -232,7 +221,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on </items/[0]/price> expected a Number but found String")
+        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number but found String")
     }
 
     object JPersonIncomplete : JAny<Person>() {
@@ -248,9 +237,8 @@ class ParserFailuresTest {
 
         val error = JPersonIncomplete.fromJson(JPerson.toJson(randomPerson())).expectFailure()
 
-        expectThat(error.msg).isEqualTo("error on <[root]> Caught exception: kotlin.NotImplementedError: An operation is not implemented: not finished yet!")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: kotlin.NotImplementedError: An operation is not implemented: not finished yet!")
     }
-
 
 
     //add tests for... wrong enum, jmap with mixed node types, Double instead of Long

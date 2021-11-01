@@ -4,16 +4,10 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.json.schema.valueSchema
-import com.ubertob.kondor.outcome.*
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.bind
 
-
-data class JsonError(val path: NodePath, val reason: String) : OutcomeError {
-    override val msg = "error on <${path.getPath()}> $reason"
-
-    override fun toString(): String = msg
-}
-
-typealias JsonOutcome<T> = Outcome<JsonError, T>
 
 typealias JConverter<T> = JsonConverter<T, *>
 
@@ -36,7 +30,7 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
         else if (node.nodeKind == NullNode)
             null.asSuccess()
         else
-            JsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
+            ConverterJsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
 
     private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 

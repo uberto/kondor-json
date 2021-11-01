@@ -17,7 +17,7 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
         tryFromNode(node) {
             node.deserializeOrThrow() ?: throw JsonParsingException(
-                JsonError(node.path, "deserializeOrThrow returned null!")
+                ConverterJsonError(node.path, "deserializeOrThrow returned null!")
             )
         }
 
