@@ -1,4 +1,10 @@
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core)
+[![Continuous Integration][ci-image]][ci-url]
+[![Maven Central][maven-image]][maven-url]
+
+[ci-image]: https://github.com/uberto/kondor-json/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/uberto/kondor-json/actions/workflows/ci.yml
+[maven-image]: https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core/badge.svg?style=plastic
+[maven-url]: https://maven-badges.herokuapp.com/maven-central/com.ubertob.kondor/kondor-core
 
 # KondorJson
 
