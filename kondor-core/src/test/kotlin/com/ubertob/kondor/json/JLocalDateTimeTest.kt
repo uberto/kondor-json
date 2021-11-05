@@ -18,13 +18,13 @@ import java.util.*
 
 class JLocalDateTimeTest {
     
-    val am = DateFormatSymbols(Locale.getDefault()).amPmStrings[0]
-    val pm = DateFormatSymbols(Locale.getDefault()).amPmStrings[1]
+    private val am = DateFormatSymbols(Locale.ENGLISH).amPmStrings[0]
+    private val pm = DateFormatSymbols(Locale.ENGLISH).amPmStrings[1]
     
     @Test
     fun `Json LocalDateTime with custom format`() {
         val date = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
-        val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a")
+        val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a").withLocale(Locale.ENGLISH)
         val jLocalDateTime = JLocalDateTime.withFormatter(format)
 
         val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
