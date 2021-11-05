@@ -13,12 +13,14 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class JLocalTimeTest {
+
     @Test
     fun `Json LocalTime with custom format`() {
         val time = LocalTime.of(14, 1, 34)
-        val format = DateTimeFormatter.ofPattern("hh:mm:ss a")
+        val format = DateTimeFormatter.ofPattern("hh:mm:ss a").withLocale(Locale.ENGLISH)
         val jLocalTime = JLocalTime.withFormatter(format)
 
         val timeAsJsonNode = JsonNodeString("02:01:34 PM", NodePathRoot)

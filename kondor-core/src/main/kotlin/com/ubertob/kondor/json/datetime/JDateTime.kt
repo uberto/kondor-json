@@ -5,7 +5,7 @@ import com.ubertob.kondor.json.JStringRepresentable
 import java.math.BigDecimal
 import java.time.*
 import java.time.format.DateTimeFormatter
-
+import java.util.Locale
 
 object JZoneId : JStringRepresentable<ZoneId>() {
     override val cons: (String) -> ZoneId = ZoneId::of
@@ -18,7 +18,8 @@ object JLocalTime : JStringRepresentable<LocalTime>() {
 
     fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalTime> = Custom(formatter)
 
-    fun withPattern(pattern: String): JStringRepresentable<LocalTime> = Custom(DateTimeFormatter.ofPattern(pattern))
+    fun withPattern(pattern: String, locale: Locale = Locale.ENGLISH): JStringRepresentable<LocalTime> =
+        Custom(DateTimeFormatter.ofPattern(pattern).withLocale(locale))
 
     private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalTime>() {
         override val cons: (String) -> LocalTime = { LocalTime.parse(it, formatter) }
@@ -32,7 +33,8 @@ object JLocalDateTime : JStringRepresentable<LocalDateTime>() {
 
     fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalDateTime> = Custom(formatter)
 
-    fun withPattern(pattern: String): JStringRepresentable<LocalDateTime> = Custom(DateTimeFormatter.ofPattern(pattern))
+    fun withPattern(pattern: String, locale: Locale = Locale.ENGLISH): JStringRepresentable<LocalDateTime> =
+        Custom(DateTimeFormatter.ofPattern(pattern).withLocale(locale))
 
     private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalDateTime>() {
         override val cons: (String) -> LocalDateTime = { LocalDateTime.parse(it, formatter) }
@@ -51,14 +53,14 @@ object JLocalDate : JStringRepresentable<LocalDate>() {
 
     fun withFormatter(formatter: DateTimeFormatter): JStringRepresentable<LocalDate> = Custom(formatter)
 
-    fun withPattern(pattern: String): JStringRepresentable<LocalDate> = Custom(DateTimeFormatter.ofPattern(pattern))
+    fun withPattern(pattern: String, locale: Locale = Locale.ENGLISH): JStringRepresentable<LocalDate> =
+        Custom(DateTimeFormatter.ofPattern(pattern).withLocale(locale))
 
     private class Custom(private val formatter: DateTimeFormatter) : JStringRepresentable<LocalDate>() {
         override val cons: (String) -> LocalDate = { LocalDate.parse(it, formatter) }
         override val render: (LocalDate) -> String = { formatter.format(it) }
     }
 }
-
 
 //instant as date string
 object JInstant : JStringRepresentable<Instant>() {
@@ -71,4 +73,3 @@ object JInstantEpoch : JNumRepresentable<Instant>() {
     override val cons: (BigDecimal) -> Instant = { Instant.ofEpochMilli(it.toLong()) }
     override val render: (Instant) -> BigDecimal = { it.toEpochMilli().toBigDecimal() }
 }
-
