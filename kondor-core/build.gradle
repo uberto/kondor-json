@@ -1,6 +1,5 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'com.bmuschko.nexus' version '2.3.1'
 }
 
 
@@ -29,44 +28,45 @@ tasks {
     }
 }
 
-archivesBaseName = 'kondor-core'
+//archivesBaseName = 'kondor-core'
+//
+//modifyPom {
+//    project {
+//        name 'kondor'
+//        description 'A Kotlin library to use Json in functional way without reflection'
+//        url 'https://github.com/uberto/kondor-json'
+//        inceptionYear '2021'
+//        scm {
+//            url 'https://github.com/uberto/kondor-json'
+//            connection 'https://github.com/uberto/kondor-json.git'
+//            developerConnection 'git@github.com:uberto/kondor-json.git'
+//        }
+//        licenses {
+//            license {
+//                name 'The Apache Software License, Version 2.0'
+//                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                distribution 'repo'
+//            }
+//        }
+//        developers {
+//            developer {
+//                id 'UbertoBarbini'
+//                name 'Uberto Barbini'
+//                email 'uberto.gama@gmail.com'
+//            }
+//        }
+//    }
+//}
 
-modifyPom {
-    project {
-        name 'kondor'
-        description 'A Kotlin library to use Json in functional way without reflection'
-        url 'https://github.com/uberto/kondor-json'
-        inceptionYear '2021'
-        scm {
-            url 'https://github.com/uberto/kondor-json'
-            connection 'https://github.com/uberto/kondor-json.git'
-            developerConnection 'git@github.com:uberto/kondor-json.git'
-        }
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution 'repo'
-            }
-        }
-        developers {
-            developer {
-                id 'UbertoBarbini'
-                name 'Uberto Barbini'
-                email 'uberto.gama@gmail.com'
-            }
-        }
-    }
-}
+//extraArchive {
+//    sources = true
+//    tests = false
+//    javadoc = true
+//}
 
-extraArchive {
-    sources = true
-    tests = false
-    javadoc = true
-}
+//nexus {
+//    sign = true
+//    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+//    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+//}
 
-nexus {
-    sign = true
-    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-}

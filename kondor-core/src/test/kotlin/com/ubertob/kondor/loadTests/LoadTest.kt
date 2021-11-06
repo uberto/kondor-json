@@ -36,6 +36,8 @@ marshalling 3 ms
 
  */
 
+
+//enable it to run load tests
 @Disabled
 class LoadTest {
 

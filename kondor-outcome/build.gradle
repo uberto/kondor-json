@@ -1,6 +1,5 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'com.bmuschko.nexus' version '2.3.1'
 }
 
 
@@ -25,44 +24,45 @@ tasks {
     }
 }
 
-archivesBaseName = 'kondor-outcome'
+//archivesBaseName = 'kondor-outcome'
+//
+//modifyPom {
+//    project {
+//        name 'kondor-outcome'
+//        description 'A Kotlin specialized Either type for wrapping results in a functional way'
+//        url 'https://github.com/uberto/kondor-json'
+//        inceptionYear '2021'
+//        scm {
+//            url 'https://github.com/uberto/kondor-json'
+//            connection 'https://github.com/uberto/kondor-json.git'
+//            developerConnection 'git@github.com:uberto/kondor-json.git'
+//        }
+//        licenses {
+//            license {
+//                name 'The Apache Software License, Version 2.0'
+//                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+//                distribution 'repo'
+//            }
+//        }
+//        developers {
+//            developer {
+//                id 'UbertoBarbini'
+//                name 'Uberto Barbini'
+//                email 'uberto.gama@gmail.com'
+//            }
+//        }
+//    }
+//}
+//
+//extraArchive {
+//    sources = true
+//    tests = false
+//    javadoc = true
+//}
+//
+//nexus {
+//    sign = true
+//    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+//    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+//}
 
-modifyPom {
-    project {
-        name 'kondor-outcome'
-        description 'A Kotlin specialized Either type for wrapping results in a functional way'
-        url 'https://github.com/uberto/kondor-json'
-        inceptionYear '2021'
-        scm {
-            url 'https://github.com/uberto/kondor-json'
-            connection 'https://github.com/uberto/kondor-json.git'
-            developerConnection 'git@github.com:uberto/kondor-json.git'
-        }
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution 'repo'
-            }
-        }
-        developers {
-            developer {
-                id 'UbertoBarbini'
-                name 'Uberto Barbini'
-                email 'uberto.gama@gmail.com'
-            }
-        }
-    }
-}
-
-extraArchive {
-    sources = true
-    tests = false
-    javadoc = true
-}
-
-nexus {
-    sign = true
-    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-}
