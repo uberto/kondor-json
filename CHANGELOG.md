@@ -3,6 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+
+### v.1.7.1 - 6 November 2021
+
+Allow specify a different Locale from default (niqdev)
+
 ### v.1.7.0 - 1 November 2021
 
 Added fromJson working with InputStream
