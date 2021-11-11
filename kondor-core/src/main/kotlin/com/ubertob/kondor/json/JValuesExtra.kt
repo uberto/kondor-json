@@ -49,8 +49,9 @@ data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
 
 abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
-    open val discriminatorFieldName: String
-        get() = "_type"
+    open val discriminatorFieldName: String = "_type"
+
+    open val defaultConverter: ObjectNodeConverter<out T>? = null
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
@@ -61,10 +62,13 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         )
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val typeName = JString.fromJsonNodeBase(
-            fieldMap[discriminatorFieldName]
-                ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
-        ).orThrow()
+
+
+        val discriminatorNode = fieldMap[discriminatorFieldName]
+            ?: defaultConverter?.let {  return  it.fromJsonNode(this).orThrow() }
+            ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
+
+        val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow();
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
         return converter.fromJsonNode(this).orThrow()
     }

@@ -349,3 +349,69 @@ object JTitleRequest : JAny<TitleRequest>() {
             type = +type
         )
 }
+
+// sealed with default
+
+sealed class Variant{
+    abstract val name: String
+}
+
+data class VariantString(override val name: String, val value: String): Variant()
+
+data class VariantInt(override val name: String, val value: Int): Variant()
+
+fun randomVariant() = when (Random.nextBoolean()){
+    true -> VariantString(randomString(lowercase,5,5), randomText(20))
+    false -> VariantInt(randomString(lowercase,5,5), Random.nextInt())
+}
+
+object JVariantString: JAny<VariantString>(){
+
+    private val name by str(VariantString::name)
+
+    private val value by str(VariantString::value)
+
+    override fun JsonNodeObject.deserializeOrThrow()=
+        VariantString(
+            +name,
+            +value
+        )
+
+}
+
+object JVariantInt: JAny<VariantInt>(){
+
+    private val name by str(VariantInt::name)
+
+    private val value by num(VariantInt::value)
+
+    override fun JsonNodeObject.deserializeOrThrow()=
+        VariantInt(
+            +name,
+            +value
+        )
+
+}
+
+object JVariant: JSealed<Variant>() {
+
+    private val STR = "VariantString"
+    private val INT ="VariantInt"
+
+    override val discriminatorFieldName = "type"
+    override val defaultConverter = JVariantString
+
+
+    override fun extractTypeName(obj: Variant)=
+        when (obj) {
+            is VariantInt -> INT
+            is VariantString -> STR
+        }
+
+    override val subConverters =
+        mapOf(
+            STR to JVariantString,
+            INT to JVariantInt
+        )
+
+}

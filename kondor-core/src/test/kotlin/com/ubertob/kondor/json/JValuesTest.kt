@@ -7,6 +7,7 @@ import com.ubertob.kondor.text
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import kotlin.random.Random
 
@@ -247,11 +248,60 @@ class JValuesTest {
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
     }
+
+
+
+    @Test
+    fun `JVariant and back`(){
+        repeat(10) {
+            val variant = randomVariant()
+
+            val jsonStr = JVariant.toPrettyJson(variant)
+            println(jsonStr)
+
+            expectThat(JVariant.fromJson(jsonStr).expectSuccess()).isEqualTo(variant)
+        }
+    }
+
+    @Test
+    fun `JSealed with default field`(){
+        val json = """
+            [{
+              "name": "1",
+              "type": "VariantString",
+              "value": "1"
+            },
+            {
+              "name": "2",
+              "type": "VariantInt",
+              "value": 2
+            },
+            {
+              "name": "3!!",
+              "value": "3"
+            },
+            {
+              "name": "4",
+              "type": "VariantInt",
+              "value": 4
+            }]
+
+        """.trimIndent()
+
+        val JVariants = JList(JVariant)
+
+        val values = JVariants.fromJson(json).expectSuccess()
+        expectThat(values).containsExactly(
+            VariantString("1", "1"),
+            VariantInt("2", 2),
+            VariantString("3!!", "3"),
+            VariantInt("4", 4),
+        )
+    }
 }
 
 
 //todo
-// add parseJson from InputStream
 // add test example with Java
 // add Converters for all java.time, GUUID, URI, etc.
 // add un-typed option JObject<Any>
