@@ -74,15 +74,17 @@ infix fun <A, B, C, E : OutcomeError> ((A) -> Outcome<E, B>).compose(other: (B) 
 fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
     bind { it }
 
+//convenience methods
+
 fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
     when (this) {
-        is Success -> if (predicate(value).not()) this else error(value).asFailure()
+        is Success -> if (predicate(value)) error(value).asFailure() else this
         is Failure -> this
     }
 
 fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: () -> E): Outcome<E, T> =
     when (this) {
-        is Success -> if (value != null) value.asSuccess() else error().asFailure()
+        is Success -> value?.asSuccess() ?: error().asFailure()
         is Failure -> this
     }
 
@@ -107,8 +109,8 @@ fun <T> T.asSuccess(): Outcome<Nothing, T> = Success(this)
 
 fun <T : Any, E : OutcomeError> T?.failIfNull(error: () -> E): Outcome<E, T> = this?.asSuccess() ?: error().asFailure()
 
-fun <T, E : OutcomeError> T.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
-    if (predicate(this)) asSuccess() else error(this).asFailure()
+fun <T, E : OutcomeError> T.failUnless(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
+    if (predicate(this)) error(this).asFailure() else this.asSuccess()
 
 
 data class ThrowableError(val throwable: Throwable) : OutcomeError {
@@ -132,7 +134,7 @@ fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outc
     }
 
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    traverse{it}
+    traverse { it }
 
 fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     foldOutcome(mutableListOf()) { acc, e ->
@@ -140,7 +142,7 @@ fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outc
     }
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
-    traverse{it}
+    traverse { it }
 
 
 fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(

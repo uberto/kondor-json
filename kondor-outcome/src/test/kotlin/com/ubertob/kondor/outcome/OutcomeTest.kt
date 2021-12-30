@@ -82,8 +82,8 @@ internal class OutcomeTest {
     fun `orNull returns null in case of failure`() {
 
         val name: String? = getUser(-12)
-                .orNull()
-                ?.name
+            .orNull()
+            ?.name
 
         expectThat(name).isNull()
     }
@@ -139,9 +139,9 @@ internal class OutcomeTest {
 
     @Test
     fun `bindFailure allow to retry another way`() {
-         val user = getUser(-23)
-             .bindFailure { getUser(23) }
-             .expectSuccess()
+        val user = getUser(-23)
+            .bindFailure { getUser(23) }
+            .expectSuccess()
 
         expectThat(user.name).isEqualTo("user23")
     }
@@ -149,7 +149,7 @@ internal class OutcomeTest {
     @Test
     fun `bindAlso ignores the result of second fun if success`() {
         val user = getUser(42)
-            .bindAlso { user -> sendEmailUser(user.email, "Hello ${user.name}")}
+            .bindAlso { user -> sendEmailUser(user.email, "Hello ${user.name}") }
             .expectSuccess()
 
         expectThat(user.name).isEqualTo("user42")
@@ -158,7 +158,7 @@ internal class OutcomeTest {
     @Test
     fun `bindAlso fails the result if second fun fails`() {
         val error = getUser(42)
-            .bindAlso { user -> sendEmailUser(user.email, "")}
+            .bindAlso { user -> sendEmailUser(user.email, "") }
             .expectFailure()
 
         expectThat(error.msg).isEqualTo("empty text or email")
@@ -171,5 +171,28 @@ internal class OutcomeTest {
     //tranform2, '!', `*`
 
     //map flatmap
+
+    //convenience methods
+
+    @Test
+    fun `failUnless transforms values into Outcomes`() {
+
+        val okStr = "All ok"
+        okStr.failUnless({ it.contains("error") }, ::Err).expectSuccess()
+
+        val errStr = "There is an error!"
+        errStr.failUnless({ it.contains("error") }, ::Err).expectFailure()
+
+    }
+
+    @Test
+    fun `failIf fails the outcome if a predicate is false`() {
+        val error = getUser(100)
+            .failIf( {it.name.length > 6}, { Err("${it.name} is too long!")})
+            .expectFailure()
+
+        expectThat(error.msg).isEqualTo("user100 is too long!")
+    }
+
 
 }
