@@ -175,20 +175,20 @@ internal class OutcomeTest {
     //convenience methods
 
     @Test
-    fun `failUnless transforms values into Outcomes`() {
+    fun `asOutcome transforms values into Outcomes`() {
 
         val okStr = "All ok"
-        okStr.failUnless({ it.contains("error") }, ::Err).expectSuccess()
+        okStr.asOutcome({ contains("ok") }, ::Err).expectSuccess()
 
         val errStr = "There is an error!"
-        errStr.failUnless({ it.contains("error") }, ::Err).expectFailure()
+        errStr.asOutcome({ contains("error").not() }, ::Err).expectFailure()
 
     }
 
     @Test
     fun `failIf fails the outcome if a predicate is false`() {
         val error = getUser(100)
-            .failIf( {it.name.length > 6}, { Err("${it.name} is too long!")})
+            .failUnless({ name.length <= 6 }, { Err("${it.name} is too long!") })
             .expectFailure()
 
         expectThat(error.msg).isEqualTo("user100 is too long!")

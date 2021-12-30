@@ -76,9 +76,9 @@ fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
 
 //convenience methods
 
-fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
+fun <T, E : OutcomeError> Outcome<E, T>.failUnless(predicate: T.() -> Boolean, error: (T) -> E): Outcome<E, T> =
     when (this) {
-        is Success -> if (predicate(value)) error(value).asFailure() else this
+        is Success -> if (predicate(value)) this else error(value).asFailure()
         is Failure -> this
     }
 
@@ -109,8 +109,8 @@ fun <T> T.asSuccess(): Outcome<Nothing, T> = Success(this)
 
 fun <T : Any, E : OutcomeError> T?.failIfNull(error: () -> E): Outcome<E, T> = this?.asSuccess() ?: error().asFailure()
 
-fun <T, E : OutcomeError> T.failUnless(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
-    if (predicate(this)) error(this).asFailure() else this.asSuccess()
+fun <T, E : OutcomeError> T.asOutcome(isSuccess: T.() -> Boolean, error: (T) -> E): Outcome<E, T> =
+    if (isSuccess(this)) asSuccess() else error(this).asFailure()
 
 
 data class ThrowableError(val throwable: Throwable) : OutcomeError {
