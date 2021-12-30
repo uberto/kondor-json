@@ -76,6 +76,9 @@ fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
 
 //convenience methods
 
+fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
+    failUnless({predicate(this).not()}, error)
+
 fun <T, E : OutcomeError> Outcome<E, T>.failUnless(predicate: T.() -> Boolean, error: (T) -> E): Outcome<E, T> =
     when (this) {
         is Success -> if (predicate(value)) this else error(value).asFailure()

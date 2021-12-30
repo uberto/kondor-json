@@ -186,7 +186,16 @@ internal class OutcomeTest {
     }
 
     @Test
-    fun `failIf fails the outcome if a predicate is false`() {
+    fun `failIf fails the outcome if a predicate is true`() {
+        val error = getUser(100)
+            .failIf({ it.name.length > 6 }, { Err("${it.name} is too long!") })
+            .expectFailure()
+
+        expectThat(error.msg).isEqualTo("user100 is too long!")
+    }
+
+    @Test
+    fun `failUnless fails the outcome if a predicate is false`() {
         val error = getUser(100)
             .failUnless({ name.length <= 6 }, { Err("${it.name} is too long!") })
             .expectFailure()
