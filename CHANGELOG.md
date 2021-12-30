@@ -3,6 +3,13 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.7.3 - 30 December 2021
+
+Renamed failIf to failUnless to make it clearer
+
+### v.1.7.2 - 11 November 2021
+
+Allow to specify a default converter for JSealed
 
 ### v.1.7.1 - 6 November 2021
 
