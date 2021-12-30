@@ -3,14 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.7.5 - 30 December 2021
 
-### v.1.7.4 - 30 December 2021
-
-Renamed T.failIf to T.asOutcome 
-
-### v.1.7.3 - 30 December 2021
-
-Renamed Outcome.failIf to failUnless 
+Renamed T.failIf to T.asOutcome
+Added Outcome.failUnless
 
 ### v.1.7.2 - 11 November 2021
 
