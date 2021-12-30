@@ -6,7 +6,7 @@ plugins {
 allprojects{
 
     group 'com.ubertob.kondor'
-    version '1.7.4'
+    version '1.7.5'
 
     wrapper {
         gradleVersion = "6.8.3"
