@@ -127,7 +127,7 @@ class LoadTest {
 
         val JInvoices = JList(JInvoice)
 
-        val fixtureName = "/fixtures/invoices.json"
+        val fixtureName = "/fixtures/invoices.json.ignoreme"
 
 //        val invoices = generateSequence(0) { it + 1 }.take(500_000).map {
 //            randomInvoice().copy(id = InvoiceId(it.toString()))
