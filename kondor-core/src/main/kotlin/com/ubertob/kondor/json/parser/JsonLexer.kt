@@ -73,13 +73,13 @@ class JsonLexerLazy(val inputStream: InputStream) {
                             else -> currToken += char
                         }
                         Escaping -> when (char) {
-                            '\\' -> currToken += '\\'
-                            '"' -> currToken += '\"'
-                            'n' -> currToken += '\n'
-                            'f' -> currToken += '\t'
-                            't' -> currToken += '\t'
-                            'r' -> currToken += '\r'
-                            'b' -> currToken += '\b'
+                            '\\' -> currToken.append('\\')
+                            '"' -> currToken.append('\"')
+                            'n' -> currToken.append('\n')
+                            'f' -> currToken.append('\t')
+                            't' -> currToken.append('\t')
+                            'r' -> currToken.append('\r')
+                            'b' -> currToken.append('\b')
                             'u' -> currToken.append( "\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
                             else -> error("wrongly escaped char '\\$char' in Json string")
                         }.also { state = InString }
@@ -179,13 +179,13 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                         else -> currToken += char
                     }
                     Escaping -> when (char) {
-                        '\\' -> currToken += '\\'
-                        '"' -> currToken += '\"'
-                        'n' -> currToken += '\n'
-                        'f' -> currToken += '\t'
-                        't' -> currToken += '\t'
-                        'r' -> currToken += '\r'
-                        'b' -> currToken += '\b'
+                        '\\' -> currToken.append('\\')
+                        '"' -> currToken.append('\"')
+                        'n' -> currToken.append('\n')
+                        'f' -> currToken.append('\t')
+                        't' -> currToken.append('\t')
+                        'r' -> currToken.append('\r')
+                        'b' -> currToken.append('\b')
                         'u' -> currToken.append( "\\u")
                         else -> error("wrongly escaped char '\\$char' in Json string")
                     }.also { state = InString }
