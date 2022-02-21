@@ -5,6 +5,7 @@ import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 class ParserFailuresTest {
@@ -67,6 +68,38 @@ class ParserFailuresTest {
         val error = JLong.fromJson(illegalJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
+    }
+
+    @Test
+    fun `Json Long underflow`() {
+
+        val error = JLong.fromJson("-9223372036854775809").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+    }
+
+    @Test
+    fun `Json Long overflow`() {
+
+        val error = JLong.fromJson("9223372036854775808").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+    }
+
+    @Test
+    fun `Json Int underflow`() {
+
+        val error = JInt.fromJson("-2147483649").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+    }
+
+    @Test
+    fun `Json Int overflow`() {
+
+        val error = JInt.fromJson("2147483648").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
     }
 
     @Test

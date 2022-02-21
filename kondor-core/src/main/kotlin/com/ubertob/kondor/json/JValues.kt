@@ -29,12 +29,12 @@ object JDouble : JNumRepresentable<Double>() {
 
 
 object JInt : JNumRepresentable<Int>() {
-    override val cons: (BigDecimal) -> Int = BigDecimal::toInt
+    override val cons: (BigDecimal) -> Int = BigDecimal::intValueExact
     override val render: (Int) -> BigDecimal = Int::toBigDecimal
 }
 
 object JLong : JNumRepresentable<Long>() {
-    override val cons: (BigDecimal) -> Long = BigDecimal::toLong
+    override val cons: (BigDecimal) -> Long = BigDecimal::longValueExact
     override val render: (Long) -> BigDecimal = Long::toBigDecimal
 }
 
