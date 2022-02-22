@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.7.6 - 22 February 2022
+
+Better checkes on Int and Long parsing (asad.manji)
+
 ### v.1.7.5 - 30 December 2021
 
 Renamed T.failIf to T.asOutcome
