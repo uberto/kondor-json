@@ -13,13 +13,38 @@ import java.io.InputStream
 typealias JConverter<T> = JsonConverter<T, *>
 
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
-interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
 
-    override fun <C, D> dimap(f: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).dimap(f,g)
+data class ToJsonF<T, S>(val toJson: (T) -> S) : ToJson<T, S> {
+    override fun toJson(value: T): S = toJson(value)
+    fun <U> contraTransform(f: (U) -> T): ToJson<U, S> = ToJsonF { toJson(f(it)) }
+}
 
-    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> = ProfunctorConverter(::fromJson, ::toJson).lmap(f)
+data class FromJsonF<T, S>(val fromJson: (S) -> JsonOutcome<T>) : FromJson<T, S> {
+    override fun fromJson(json: S): JsonOutcome<T> = fromJson(json)
+    fun <U> transform(f: (T) -> U): FromJson<U, S> = FromJsonF { fromJson(it).transform(f) }
+}
 
-    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> = ProfunctorConverter(::fromJson, ::toJson).rmap(g)
+
+interface ToJson<T, S> {
+    fun toJson(value: T): S
+}
+
+interface FromJson<T, S> {
+    fun fromJson(json: S): JsonOutcome<T>
+}
+
+
+interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
+    ToJson<T, String>, FromJson<T, String> {
+
+    override fun <C, D> dimap(contraFun: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> =
+        ProfunctorConverter(::fromJson, ::toJson).dimap(contraFun, g)
+
+    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> =
+        ProfunctorConverter(::fromJson, ::toJson).lmap(f)
+
+    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> =
+        ProfunctorConverter(::fromJson, ::toJson).rmap(g)
 
 
     val nodeType: NodeKind<JN>
@@ -44,15 +69,15 @@ interface JsonConverter<T, JN : JsonNode>: Profunctor<T, T>  {
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         try {
             nodeType.parse(onRoot())
-        } catch (e: EndOfCollection){
+        } catch (e: EndOfCollection) {
             parsingFailure("a valid Json", lastToken(), NodePathRoot, "Unexpected end of file - Invalid Json")
-        }catch (t: Throwable){
+        } catch (t: Throwable) {
             parsingFailure("a valid Json", lastToken(), NodePathRoot, t.message.orEmpty())
         }
 
-    fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
+    override fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 
-    fun fromJson(jsonString: String): JsonOutcome<T> =
+    override fun fromJson(jsonString: String): JsonOutcome<T> =
         safeTokenize(jsonString).bind(::parseAndConvert)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
@@ -85,12 +110,12 @@ private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =
         KondorTokenizer.tokenize(jsonString).asSuccess()
     } catch (e: JsonParsingException) {
         e.error.asFailure()
-}
+    }
 
 private fun safeLazyTokenize(jsonString: InputStream): JsonOutcome<TokensStream> =
     try {
         KondorTokenizer.tokenize(jsonString).asSuccess()
     } catch (e: JsonParsingException) {
         e.error.asFailure()
-}
+    }
 

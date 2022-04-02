@@ -7,8 +7,8 @@ data class ProfunctorConverter<S, A, B, E : OutcomeError>(
     val parse: (S) -> Outcome<E, B>,
     val render: (A) -> S
 ): Profunctor<A,B> {
-    override fun <C, D> dimap(f: (C) -> A, g: (B) -> D): ProfunctorConverter<S, C, D, E> =
-        ProfunctorConverter ({parse(it).transform(g)} , {render(f(it))})
+    override fun <C, D> dimap(contraFun: (C) -> A, coFun: (B) -> D): ProfunctorConverter<S, C, D, E> =
+        ProfunctorConverter ({parse(it).transform(coFun)} , {render(contraFun(it))})
 
     @Suppress("UNCHECKED_CAST")
     override fun <C> lmap(f: (C) -> A): ProfunctorConverter<S, C, B, E> = super.lmap(f) as ProfunctorConverter<S, C, B, E>
@@ -19,10 +19,10 @@ data class ProfunctorConverter<S, A, B, E : OutcomeError>(
 
 
 interface Profunctor<A, B> {
-    fun <C> lmap(f: (C) -> A): Profunctor<C, B> = dimap(f, { it })
-    fun <D> rmap(g: (B) -> D): Profunctor<A, D> = dimap({ it }, g)
+    fun <C> lmap(f: (C) -> A): Profunctor<C, B> = dimap(contraFun = f, coFun = { it })
+    fun <D> rmap(g: (B) -> D): Profunctor<A, D> = dimap(contraFun = { it }, coFun = g)
 
-    fun <C, D> dimap(f: (C) -> A, g: (B) -> D): Profunctor<C, D>
+    fun <C, D> dimap(contraFun: (C) -> A, coFun: (B) -> D): Profunctor<C, D>
 }
 
 typealias JsonProfunctor<T> = ProfunctorConverter<String, T, T, JsonError>

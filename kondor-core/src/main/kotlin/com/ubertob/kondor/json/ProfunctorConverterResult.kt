@@ -8,8 +8,8 @@ data class ProfunctorConverterResult<S, A, B>(
     val render: (A) -> S
 ): Profunctor<A, B> {
 
-    override fun <C, D> dimap(f: (C) -> A, g: (B) -> D): ProfunctorConverterResult<S, C, D> =
-        ProfunctorConverterResult({ parse(it).map(g) }, { render(f(it)) })
+    override fun <C, D> dimap(contraFun: (C) -> A, g: (B) -> D): ProfunctorConverterResult<S, C, D> =
+        ProfunctorConverterResult({ parse(it).map(g) }, { render(contraFun(it)) })
 
     @Suppress("UNCHECKED_CAST")
     override fun <C> lmap(f: (C) -> A): ProfunctorConverterResult<S, C, B> = super.lmap(f) as ProfunctorConverterResult<S, C, B>
