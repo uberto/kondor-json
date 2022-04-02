@@ -3,6 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+
+### v.1.7.7 - 2 April 2022
+
+Updated to Kotlin 1.6.10
+
 ### v.1.7.6 - 22 February 2022
 
 Better checkes on Int and Long parsing (asad.manji)

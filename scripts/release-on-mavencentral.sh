@@ -10,7 +10,7 @@ fi
 ./gradlew clean build
 
 # update the version in build.gradle
-ver=$(gradle -q printVersion)
+ver=$(./gradlew -q printVersion)
 
 echo currrent: $ver
 
