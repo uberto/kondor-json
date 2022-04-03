@@ -14,6 +14,14 @@ typealias JConverter<T> = JsonConverter<T, *>
 
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
+interface ToJson<T, S> {
+    fun toJson(value: T): S
+}
+
+interface FromJson<T, S> {
+    fun fromJson(json: S): JsonOutcome<T>
+}
+
 data class ToJsonF<T, S>(val toJson: (T) -> S) : ToJson<T, S> {
     override fun toJson(value: T): S = toJson(value)
     fun <U> contraTransform(f: (U) -> T): ToJson<U, S> = ToJsonF { toJson(f(it)) }
@@ -22,15 +30,6 @@ data class ToJsonF<T, S>(val toJson: (T) -> S) : ToJson<T, S> {
 data class FromJsonF<T, S>(val fromJson: (S) -> JsonOutcome<T>) : FromJson<T, S> {
     override fun fromJson(json: S): JsonOutcome<T> = fromJson(json)
     fun <U> transform(f: (T) -> U): FromJson<U, S> = FromJsonF { fromJson(it).transform(f) }
-}
-
-
-interface ToJson<T, S> {
-    fun toJson(value: T): S
-}
-
-interface FromJson<T, S> {
-    fun fromJson(json: S): JsonOutcome<T>
 }
 
 
