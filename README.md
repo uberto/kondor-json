@@ -161,9 +161,25 @@ Will output the following Json schema:
 }
 ```
 
+### Converters Generation
+
+Make sure to import `kondor-tools` as a test dependency of the project. Then open Kotlin REPL and type:
+
+```kotlin
+
+println(kondorGenerator(MyClass::class, AnotherClass::class))
+```
+Kondor generator will output a complete file (including the imports) with all the JConverters for the specified classes.
+
+Then you can copy-paste the result as a new file in your project.
+
+Or you can make a Kotlin script to write the fiels, or you can write an IntelliJ plugin (just let me know in case!). 
+
+Not all the types are supported by the code generator (yet) but it gives a good try.
+
 ### Tests Utils
 
-In the module `kondor-tools` there are some useful functions for testing:
+In the module `kondor-tools` there are also some useful functions for testing:
 
 `expectSuccess` and `expectFailure` simplify test expectations:
 

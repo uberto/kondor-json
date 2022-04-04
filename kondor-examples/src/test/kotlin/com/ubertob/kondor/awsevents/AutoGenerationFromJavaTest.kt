@@ -1,6 +1,6 @@
 package com.ubertob.kondor.awsevents
 
-import com.ubertob.kondortools.generateConverterFileFor
+import com.ubertob.kondortools.kondorGenerator
 
 class AutoGenerationFromJavaTest {
 
@@ -9,7 +9,7 @@ class AutoGenerationFromJavaTest {
 
 fun main() {
 
-    println(generateConverterFileFor(APIGatewayProxyRequestEvent::class))
+    println(kondorGenerator(APIGatewayProxyRequestEvent::class))
 
 
 }

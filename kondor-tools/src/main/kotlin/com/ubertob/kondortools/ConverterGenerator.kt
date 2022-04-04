@@ -14,7 +14,7 @@ import kotlin.reflect.full.memberProperties
 
 interface RemoveMe //only used to be removed later
 
-fun generateConverterFileFor(vararg kClasses: KClass<*>): String {
+fun kondorGenerator(vararg kClasses: KClass<*>): String {
     val fileBuilder = FileSpec.builder("", "KondorConverters")
 
     kClasses.forEach { fileBuilder.addType(createConverterFor(it)) }

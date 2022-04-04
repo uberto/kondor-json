@@ -34,7 +34,7 @@ object JUser : JAny<User>() {
 }
 """
 
-        val kotlinCode = generateConverterFileFor(User::class)
+        val kotlinCode = kondorGenerator(User::class)
 
         println("identical: ${kotlinCode == expected}")
         println("generated:\n$kotlinCode")
@@ -62,7 +62,7 @@ object JGrant : JAny<Grant>() {
 }
 """
 
-        val kotlinCode = generateConverterFileFor(Grant::class)
+        val kotlinCode = kondorGenerator(Grant::class)
 
 
         println("identical: ${kotlinCode == expected}")
@@ -92,7 +92,7 @@ object JApp : JAny<App>() {
 }
 """
 
-        val kotlinCode = generateConverterFileFor(App::class)
+        val kotlinCode = kondorGenerator(App::class)
 
 
         println("identical: ${kotlinCode == expected}")
