@@ -163,17 +163,23 @@ Will output the following Json schema:
 
 ### Converters Generation
 
-Make sure to import `kondor-tools` as a test dependency of the project. Then open Kotlin REPL and type:
+Make sure to import `kondor-tools` as a dependency of the project. 
+Then you create a new kotlin file for your converters and add a temporary main function that calls `kondorGenerator`, like this:
 
 ```kotlin
 
-println(kondorGenerator(MyClass::class, AnotherClass::class))
+fun main() {
+    println(
+        kondorGenerator(MyClass::class, AnotherClass::class)
+    )
+}
 ```
-Kondor generator will output a complete file (including the imports) with all the JConverters for the specified classes.
 
-Then you can copy-paste the result as a new file in your project.
+When you run it, it will output a complete file (including imports) with all the JConverters for the specified classes.
 
-Or you can write a temporary main fn to do the same, or make a Kotlin script to write the file, or you can write an IntelliJ plugin (just let me know in case!). 
+Then you can copy-paste the result in your file (and delete the main function if you have done).
+
+Or you can open Kotlin REPL and type it, or you can make a Kotlin script to write the file, or if you really want, you can write an IntelliJ plugin to make the generation a breeze (just let me know in case!). 
 
 Not all the types are supported by the code generator (yet) but it gives a good try.
 
