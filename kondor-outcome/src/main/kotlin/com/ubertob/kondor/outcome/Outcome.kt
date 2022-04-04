@@ -21,6 +21,8 @@ sealed class Outcome<out E : OutcomeError, out T> {
             is Failure -> throw OutcomeException(error)
         }
 
+    fun orNull(): T? = recover { null }
+
     companion object {
 
         fun <E : OutcomeError, T, U, R> transform2(
@@ -197,9 +199,5 @@ fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Out
 
 fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     bind { it.traverse(f) }
-
-//null as error
-fun <E : OutcomeError, T> Outcome<E, T>.orNull(): T? =
-    transform { it }.recover { null }
 
 //TODO add tests showing the usage

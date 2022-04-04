@@ -173,7 +173,7 @@ Kondor generator will output a complete file (including the imports) with all th
 
 Then you can copy-paste the result as a new file in your project.
 
-Or you can make a Kotlin script to write the fiels, or you can write an IntelliJ plugin (just let me know in case!). 
+Or you can write a temporary main fn to do the same, or make a Kotlin script to write the file, or you can write an IntelliJ plugin (just let me know in case!). 
 
 Not all the types are supported by the code generator (yet) but it gives a good try.
 
