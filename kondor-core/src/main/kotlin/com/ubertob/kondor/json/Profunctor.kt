@@ -1,12 +1,9 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.OutcomeError
-
-data class ProfunctorConverter<S, A, B, E : OutcomeError>(
-    val parse: (S) -> Outcome<E, B>,
-    val render: (A) -> S
-): Profunctor<A,B> {
+data class ProfunctorConverter<S, A, B, E : JsonError>(
+    private val parse: (S) -> JsonOutcome<B>,
+    private val render: (A) -> S
+): Profunctor<A,B>, FromJson<B,S>, ToJson<A,S> {
     override fun <C, D> dimap(contraFun: (C) -> A, coFun: (B) -> D): ProfunctorConverter<S, C, D, E> =
         ProfunctorConverter ({parse(it).transform(coFun)} , {render(contraFun(it))})
 
@@ -15,6 +12,8 @@ data class ProfunctorConverter<S, A, B, E : OutcomeError>(
 
     @Suppress("UNCHECKED_CAST")
     override fun <D> rmap(g: (B) -> D): ProfunctorConverter<S, A, D, E> = super.rmap(g) as ProfunctorConverter<S, A, D, E>
+    override fun toJson(value: A) = render(value)
+    override fun fromJson(json: S) = parse(json)
 }
 
 

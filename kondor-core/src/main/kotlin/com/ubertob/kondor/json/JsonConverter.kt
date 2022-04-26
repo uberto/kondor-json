@@ -37,13 +37,13 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     ToJson<T, String>, FromJson<T, String> {
 
     override fun <C, D> dimap(contraFun: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> =
-        ProfunctorConverter(::fromJson, ::toJson).dimap(contraFun, g)
+        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).dimap(contraFun, g)
 
     override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> =
-        ProfunctorConverter(::fromJson, ::toJson).lmap(f)
+        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).lmap(f)
 
     override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> =
-        ProfunctorConverter(::fromJson, ::toJson).rmap(g)
+        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).rmap(g)
 
 
     val nodeType: NodeKind<JN>
