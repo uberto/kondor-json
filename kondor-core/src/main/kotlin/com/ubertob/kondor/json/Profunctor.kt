@@ -1,28 +1,27 @@
 package com.ubertob.kondor.json
 
-data class ProfunctorConverter<S, A, B, E : JsonError>(
-    private val parse: (S) -> JsonOutcome<B>,
-    private val render: (A) -> S
-): Profunctor<A,B>, FromJson<B,S>, ToJson<A,S> {
-    override fun <C, D> dimap(contraFun: (C) -> A, coFun: (B) -> D): ProfunctorConverter<S, C, D, E> =
-        ProfunctorConverter ({parse(it).transform(coFun)} , {render(contraFun(it))})
+data class ProfunctorConverter<A, B>(
+    private val parse: (String) -> JsonOutcome<B>,
+    private val render: (A) -> String
+) : Profunctor<A, B>, FromJson<B>, ToJson<A> {
+    override fun <C, D> dimap(contraMap: (C) -> A, coMap: (B) -> D): ProfunctorConverter<C, D> =
+        ProfunctorConverter({ parse(it).transform(coMap) }, { render(contraMap(it)) })
 
     @Suppress("UNCHECKED_CAST")
-    override fun <C> lmap(f: (C) -> A): ProfunctorConverter<S, C, B, E> = super.lmap(f) as ProfunctorConverter<S, C, B, E>
+    override fun <C> lmap(f: (C) -> A): ProfunctorConverter<C, B> = super.lmap(f) as ProfunctorConverter<C, B>
 
     @Suppress("UNCHECKED_CAST")
-    override fun <D> rmap(g: (B) -> D): ProfunctorConverter<S, A, D, E> = super.rmap(g) as ProfunctorConverter<S, A, D, E>
+    override fun <D> rmap(g: (B) -> D): ProfunctorConverter<A, D> = super.rmap(g) as ProfunctorConverter<A, D>
     override fun toJson(value: A) = render(value)
-    override fun fromJson(json: S) = parse(json)
+    override fun fromJson(json: String) = parse(json)
 }
 
 
 interface Profunctor<A, B> {
-    fun <C> lmap(f: (C) -> A): Profunctor<C, B> = dimap(contraFun = f, coFun = { it })
-    fun <D> rmap(g: (B) -> D): Profunctor<A, D> = dimap(contraFun = { it }, coFun = g)
+    fun <S> lmap(f: (S) -> A): Profunctor<S, B> = dimap(contraMap = f, coMap = { it })
+    fun <T> rmap(g: (B) -> T): Profunctor<A, T> = dimap(contraMap = { it }, coMap = g)
 
-    fun <C, D> dimap(contraFun: (C) -> A, coFun: (B) -> D): Profunctor<C, D>
+    fun <S, T> dimap(contraMap: (S) -> A, coMap: (B) -> T): Profunctor<S, T>
 }
 
-typealias JsonProfunctor<T> = ProfunctorConverter<String, T, T, JsonError>
 

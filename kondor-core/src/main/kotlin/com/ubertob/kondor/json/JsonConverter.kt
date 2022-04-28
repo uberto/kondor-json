@@ -14,36 +14,18 @@ typealias JConverter<T> = JsonConverter<T, *>
 
 typealias JArrayConverter<CT> = JsonConverter<CT, JsonNodeArray>
 
-interface ToJson<T, S> {
-    fun toJson(value: T): S
-}
-
-interface FromJson<T, S> {
-    fun fromJson(json: S): JsonOutcome<T>
-}
-
-data class ToJsonF<T, S>(val toJson: (T) -> S) : ToJson<T, S> {
-    override fun toJson(value: T): S = toJson(value)
-    fun <U> contraTransform(f: (U) -> T): ToJson<U, S> = ToJsonF { toJson(f(it)) }
-}
-
-data class FromJsonF<T, S>(val fromJson: (S) -> JsonOutcome<T>) : FromJson<T, S> {
-    override fun fromJson(json: S): JsonOutcome<T> = fromJson(json)
-    fun <U> transform(f: (T) -> U): FromJson<U, S> = FromJsonF { fromJson(it).transform(f) }
-}
-
 
 interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
-    ToJson<T, String>, FromJson<T, String> {
+    ToJson<T>, FromJson<T> {
 
-    override fun <C, D> dimap(contraFun: (C) -> T, g: (T) -> D): ProfunctorConverter<String, C, D, JsonError> =
-        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).dimap(contraFun, g)
+    override fun <C, D> dimap(contraMap: (C) -> T, coMap: (T) -> D): ProfunctorConverter<C, D> =
+        ProfunctorConverter<T, T>(::fromJson, ::toJson).dimap(contraMap, coMap)
 
-    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<String, C, T, JsonError> =
-        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).lmap(f)
+    override fun <C> lmap(f: (C) -> T): ProfunctorConverter<C, T> =
+        ProfunctorConverter<T, T>(::fromJson, ::toJson).lmap(f)
 
-    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<String, T, D, JsonError> =
-        ProfunctorConverter<String, T, T, JsonError>(::fromJson, ::toJson).rmap(g)
+    override fun <D> rmap(g: (T) -> D): ProfunctorConverter<T, D> =
+        ProfunctorConverter<T, T>(::fromJson, ::toJson).rmap(g)
 
 
     val nodeType: NodeKind<JN>
@@ -76,8 +58,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     override fun toJson(value: T): String = toJsonNode(value, NodePathRoot).render()
 
-    override fun fromJson(jsonString: String): JsonOutcome<T> =
-        safeTokenize(jsonString).bind(::parseAndConvert)
+    override fun fromJson(json: String): JsonOutcome<T> =
+        safeTokenize(json).bind(::parseAndConvert)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
         safeLazyTokenize(jsonStream).bind(::parseAndConvert)
