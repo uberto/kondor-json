@@ -244,7 +244,8 @@ object JProduct : JAny<Product>() { // 2
 4. The name of the field is taken from the variable name, `long_description` in this case
 5. Using ticks we can also use names illegal for variables in Kotlin
 6. Nullable/optional fields are handled automatically.
-7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty. 8. Here we use the class constructor, but we could have used any function that return a `Product`
+7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty. 
+8. Here we use the class constructor, but we could have used any function that return a `Product`
 9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the name of parameter with the fields.
 
 ## Avoid Exceptions
