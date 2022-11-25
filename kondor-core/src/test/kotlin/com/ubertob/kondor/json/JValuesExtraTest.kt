@@ -222,7 +222,6 @@ class JValuesExtraTest {
         }
     }
 
-
     @Test
     fun `Json MetadataFile`() {
 
@@ -242,13 +241,12 @@ class JValuesExtraTest {
     }
 
 
-
     @Test
     fun `Json TitleRequest`() {
 
         repeat(5) {
 
-            val value = TitleRequest(randomString(lowercase, 5,5), TitleType.values().random())
+            val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
             val json = JTitleRequest.toJsonNode(value, NodePathRoot)
 
             val actual = JTitleRequest.fromJsonNode(json).expectSuccess()
@@ -268,7 +266,7 @@ class JValuesExtraTest {
 
         repeat(5) {
 
-            val value = TitleRequest(randomString(lowercase, 5,5), TitleType.values().random())
+            val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
             val json = JTitleRequest.toJsonNode(value, NodePathRoot)
 
             val actual = JTitleRequest.fromJsonNode(json).expectSuccess()
@@ -283,6 +281,26 @@ class JValuesExtraTest {
         }
     }
 
+    @Test
+    fun `Json schema with fields called path and jsonNode`() {
+
+        repeat(5) {
+            val value =
+                GraphNode(randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5),)
+            val json = JGraphNode.toJsonNode(value, NodePathRoot)
+
+            val actual = JGraphNode.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JGraphNode.toJson(value)
+
+//            println(jsonStr)
+
+            expectThat(JGraphNode.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
+        }
+    }
 }
 
 

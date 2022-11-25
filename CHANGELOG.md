@@ -4,6 +4,11 @@ This list is not currently intended to be all-encompassing - it will document ma
 rationale when appropriate:
 
 
+### v.1.8.0 - 25 November 2022
+
+Changed the path property of JsonNodeObject to avoid clash with Json fields called "path"
+Updated to Kotlin 1.7.20
+
 ### v.1.7.7 - 2 April 2022
 
 Updated to Kotlin 1.6.10

@@ -24,10 +24,10 @@ class JMap<K : Any, V : Any>(
     }
 
     override fun JsonNodeObject.deserializeOrThrow() =
-        fieldMap.entries.associate { (key, value) ->
+        _fieldMap.entries.associate { (key, value) ->
             keyConverter.cons(key) to
                     valueConverter.fromJsonNodeBase(value)
-                        .failIfNull { ConverterJsonError(path, "Found null node in map!") }
+                        .failIfNull { ConverterJsonError(_path, "Found null node in map!") }
                         .orThrow()
         }
 
@@ -38,8 +38,8 @@ class JMap<K : Any, V : Any>(
             .map { (key, value) ->
                 { jno: JsonNodeObject, _: Map<K, V> ->
                     jno.copy(
-                        fieldMap = jno.fieldMap +
-                                (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno.path)))
+                        _fieldMap = jno._fieldMap +
+                                (key to valueConverter.toJsonNode(value, NodePathSegment(key, jno._path)))
                     )
                 }
             }

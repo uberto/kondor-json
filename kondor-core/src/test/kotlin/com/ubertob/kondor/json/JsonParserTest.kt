@@ -269,7 +269,7 @@ class JsonParserTest {
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
-        expectThat(nodes.fieldMap.size).isEqualTo(3)
+        expectThat(nodes._fieldMap.size).isEqualTo(3)
 
         val expected = """{"id": 123, "name": "Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)

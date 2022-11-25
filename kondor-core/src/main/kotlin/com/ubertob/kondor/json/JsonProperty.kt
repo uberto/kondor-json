@@ -20,18 +20,18 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
 ) : JsonProperty<T>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
-        wrapped.fieldMap[propName]
+        wrapped._fieldMap[propName]
             ?.let(converter::fromJsonNodeBase)
-            ?.failIfNull{JsonPropertyError(wrapped.path, propName, "Found null for non-nullable")}
-            ?: JsonPropertyError(wrapped.path,propName, "Not found key '$propName'. Keys found: [${wrapped.fieldMap.keys.joinToString()}]").asFailure()
+            ?.failIfNull{JsonPropertyError(wrapped._path, propName, "Found null for non-nullable")}
+            ?: JsonPropertyError(wrapped._path,propName, "Not found key '$propName'. Keys found: [${wrapped._fieldMap.keys.joinToString()}]").asFailure()
 
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
             wrapped.copy(
-                fieldMap = wrapped.fieldMap + (propName to converter.toJsonNode(
+                _fieldMap = wrapped._fieldMap + (propName to converter.toJsonNode(
                     value,
-                    NodePathSegment(propName, wrapped.path)
+                    NodePathSegment(propName, wrapped._path)
                 ))
             )
         }
@@ -45,15 +45,15 @@ data class JsonPropOptional<T, JN : JsonNode>(
 ) : JsonProperty<T?>() {
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T?> =
-        wrapped.fieldMap[propName]
+        wrapped._fieldMap[propName]
             ?.let(converter::fromJsonNodeBase)
             ?: null.asSuccess()
 
 
     override fun setter(value: T?): (JsonNodeObject) -> JsonNodeObject = { wrapped ->
         wrapped.copy(
-            fieldMap = wrapped.fieldMap +
-                    (propName to toNullableJsonNode(value, wrapped.path))
+            _fieldMap = wrapped._fieldMap +
+                    (propName to toNullableJsonNode(value, wrapped._path))
         )
     }
 
@@ -73,16 +73,16 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.removeFieldsFromParent()
-            .let { JsonNodeObject(it, wrapped.path) }
+            .let { JsonNodeObject(it, wrapped._path) }
             .let(converter::fromJsonNode)
-            .failIfNull { JsonPropertyError(wrapped.path, propName,"Found null for non-nullable") }
+            .failIfNull { JsonPropertyError(wrapped._path, propName,"Found null for non-nullable") }
 
     private fun JsonNodeObject.removeFieldsFromParent() =
-        fieldMap.filterKeys { key -> !parentProperties.contains(key) }
+        _fieldMap.filterKeys { key -> !parentProperties.contains(key) }
 
     override fun setter(value: T): (JsonNodeObject) -> JsonNodeObject =
         { wrapped ->
-            wrapped.copy(fieldMap = wrapped.fieldMap + (converter.toJsonNode(value, wrapped.path).fieldMap))
+            wrapped.copy(_fieldMap = wrapped._fieldMap + (converter.toJsonNode(value, wrapped._path)._fieldMap))
         }
 
 }

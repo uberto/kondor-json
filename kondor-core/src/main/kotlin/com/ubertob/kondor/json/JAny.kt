@@ -17,7 +17,7 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
         tryFromNode(node) {
             node.deserializeOrThrow() ?: throw JsonParsingException(
-                ConverterJsonError(node.path, "deserializeOrThrow returned null!")
+                ConverterJsonError(node._path, "deserializeOrThrow returned null!")
             )
         }
 
@@ -28,7 +28,7 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
                 writer(acc, value)
             }
 
-    override val nodeType get() = ObjectNode
+    override val _nodeType get() = ObjectNode
 
 }
 

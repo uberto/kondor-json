@@ -60,10 +60,10 @@ fun sealedSchema(
     subConverters: Map<String, ObjectNodeConverter<*>>
 ): JsonNodeObject {
     val subMaps: List<JsonNode> = subConverters.map { (name, conv) ->
-        val required = conv.schema().fieldMap["required"]
-        conv.schema().fieldMap["properties"]
+        val required = conv.schema()._fieldMap["required"]
+        conv.schema()._fieldMap["properties"]
             .let { it as JsonNodeObject }
-            .let { it.fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
+            .let { it._fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
             .let { mapOf("properties" to it) }
             .let {
                 if (required != null && (required as JsonNodeArray).values.count() > 0 )
@@ -84,10 +84,10 @@ fun sealedSchema(
 
 
 private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNode>> =
-    (schema().fieldMap["properties"] as JsonNodeObject).fieldMap.entries.map { it.key to it.value }
+    (schema()._fieldMap["properties"] as JsonNodeObject)._fieldMap.entries.map { it.key to it.value }
 
 private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
-    (schema().fieldMap["required"] as JsonNodeArray).values.map { (it as JsonNodeString).text }
+    (schema()._fieldMap["required"] as JsonNodeArray).values.map { (it as JsonNodeString).text }
 
 internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)

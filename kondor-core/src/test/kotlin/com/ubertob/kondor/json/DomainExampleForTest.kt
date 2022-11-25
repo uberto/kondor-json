@@ -79,7 +79,27 @@ sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
 
+data class GraphNode(val name: String, val nodeType: String, val path: String)
+
+//converters
+
 object JStringList : JArrayConverter<List<String>> by JList(JString)
+
+object JGraphNode : JAny<GraphNode>() {
+
+    private val name by str(GraphNode::name)
+    private val nodeType by str(GraphNode::nodeType)
+    private val path by str(GraphNode::path)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        GraphNode(
+             name = +name,
+            nodeType = +nodeType,
+            path = +path
+        )
+}
+
+
 
 object JPerson : JAny<Person>() {
 
@@ -264,7 +284,7 @@ object JProducts : JArray<Product, Products> {
     override fun convertToCollection(from: Iterable<Product>) =
         Products.fromIterable(from)
 
-    override val nodeType = ArrayNode
+    override val _nodeType = ArrayNode
 
 }
 
@@ -318,8 +338,6 @@ object JSelectedFile : JAny<SelectedFile>() {
 
 
 // Using other field of Enum
-
-
 data class TitleRequest(
     val id: String,
     val type: TitleType?

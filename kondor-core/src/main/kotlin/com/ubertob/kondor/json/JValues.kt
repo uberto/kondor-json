@@ -12,7 +12,7 @@ object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
     override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
         JsonNodeBoolean(value, path)
 
-    override val nodeType = BooleanNode
+    override val _nodeType = BooleanNode
 
 }
 
@@ -43,8 +43,8 @@ fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
         .transformFailure { throwableError ->
             when (val throwable = throwableError.throwable) {
                 is JsonParsingException -> throwable.error // keep path info
-                is IllegalStateException -> ConverterJsonError(node.path, throwableError.msg)
-                else -> ConverterJsonError(node.path, "Caught exception: $throwable")
+                is IllegalStateException -> ConverterJsonError(node._path, throwableError.msg)
+                else -> ConverterJsonError(node._path, "Caught exception: $throwable")
             }
         }
 
@@ -56,7 +56,7 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =
         JsonNodeNumber(render(value), path)
 
-    override val nodeType = NumberNode
+    override val _nodeType = NumberNode
 }
 
 abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
@@ -67,6 +67,6 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     override fun toJsonNode(value: T, path: NodePath): JsonNodeString =
         JsonNodeString(render(value), path)
 
-    override val nodeType = StringNode
+    override val _nodeType = StringNode
 }
 

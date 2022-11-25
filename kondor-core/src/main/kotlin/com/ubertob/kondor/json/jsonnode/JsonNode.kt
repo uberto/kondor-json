@@ -14,21 +14,21 @@ import java.math.BigDecimal
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
 sealed class JsonNode(val nodeKind: NodeKind<*>) {
-    abstract val path: NodePath
+    abstract val _path: NodePath
 }
 
-data class JsonNodeNull(override val path: NodePath) : JsonNode(NullNode)
+data class JsonNodeNull(override val _path: NodePath) : JsonNode(NullNode)
 
-data class JsonNodeBoolean(val value: Boolean, override val path: NodePath) : JsonNode(BooleanNode)
-data class JsonNodeNumber(val num: BigDecimal, override val path: NodePath) : JsonNode(NumberNode)
-data class JsonNodeString(val text: String, override val path: NodePath) : JsonNode(StringNode)
-data class JsonNodeArray(val values: Iterable<JsonNode>, override val path: NodePath) : JsonNode(ArrayNode) {
+data class JsonNodeBoolean(val value: Boolean, override val _path: NodePath) : JsonNode(BooleanNode)
+data class JsonNodeNumber(val num: BigDecimal, override val _path: NodePath) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String, override val _path: NodePath) : JsonNode(StringNode)
+data class JsonNodeArray(val values: Iterable<JsonNode>, override val _path: NodePath) : JsonNode(ArrayNode) {
     val notNullValues: List<JsonNode> = values.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val fieldMap: Map<String, JsonNode>, override val path: NodePath) : JsonNode(ObjectNode) {
+data class JsonNodeObject(val _fieldMap: Map<String, JsonNode>, override val _path: NodePath) : JsonNode(ObjectNode) {
 
-    internal fun calcNotNullFields(): List<EntryJsonNode> = fieldMap.entries.filter { it.value.nodeKind != NullNode }
+    internal fun calcNotNullFields(): List<EntryJsonNode> = _fieldMap.entries.filter { it.value.nodeKind != NullNode }
 
     val notNullFields: List<EntryJsonNode> = calcNotNullFields()
 

@@ -42,9 +42,7 @@ data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List
 //for serializing Kotlin object and other single instance types
 data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow() = singleton
-}
-
-
+} //TODO: add a test for this!
 
 
 abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
@@ -55,20 +53,20 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
-            fieldMap = jno.fieldMap + (discriminatorFieldName to JsonNodeString(
+            _fieldMap = jno._fieldMap + (discriminatorFieldName to JsonNodeString(
                 extractTypeName(obj),
-                NodePathSegment(discriminatorFieldName, jno.path)
+                NodePathSegment(discriminatorFieldName, jno._path)
             ))
         )
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
 
-        val discriminatorNode = fieldMap[discriminatorFieldName]
+        val discriminatorNode = _fieldMap[discriminatorFieldName]
             ?: defaultConverter?.let {  return  it.fromJsonNode(this).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
-        val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow();
+        val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow()
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
         return converter.fromJsonNode(this).orThrow()
     }
@@ -89,7 +87,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 abstract class NestedPolyConverter<T : Any> : PolymorphicConverter<T>() {
 
     override fun JsonNodeObject.deserializeOrThrow(): T {
-        val typeName = fieldMap.keys.first()
+        val typeName = _fieldMap.keys.first()
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
         return converter.fromJsonNode(this).orThrow()
     }

@@ -28,16 +28,16 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         ProfunctorConverter<T, T>(::fromJson, ::toJson).rmap(g)
 
 
-    val nodeType: NodeKind<JN>
+    val _nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
     private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
-        if (node.nodeKind == nodeType)
+        if (node.nodeKind == _nodeType)
             (node as JN).asSuccess()
         else if (node.nodeKind == NullNode)
             null.asSuccess()
         else
-            ConverterJsonError(node.path, "expected a ${nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
+            ConverterJsonError(node._path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
 
     private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
@@ -49,7 +49,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         try {
-            nodeType.parse(onRoot())
+            _nodeType.parse(onRoot())
         } catch (e: EndOfCollection) {
             parsingFailure("a valid Json", lastToken(), NodePathRoot, "Unexpected end of file - Invalid Json")
         } catch (t: Throwable) {
@@ -74,7 +74,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                     it.asSuccess()
             }
 
-    fun schema(): JsonNodeObject = valueSchema(nodeType)
+    fun schema(): JsonNodeObject = valueSchema(_nodeType)
 
 }
 

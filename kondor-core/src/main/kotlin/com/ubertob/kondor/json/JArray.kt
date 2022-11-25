@@ -35,10 +35,10 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
 data class JList<T : Any>(override val converter: JConverter<T>) : JArray<T, List<T>> {
     override fun convertToCollection(from: Iterable<T>): List<T> = from.toList()
-    override val nodeType = ArrayNode
+    override val _nodeType = ArrayNode
 }
 
 data class JSet<T : Any>(override val converter: JConverter<T>) : JArray<T, Set<T>> {
     override fun convertToCollection(from: Iterable<T>): Set<T> = from.toSet()
-    override val nodeType = ArrayNode
+    override val _nodeType = ArrayNode
 }

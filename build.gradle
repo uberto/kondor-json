@@ -21,9 +21,9 @@ allprojects{
 subprojects {
 
     ext {
-        junitVersion = "5.8.2"
-        junitLauncherVersion = "1.8.2"
-        striktVersion = "0.33.0"
+        junitVersion = "5.9.1"
+        junitLauncherVersion = "1.9.1"
+        striktVersion = "0.34.0"
     }
 
     test {
@@ -35,6 +35,15 @@ subprojects {
         kotlinOptions {
             jvmTarget = "11"
 //            freeCompilerArgs = ['-Xjvm-default=all']
+        }
+    }
+
+    compileKotlin {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+
+        kotlinOptions {
+            jvmTarget = '11'
         }
     }
 

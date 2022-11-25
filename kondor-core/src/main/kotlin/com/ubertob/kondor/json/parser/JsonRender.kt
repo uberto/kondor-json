@@ -48,7 +48,7 @@ fun JsonNode.pretty(explicitNull: Boolean = false, indent: Int = 2, offset: Int 
     }
 
 private fun JsonNodeObject.fieldsFiltered(explicitNull: Boolean) =
-    if (explicitNull) fieldMap.entries else notNullFields
+    if (explicitNull) _fieldMap.entries else notNullFields
 
 private fun JsonNodeArray.valuesFiltered(explicitNull: Boolean) =
     if (explicitNull) values else notNullValues
