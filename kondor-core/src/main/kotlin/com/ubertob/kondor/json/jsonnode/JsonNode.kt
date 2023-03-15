@@ -10,6 +10,8 @@ import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
+import kotlin.reflect.KFunction0
+import kotlin.reflect.KFunction1
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
@@ -28,7 +30,7 @@ data class JsonNodeArray(val values: Iterable<JsonNode>, override val _path: Nod
 
 data class JsonNodeObject(val _fieldMap: Map<String, JsonNode>, override val _path: NodePath) : JsonNode(ObjectNode) {
 
-    internal fun calcNotNullFields(): List<EntryJsonNode> = _fieldMap.entries.filter { it.value.nodeKind != NullNode }
+    private fun calcNotNullFields(): List<EntryJsonNode> = _fieldMap.entries.filter { it.value.nodeKind != NullNode }
 
     val notNullFields: List<EntryJsonNode> = calcNotNullFields()
 

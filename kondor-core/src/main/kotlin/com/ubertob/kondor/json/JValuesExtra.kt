@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
@@ -8,6 +9,14 @@ import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
+import java.util.Map
+import kotlin.collections.List
+import kotlin.collections.emptyList
+import kotlin.collections.first
+import kotlin.collections.get
+import kotlin.collections.mutableMapOf
+import kotlin.collections.plus
+
 
 interface StringWrapper {
     val raw: String
@@ -34,7 +43,8 @@ object JCurrency : JStringRepresentable<Currency>() {
 }
 
 //todo get Enum class instead of cons
-data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList() ) : JStringRepresentable<E>() {
+data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList()) :
+    JStringRepresentable<E>() {
     override val render: (E) -> String = { it.name }
     override fun schema(): JsonNodeObject = enumSchema(values)
 }
@@ -53,17 +63,22 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
-            _fieldMap = jno._fieldMap + (discriminatorFieldName to JsonNodeString(
-                extractTypeName(obj),
-                NodePathSegment(discriminatorFieldName, jno._path)
-            ))
+            _fieldMap = mutableMapOf(
+                discriminatorFieldNode(obj, jno)
+            ).apply { putAll(jno._fieldMap) }
         )
+
+    private fun discriminatorFieldNode(
+        obj: T,
+        jno: JsonNodeObject
+    ): Pair<String, JsonNode> = discriminatorFieldName to
+            JsonNodeString(extractTypeName(obj), NodePathSegment(discriminatorFieldName, jno._path))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
 
         val discriminatorNode = _fieldMap[discriminatorFieldName]
-            ?: defaultConverter?.let {  return  it.fromJsonNode(this).orThrow() }
+            ?: defaultConverter?.let { return it.fromJsonNode(this).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
         val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow()
