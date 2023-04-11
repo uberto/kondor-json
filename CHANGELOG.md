@@ -6,6 +6,12 @@ rationale when appropriate:
 
 ### v.1.8.0 - 25 November 2022
 
+Put the discriminator field in polymorphic Json at the top, because some deserializer can only read it in that position
+Updated to Kotlin 1.8.20
+Added kondor-mongo module
+
+### v.1.8.0 - 25 November 2022
+
 Changed the path property of JsonNodeObject to avoid clash with Json fields called "path"
 Updated to Kotlin 1.7.20
 

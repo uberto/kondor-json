@@ -6,7 +6,7 @@ plugins {
 allprojects{
 
     group 'com.ubertob.kondor'
-    version '1.8.0'
+    version '1.8.1'
 
     wrapper {
         gradleVersion = "6.9.4"
@@ -42,9 +42,6 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
 
-        kotlinOptions {
-            jvmTarget = '11'
-        }
     }
 
 }
