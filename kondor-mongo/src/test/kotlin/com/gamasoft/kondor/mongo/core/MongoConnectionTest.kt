@@ -5,6 +5,7 @@ import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.eq
+import com.ubertob.kondor.mongo.core.MongoConnection
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

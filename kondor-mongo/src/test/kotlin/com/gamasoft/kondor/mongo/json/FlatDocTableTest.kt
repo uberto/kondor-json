@@ -2,9 +2,9 @@ package com.gamasoft.kondor.mongo.json
 
 import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.dbName
 import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
-import com.gamasoft.kondor.mongo.core.MongoExecutor
-import com.gamasoft.kondor.mongo.core.TypedTable
-import com.gamasoft.kondor.mongo.core.mongoOperation
+import com.ubertob.kondor.mongo.core.MongoExecutor
+import com.ubertob.kondor.mongo.core.TypedTable
+import com.ubertob.kondor.mongo.core.mongoOperation
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

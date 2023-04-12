@@ -1,4 +1,4 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase

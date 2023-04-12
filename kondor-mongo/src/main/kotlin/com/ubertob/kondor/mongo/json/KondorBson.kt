@@ -1,4 +1,4 @@
-package com.gamasoft.kondor.mongo.json
+package com.ubertob.kondor.mongo.json
 
 import com.ubertob.kondor.json.JAny
 import com.ubertob.kondor.json.jsonnode.*

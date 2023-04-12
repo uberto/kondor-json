@@ -1,6 +1,6 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
-import com.gamasoft.kondor.mongo.json.toBsonDocument
+import com.ubertob.kondor.mongo.json.toBsonDocument
 import com.mongodb.client.MongoCollection
 import com.ubertob.kondor.json.ObjectNodeConverter
 import com.ubertob.kondor.json.jsonnode.NodePathRoot

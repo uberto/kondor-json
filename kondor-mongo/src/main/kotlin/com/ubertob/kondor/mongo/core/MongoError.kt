@@ -1,4 +1,4 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
 import com.ubertob.kondor.outcome.OutcomeError
 

@@ -1,4 +1,4 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
 import com.ubertob.kondor.outcome.Outcome
 
@@ -23,7 +23,7 @@ fun  <T> MongoReader<T>.ignoreResult(): MongoReader<Unit> =
 
 operator fun  <T, U, V> ((T) -> MongoReader<U>).plus(operation: (U) -> MongoReader<V>): (T) -> MongoReader<V> =
     {t: T -> this(t).bind { u -> operation(u) } }
-operator fun  <T, U, V> ((T) -> MongoReader<U>).plus(otherReader:  MongoReader<V>): (T) -> MongoReader<V> =
+operator fun  <T, U, V> ((T) -> MongoReader<U>).plus(otherReader: MongoReader<V>): (T) -> MongoReader<V> =
     {t: T -> this(t).bind { otherReader } }
 
 operator fun  <T, U> MongoReader<T>.plus(operation: (T) -> MongoReader<U>): MongoReader<U> =

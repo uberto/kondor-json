@@ -1,5 +1,6 @@
 package com.gamasoft.kondor.mongo.core
 
+import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertTrue
