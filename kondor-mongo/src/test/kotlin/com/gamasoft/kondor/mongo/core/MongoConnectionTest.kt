@@ -16,13 +16,9 @@ import strikt.assertions.isGreaterThan
 class MongoConnectionTest {
 
     companion object{
-
         val mongoConnection = MongoConnection("mongodb://localhost:27017")
-
         val dbName = "MongoKondorTest"
     }
-
-    //Remember to start mongo first! localhost:27017
 
     private fun connectToMongo(): MongoDatabase {
         val mongoClient: MongoClient = MongoClients.create(mongoConnection.connString)
@@ -47,16 +43,16 @@ class MongoConnectionTest {
         return collection.find().asSequence()
     }
 
-    fun findFizz(database: MongoDatabase): Sequence<BsonDocument> {
+    fun findFizzBuzzEq(database: MongoDatabase): Sequence<BsonDocument> {
         val collection: MongoCollection<BsonDocument> = database.getCollection(collName, BsonDocument::class.java)
         return collection.find(
-            eq("otherdata.nested.fizzbuzz", "91")
+            eq("otherdata.nested.fizzbuzz", "FizzBuzz")
         ).asSequence()
     }
 
-    fun findFizzParse(database: MongoDatabase): Sequence<BsonDocument> {
+    fun findFizzBuzzParse(database: MongoDatabase): Sequence<BsonDocument> {
         val collection: MongoCollection<BsonDocument> = database.getCollection(collName, BsonDocument::class.java)
-        val filter = BsonDocument.parse("""{ "otherdata.nested.fizzbuzz": "91" }""")
+        val filter = BsonDocument.parse("""{ "otherdata.nested.fizzbuzz": "FizzBuzz" }""")
         return collection.find(filter).asSequence()
     }
 
@@ -71,6 +67,7 @@ class MongoConnectionTest {
     @Test
     fun `add and query doc`() {
         val db = connectToMongo()
+        dropCollection(db, collName)
 
         val documents = (1..100).map {
             BsonDocument.parse("""
@@ -91,24 +88,17 @@ class MongoConnectionTest {
         }
 
         expectThat(db.name).isEqualTo( dbName)
-        println("connected!")
         val ids = documents.map { addADoc(db, it) }
-        println("saved!")
-        println(ids)
+        expectThat(ids.size).isEqualTo(documents.size)
 
         val docs = allDocs(db)
+        expectThat(ids.size).isEqualTo(docs.count())
 
-        println(docs.count())
-//        docs.forEach { println(it) }
+        val res = findFizzBuzzParse(db)
+        expectThat(res.count()).isEqualTo(6)
 
-        val res = findFizzParse(db)
-        expectThat(res.count()).isGreaterThan(0)
-        println("res count ${res.count()}")
-
-        val ff = findFizz(db)
-
-        println("fizzy count ${ff.count()}")
-        println("Result is here: ${ff.joinToString()}")
+        val res2 = findFizzBuzzEq(db)
+        expectThat(res2.joinToString()).isEqualTo(res.joinToString())
     }
 
     @Test
