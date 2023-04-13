@@ -3,8 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.8.2 - 13 April 2023
+Fixed the package name of kondor-mongo
+Added TestContainer for Mongo integration tests
 
-### v.1.8.0 - 25 November 2022
+### v.1.8.1 - 12 April 2023
 
 Put the discriminator field in polymorphic Json at the top, because some deserializer can only read it in that position
 Updated to Kotlin 1.8.20
