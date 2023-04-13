@@ -7,10 +7,12 @@ import com.ubertob.kondor.mongo.core.TypedTable
 import com.ubertob.kondor.mongo.core.mongoOperation
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class FlatDocTableTest {
 
     private object FlatDocs: TypedTable<SimpleFlatDoc>(JSimpleFlatDoc) {

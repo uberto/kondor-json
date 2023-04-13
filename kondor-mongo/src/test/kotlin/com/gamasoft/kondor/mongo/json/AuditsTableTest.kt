@@ -2,18 +2,41 @@ package com.gamasoft.kondor.mongo.json
 
 import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.dbName
 import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
-import com.ubertob.kondor.mongo.core.MongoExecutor
-import com.ubertob.kondor.mongo.core.TypedTable
-import com.ubertob.kondor.mongo.core.mongoOperation
-import com.ubertob.kondor.mongo.core.plus
+import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.junit.jupiter.Container
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import java.time.Duration
 import kotlin.reflect.KClass
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class AuditsTableTest {
+    companion object{
+        val dbName = "MongoKondorTest"
+
+        @Container
+        private val mongoContainer = MongoDBContainer("mongo:4.4.4")
+            .apply {
+                start()
+            }
+
+        val mongoConnection = MongoConnection(
+            connString = mongoContainer.getReplicaSetUrl(dbName),
+            timeout = Duration.ofMillis(50)
+        )
+
+        @JvmStatic
+        @AfterAll
+        fun stopContainer() {
+            mongoContainer.stop()
+        }
+    }
 
     private object AuditsTable : TypedTable<AuditMessage>(JAuditMessage) {
         override val collectionName: String = "Audits"
