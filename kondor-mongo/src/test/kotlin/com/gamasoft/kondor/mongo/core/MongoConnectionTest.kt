@@ -7,25 +7,48 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.eq
 import com.ubertob.kondor.mongo.core.MongoConnection
 import org.bson.BsonDocument
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
+import org.junit.jupiter.api.TestInstance.Lifecycle
+import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.junit.jupiter.Container
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.assertions.isGreaterThan
+import java.time.Duration
 
 
+@TestInstance(Lifecycle.PER_CLASS)
 class MongoConnectionTest {
 
     companion object{
-        val mongoConnection = MongoConnection("mongodb://localhost:27017")
         val dbName = "MongoKondorTest"
+
+        @Container
+        private val mongoContainer = MongoDBContainer("mongo:4.4.4")
+            .apply {
+                start()
+            }
+
+        val mongoConnection = MongoConnection(
+            connString = mongoContainer.getReplicaSetUrl(dbName),
+            timeout = Duration.ofMillis(50)
+        )
+
+        @JvmStatic
+        @AfterAll
+        fun stopContainer() {
+            mongoContainer.stop()
+        }
     }
+
 
     private fun connectToMongo(): MongoDatabase {
         val mongoClient: MongoClient = MongoClients.create(mongoConnection.connString)
 
         val dbs = mongoClient.listDatabases().map { it.keys }
 
-        println("dbs!! $dbs")
+        println("Databases: $dbs")
         return mongoClient.getDatabase(dbName)
     }
 

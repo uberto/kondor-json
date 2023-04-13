@@ -18,7 +18,7 @@ class FlatDocTableTest {
         //retention... policy.. index
     }
 
-
+    val provider = MongoExecutor(mongoConnection, dbName)
 
     private fun createDoc(i: Int): SimpleFlatDoc =
         SimpleFlatDoc(
@@ -48,7 +48,6 @@ class FlatDocTableTest {
 
     @Test
     fun `add and query doc safely`() {
-        val provider = MongoExecutor(mongoConnection, dbName)
 
         val myDoc = provider(oneDocReader).expectSuccess()
         expectThat(doc).isEqualTo( myDoc)
@@ -58,7 +57,6 @@ class FlatDocTableTest {
 
     @Test
     fun `parsing query safely`() {
-        val provider = MongoExecutor(mongoConnection, dbName)
 
         val myDoc = provider(docQueryReader).expectSuccess()
         expectThat(42).isEqualTo( myDoc.index)

@@ -1,5 +1,6 @@
 package com.gamasoft.kondor.mongo.core
 
+import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
@@ -58,8 +59,6 @@ class MongoExecutorTest {
         }
         collForTest.find("{ index: 42 }").first()
     }
-
-    private val mongoConnection = MongoConnection("mongodb://localhost:27017")
 
     private val dbName = "MongoProvTest"
 

@@ -1,5 +1,6 @@
 package com.gamasoft.kondor.mongo.core
 
+import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import com.ubertob.kondor.mongo.core.*
@@ -12,10 +13,10 @@ import strikt.assertions.isEqualTo
 import java.time.Duration
 
 class MongoTableTest {
+    //TODO add tests for retention... policy.. index
 
     object simpleDocTable : TypedTable<SmallClass>(JSmallClass) {
         override val collectionName: String = "simpleDocs"
-        //retention... policy.. index
 
         override val onConnection: (MongoCollection<BsonDocument>) -> Unit = { coll ->
             coll.createIndex(
@@ -30,10 +31,7 @@ class MongoTableTest {
     }
 
     private val localMongo = MongoExecutor(
-        MongoConnection(
-            connString = "mongodb://localhost:27017",
-            timeout = Duration.ofMillis(10)
-        ),
+        connection = mongoConnection,
         databaseName = "mongoCollTest"
     )
 
