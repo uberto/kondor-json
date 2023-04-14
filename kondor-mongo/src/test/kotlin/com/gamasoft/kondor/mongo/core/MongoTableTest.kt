@@ -1,20 +1,27 @@
 package com.gamasoft.kondor.mongo.core
 
-import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Test
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import java.time.Duration
 
+@Testcontainers
 class MongoTableTest {
     //TODO add tests for retention... policy.. index
+    companion object{
+        @Container
+        private val mongoContainer = mongoForTests()
 
+        val mongoConnection = mongoContainer.connection
+    }
     object simpleDocTable : TypedTable<SmallClass>(JSmallClass) {
         override val collectionName: String = "simpleDocs"
 

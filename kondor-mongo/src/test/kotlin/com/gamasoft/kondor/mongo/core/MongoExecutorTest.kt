@@ -1,11 +1,12 @@
 package com.gamasoft.kondor.mongo.core
 
-import com.gamasoft.kondor.mongo.core.MongoConnectionTest.Companion.mongoConnection
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.util.*
@@ -15,7 +16,15 @@ private object collForTest: BsonTable() {
     //retention... policy.. index
 }
 
+@Testcontainers
 class MongoExecutorTest {
+
+    companion object{
+        @Container
+        private val mongoContainer = mongoForTests()
+
+        val mongoConnection = mongoContainer.connection
+    }
 
     val uuid = UUID.randomUUID()
     val doc = BsonDocument.parse(

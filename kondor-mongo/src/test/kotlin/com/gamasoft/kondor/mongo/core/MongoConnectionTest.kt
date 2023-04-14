@@ -5,41 +5,22 @@ import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.eq
-import com.ubertob.kondor.mongo.core.MongoConnection
 import org.bson.BsonDocument
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.Lifecycle
-import org.testcontainers.containers.MongoDBContainer
 import org.testcontainers.junit.jupiter.Container
+import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import java.time.Duration
 
 
-@TestInstance(Lifecycle.PER_CLASS)
+@Testcontainers
 class MongoConnectionTest {
 
     companion object{
-        val dbName = "MongoKondorTest"
-
         @Container
-        private val mongoContainer = MongoDBContainer("mongo:4.4.4")
-            .apply {
-                start()
-            }
+        private val mongoContainer = mongoForTests()
 
-        val mongoConnection = MongoConnection(
-            connString = mongoContainer.getReplicaSetUrl(dbName),
-            timeout = Duration.ofMillis(50)
-        )
-
-        @JvmStatic
-        @AfterAll
-        fun stopContainer() {
-            mongoContainer.stop()
-        }
+        private val mongoConnection = mongoContainer.connection
     }
 
 
@@ -49,7 +30,7 @@ class MongoConnectionTest {
         val dbs = mongoClient.listDatabases().map { it.keys }
 
         println("Databases: $dbs")
-        return mongoClient.getDatabase(dbName)
+        return mongoClient.getDatabase(DB_NAME)
     }
 
     private val collName = "mycoll"
@@ -110,7 +91,7 @@ class MongoConnectionTest {
             )
         }
 
-        expectThat(db.name).isEqualTo( dbName)
+        expectThat(db.name).isEqualTo( DB_NAME)
         val ids = documents.map { addADoc(db, it) }
         expectThat(ids.size).isEqualTo(documents.size)
 
