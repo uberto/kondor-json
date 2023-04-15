@@ -3,6 +3,7 @@ package com.ubertob.kondor.outcome
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
 
@@ -10,7 +11,9 @@ internal class OutcomeTest {
 
     data class Err(override val msg: String) : OutcomeError
 
-    data class User(val name: String, val email: String)
+    sealed interface Person
+    data class User(val name: String, val email: String): Person
+    data class Interested(val email: String, val question: String): Person
 
     fun getUser(id: Int): BaseOutcome<User> =
         if (id > 0) User("user$id", "$id@example.com").asSuccess() else Err("wrong id").asFailure()
@@ -164,16 +167,9 @@ internal class OutcomeTest {
         expectThat(error.msg).isEqualTo("empty text or email")
     }
 
-    //combine, compose, join
 
-    //withSuccess, withFailure
-
-    //tranform2, '!', `*`
-
-    //map flatmap
 
     //convenience methods
-
     @Test
     fun `asOutcome transforms values into Outcomes`() {
 
@@ -203,5 +199,155 @@ internal class OutcomeTest {
         expectThat(error.msg).isEqualTo("user100 is too long!")
     }
 
+
+
+
+    // GPT generated
+
+    @Test
+    fun `combine successes`() {
+        val a = 2.asSuccess()
+        val b = 3.asSuccess()
+
+        val combined = a.combine(b)
+
+        expectThat(combined).isEqualTo(Success(Pair(2, 3)))
+    }
+
+    val intFailure: Outcome<Err, Int> = Err("NAN").asFailure()
+    @Test
+    fun `combine success with failure`() {
+        val two = 2.asSuccess()
+
+        val combined = two.combine(intFailure).expectFailure()
+
+        expectThat(combined).isEqualTo(Err(msg="NAN"))
+    }
+
+    @Test
+    fun `Kleisli composition`() {
+        val addTwo: (Int) -> Outcome<Err, Int> = { x -> (x + 2).asSuccess() }
+        val multiplyThree: (Int) -> Outcome<Err, Int> = { x -> (x * 3).asSuccess() }
+
+        val addTwoAndMultiplyThree = addTwo compose multiplyThree
+
+        val result = addTwoAndMultiplyThree(2)
+
+        expectThat(result).isEqualTo(Success(12))
+    }
+
+    @Test
+    fun `join nested outcomes`() {
+        val nested = Success(Success(42))
+
+        val joined = nested.join()
+
+        expectThat(joined).isEqualTo(Success(42))
+    }
+
+    @Test
+    fun `withSuccess to handle sideeffects`() {
+        var sideEffect: Int? = null
+
+        val successOutcome = 42.asSuccess()
+
+        val result = successOutcome.withSuccess { sideEffect = it }
+
+        expectThat(result).isEqualTo(Success(42))
+        expectThat(sideEffect).isEqualTo(42)
+    }
+
+    @Test
+    fun `withSuccess won't call sideEffects in case of failures`() {
+        var sideEffect: Int? = null
+
+        val result = intFailure.withSuccess { sideEffect = it }
+
+        expectThat(result).isEqualTo(intFailure)
+        expectThat(sideEffect).isEqualTo(null)
+    }
+
+    @Test
+    fun `withFailure call sideEffect in case of failures`() {
+        var sideEffect: String? = null
+
+        val failureOutcome = Err("test error").asFailure()
+
+        val result = failureOutcome.withFailure { sideEffect = it.msg }
+
+        expectThat(result).isEqualTo(Failure(Err("test error")))
+        expectThat(sideEffect).isEqualTo("test error")
+    }
+
+
+//applicatives
+
+    @Test
+    fun `transform2 maps a function with two arguments`() {
+        val a = 2.asSuccess()
+        val b = 3.asSuccess()
+
+        val result = Outcome.transform2(a, b) { x, y -> x * y }
+
+        expectThat(result).isEqualTo(Success(6))
+    }
+
+    @Test
+    fun `! allow to partially apply an outcome to a function`() {
+        val add: (Int, Int) -> Int = { x, y -> x + y }
+        val a = 2.asSuccess()
+
+        val partiallyApplied = add `!` a
+
+        expectThat(partiallyApplied.expectSuccess()(5)).isEqualTo(7)
+    }
+
+    @Test
+    fun `* add an outcome to a partial function`() {
+        val addPartial = { y: Int -> 2 + y }.asSuccess()
+        val b = 3.asSuccess()
+
+        val result = addPartial `*` b
+
+        expectThat(result).isEqualTo(Success(5))
+    }
+
+    @Test
+    fun `castOrFail allow for subcasting`() {
+        val person: BaseOutcome<Person> = getUser(12)
+
+        val user = person.castOrFail<User> { value -> Err("Cannot cast $value to User") }.orThrow()
+
+        expectThat(user).isA<User>()
+    }
+    @Test
+    fun `castOrFail return failure for wrong subcasting`() {
+        val person: BaseOutcome<Person> = getUser(12)
+
+        val notAUser = person.castOrFail<Interested> { value -> Err("Cannot cast $value to Interested") }.expectFailure()
+
+        expectThat(notAUser.msg).isEqualTo("Cannot cast User(name=user12, email=12@example.com) to Interested")
+    }
+
+
+    @Test
+    fun `test map on Outcome collection`() {
+        val values = listOf(1, 2, 3, 4, 5)
+        val outcomeValues = values.asSuccess()
+
+        val squaredOutcomeValues = outcomeValues.map { it * it }
+
+        expectThat(squaredOutcomeValues).isEqualTo(Success(listOf(1, 4, 9, 16, 25)))
+    }
+
+    @Test
+    fun `test flatMap on Outcome collection`() {
+        val values = listOf(1, 2, 3, 4, 5)
+        val outcomeValues = values.asSuccess()
+
+        val outcomeFlatMap = outcomeValues.flatMap { (it * 2).asSuccess() }
+
+        expectThat(outcomeFlatMap).isEqualTo(Success(listOf(2, 4, 6, 8, 10)))
+    }
 
 }

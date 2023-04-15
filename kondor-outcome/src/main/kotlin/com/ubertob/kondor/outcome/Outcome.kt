@@ -23,6 +23,12 @@ sealed class Outcome<out E : OutcomeError, out T> {
 
     fun orNull(): T? = recover { null }
 
+    inline fun <reified U: @UnsafeVariance T> castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
+        when(this){
+            is Failure -> this
+            is Success -> if (value is U) { value.asSuccess() } else {error(value).asFailure() }
+        }
+
     companion object {
 
         fun <E : OutcomeError, T, U, R> transform2(
@@ -64,17 +70,18 @@ inline fun <T, E : OutcomeError, F : OutcomeError> Outcome<E, T>.bindFailure(f: 
         is Failure -> f(error)
     }
 
+fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
+    bind { it }
 
 fun <T, U, E : OutcomeError> Outcome<E, T>.combine(other: Outcome<E, U>): Outcome<E, Pair<T, U>> =
     bind { first -> other.transform { second -> first to second } }
 
-//Keisli composition
+//Kleisli composition
 infix fun <A, B, C, E : OutcomeError> ((A) -> Outcome<E, B>).compose(other: (B) -> Outcome<E, C>): (A) -> Outcome<E, C> =
     { a -> this(a).bind(other) }
 
 
-fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
-    bind { it }
+
 
 //convenience methods
 
@@ -199,5 +206,3 @@ fun <E : OutcomeError, T> Outcome<E, Iterable<T>>.filter(f: (T) -> Boolean): Out
 
 fun <E : OutcomeError, T, U> Outcome<E, Iterable<T>>.flatMap(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     bind { it.traverse(f) }
-
-//TODO add tests showing the usage
