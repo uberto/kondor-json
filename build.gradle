@@ -6,10 +6,10 @@ plugins {
 allprojects{
 
     group 'com.ubertob.kondor'
-    version '1.8.2'
+    version '1.8.3'
 
     wrapper {
-        gradleVersion = "6.9.4"
+        gradleVersion = "8.1"
     }
 
     repositories {

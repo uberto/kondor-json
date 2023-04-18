@@ -3,7 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.8.3 - 17 April 2023
+
+Added castOrFail to Outcome
+
 ### v.1.8.2 - 13 April 2023
+
 Fixed the package name of kondor-mongo
 Added TestContainer for Mongo integration tests
 
