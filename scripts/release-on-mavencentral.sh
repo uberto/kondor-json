@@ -19,9 +19,10 @@ echo updating to: $1
 sed -i "s/$ver/$1/g" README.md build.gradle
 
 # launch:
-./gradlew uploadArchives -p kondor-core
-./gradlew uploadArchives -p kondor-tools
-./gradlew uploadArchives -p kondor-outcome
+./gradlew publish -p kondor-core
+./gradlew publish -p kondor-tools
+./gradlew publish -p kondor-outcome
+./gradlew publish -p kondor-mongo
 
 
 echo "check the CHANGELOG.md"

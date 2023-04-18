@@ -1,6 +1,6 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
-    id 'com.bmuschko.nexus' version '2.3.1'
+    id 'maven-publish'
 }
 
 
@@ -31,42 +31,53 @@ tasks {
 
 archivesBaseName = 'kondor-tools'
 
-modifyPom {
-    project {
-        name 'kondor-tools'
-        description 'A suite of tools to work with Kondor json library'
-        url 'https://github.com/uberto/kondor-json'
-        inceptionYear '2021'
-        scm {
-            url 'https://github.com/uberto/kondor-json'
-            connection 'https://github.com/uberto/kondor-json.git'
-            developerConnection 'git@github.com:uberto/kondor-json.git'
-        }
-        licenses {
-            license {
-                name 'The Apache Software License, Version 2.0'
-                url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution 'repo'
-            }
-        }
-        developers {
-            developer {
-                id 'UbertoBarbini'
-                name 'Uberto Barbini'
-                email 'uberto.gama@gmail.com'
+//        name 'kondor-tools'
+//        description 'A suite of tools to work with Kondor json library'
+
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+            groupId = project.group
+            artifactId = archivesBaseName
+            version = project.version
+
+            pom {
+                name = 'kondor-tools'
+                description = 'A suite of tools to work with Kondor json library'
+                url = 'https://github.com/uberto/kondor-json'
+                inceptionYear = '2021'
+                scm {
+                    url = 'https://github.com/uberto/kondor-json'
+                    connection = 'https://github.com/uberto/kondor-json.git'
+                    developerConnection = 'git@github.com:uberto/kondor-json.git'
+                }
+                licenses {
+                    license {
+                        name = 'The Apache Software License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        distribution = 'repo'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'UbertoBarbini'
+                        name = 'Uberto Barbini'
+                        email = 'uberto.gama@gmail.com'
+                    }
+                }
             }
         }
     }
-}
-
-extraArchive {
-    sources = true
-    tests = false
-    javadoc = true
-}
-
-nexus {
-    sign = true
-    repositoryUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-    snapshotRepositoryUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = version.endsWith('SNAPSHOT') ? 'https://oss.sonatype.org/content/repositories/snapshots/' : 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            credentials {
+                username = findProperty('nexusUsername')
+                password = findProperty('nexusPassword')
+            }
+        }
+    }
 }
