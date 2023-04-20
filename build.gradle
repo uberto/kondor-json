@@ -32,20 +32,16 @@ subprojects {
 //        testLogging.showStandardStreams = true
     }
 
-    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-        kotlinOptions {
-            jvmTarget = "11"
-//            freeCompilerArgs = ['-Xjvm-default=all']
-        }
-    }
+//    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
+//        kotlinOptions {
+//            jvmTarget = "17"
+////            freeCompilerArgs = ['-Xjvm-default=all']
+//        }
+//    }
 
-    compileKotlin {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-
-    }
 
 }
+
 
 task printVersion {
     doLast {
