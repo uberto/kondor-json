@@ -17,3 +17,13 @@ fun <E : OutcomeError> Outcome<E, *>.expectFailure(): E =
 
 fun <T> T.printIt(prefix: String = ""): T =
     also { println("$prefix$it") }
+
+
+fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T {
+    val start = System.nanoTime()
+    val res = fn()
+    val elapsed = System.nanoTime() - start
+
+    println("$logPrefix ${elapsed / 1_000_000} ms")
+    return res
+}

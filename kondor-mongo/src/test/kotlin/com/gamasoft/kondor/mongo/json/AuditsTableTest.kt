@@ -3,11 +3,12 @@ package com.gamasoft.kondor.mongo.json
 import com.gamasoft.kondor.mongo.core.DB_NAME
 import com.gamasoft.kondor.mongo.core.connection
 import com.gamasoft.kondor.mongo.core.mongoForTests
-import com.ubertob.kondor.mongo.core.MongoExecutor
-import com.ubertob.kondor.mongo.core.TypedTable
-import com.ubertob.kondor.mongo.core.mongoOperation
-import com.ubertob.kondor.mongo.core.plus
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.mongo.core.*
+import com.ubertob.kondor.mongo.json.toBsonDocument
+import com.ubertob.kondortools.chronoAndLog
 import com.ubertob.kondortools.expectSuccess
+import org.bson.BsonDocument
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
@@ -18,7 +19,7 @@ import kotlin.reflect.KClass
 
 @Testcontainers
 class AuditsTableTest {
-    companion object{
+    companion object {
         @Container
         private val mongoContainer = mongoForTests()
 
@@ -30,7 +31,8 @@ class AuditsTableTest {
         //retention... policy.. index
     }
 
-    inline fun <reified T: Any> getRandomSealedSubclass(): KClass<out T> {
+
+    inline fun <reified T : Any> getRandomSealedSubclass(): KClass<out T> {
         val subclasses = T::class.sealedSubclasses
         val randomSubclass = subclasses.random()
         return randomSubclass
@@ -52,14 +54,16 @@ class AuditsTableTest {
     fun randomText() = randomList(::randomString)
 
     private fun randomAudit(): AuditMessage =
-      when(  AuditMessage::class.sealedSubclasses.random() ){
-          StringAudit::class -> StringAudit(randomString())
-          TextAudit::class -> TextAudit(randomText())
-          ErrorCodeAudit::class -> ErrorCodeAudit(randomInt(), randomString())
-          MultiAudit::class -> MultiAudit(
-              randomList( { StringAudit(randomString()) }, (1..5)))
-          else -> error("Unknown class $this")
-      }
+        when (AuditMessage::class.sealedSubclasses.random()) {
+            StringAudit::class -> StringAudit(randomString())
+            TextAudit::class -> TextAudit(randomText())
+            ErrorCodeAudit::class -> ErrorCodeAudit(randomInt(), randomString())
+            MultiAudit::class -> MultiAudit(
+                randomList({ StringAudit(randomString()) }, (1..5))
+            )
+
+            else -> error("Unknown class $this")
+        }
 
     private fun randomInt(range: IntRange = 1..1000): Int = range.random()
 
@@ -93,6 +97,7 @@ class AuditsTableTest {
         val myDoc = executor(oneDocReader).expectSuccess()
         expectThat(audit).isEqualTo(myDoc)
 
+
     }
 
 
@@ -102,9 +107,68 @@ class AuditsTableTest {
         val myDocs = executor(cleanUp + docWriteAndReadAll).expectSuccess().toList()
 
         expectThat(myDocs).hasSize(100)
-        expectThat(myDocs).isEqualTo (audits)
+        expectThat(myDocs).isEqualTo(audits)
 
 //        println(myDocs)
+    }
+
+
+    private object auditsPerf : BsonTable() {
+        override val collectionName: String = "performanceTests"
+        //retention... policy.. index
+    }
+
+
+    @Test
+    fun `performance check`() {
+//        to JsonNode 6 ms
+//                to BsonDoc 8 ms
+//                to DB 1093 ms
+//                Audits Table 1080 ms
+
+        repeat(2) {
+            executor(mongoOperation {
+                auditsPerf.drop()
+                AuditsTable.drop()
+            })
+
+            val audits = (1..10000).map { randomAudit() }
+
+            chronoAndLog("toJsonAndParse") {
+                audits.map { BsonDocument.parse(JAuditMessage.toJson(it)) }
+            }
+
+            val jsonNodes = chronoAndLog("to JsonNode") {
+                audits.map { JAuditMessage.toJsonNode(it, NodePathRoot) }
+            }
+
+            val bsonDocs = chronoAndLog("to BsonDoc") {
+                jsonNodes.map { it.toBsonDocument() }
+            }
+
+
+
+            chronoAndLog("to DB") {
+                executor(
+                    mongoOperation {
+                        bsonDocs.forEach {
+                            auditsPerf.addDocument(it)
+                        }
+                    }
+                )
+            }
+
+
+            chronoAndLog("Audits Table") {
+                executor(
+                    mongoOperation {
+                        audits.forEach {
+                            AuditsTable.addDocument(it)
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 

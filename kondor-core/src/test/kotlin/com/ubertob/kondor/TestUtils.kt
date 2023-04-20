@@ -55,3 +55,12 @@ fun validateJsonAgainstSchema(schemaJson: String, json: String) {
     service.createReader(json.byteInputStream(), jsonConfig, handler)
         .use { reader -> reader.readValue() }
 }
+
+fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T {
+    val start = System.nanoTime()
+    val res = fn()
+    val elapsed = System.nanoTime() - start
+
+    println("$logPrefix ${elapsed / 1_000_000} ms")
+    return res
+}

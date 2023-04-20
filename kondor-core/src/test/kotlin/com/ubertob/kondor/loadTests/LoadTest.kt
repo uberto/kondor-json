@@ -1,5 +1,6 @@
 package com.ubertob.kondor.loadTests
 
+import com.ubertob.kondor.chronoAndLog
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.ArrayNode
 import com.ubertob.kondor.json.jsonnode.onRoot
@@ -146,12 +147,5 @@ class LoadTest {
     }
 }
 
-fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T {
-    val start = System.nanoTime()
-    val res = fn()
-    val elapsed = System.nanoTime() - start
 
-    println("$logPrefix ${elapsed / 1_000_000} ms")
-    return res
-}
 
