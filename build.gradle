@@ -6,7 +6,7 @@ plugins {
 allprojects{
 
     group 'com.ubertob.kondor'
-    version '1.8.3'
+    version '1.8.4'
 
     wrapper {
         gradleVersion = "8.1"
@@ -31,14 +31,6 @@ subprojects {
         useJUnitPlatform()
 //        testLogging.showStandardStreams = true
     }
-
-//    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-//        kotlinOptions {
-//            jvmTarget = "17"
-////            freeCompilerArgs = ['-Xjvm-default=all']
-//        }
-//    }
-
 
 }
 
