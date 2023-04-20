@@ -121,18 +121,20 @@ class AuditsTableTest {
 
     @Test
     fun `performance check`() {
-//        to JsonNode 6 ms
-//                to BsonDoc 8 ms
-//                to DB 1093 ms
-//                Audits Table 1080 ms
+// average on 10 runs with 10k random audits
+//        toJsonAndParse 37 ms
+//        to JsonNode 5 ms
+//        to BsonDoc 5 ms
+//        to DB 1065 ms
+//        Audits Table 1336 ms
 
-        repeat(2) {
+        repeat(1) {
             executor(mongoOperation {
                 auditsPerf.drop()
                 AuditsTable.drop()
             })
 
-            val audits = (1..10000).map { randomAudit() }
+            val audits = (1..100).map { randomAudit() }
 
             chronoAndLog("toJsonAndParse") {
                 audits.map { BsonDocument.parse(JAuditMessage.toJson(it)) }
