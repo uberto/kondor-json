@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm'
     id 'maven-publish'
+    id 'signing'
 }
 
 kotlin {
@@ -41,7 +42,7 @@ archivesBaseName = 'kondor-tools'
 
 publishing {
     publications {
-        maven(MavenPublication) {
+        mavenJava(MavenPublication) {
             from components.java
             groupId = project.group
             artifactId = archivesBaseName
@@ -84,4 +85,8 @@ publishing {
             }
         }
     }
+}
+
+signing {
+    sign publishing.publications.mavenJava
 }
