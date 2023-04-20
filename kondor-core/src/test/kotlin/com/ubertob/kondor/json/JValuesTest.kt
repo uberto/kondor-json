@@ -257,7 +257,7 @@ class JValuesTest {
             val variant = randomVariant()
 
             val jsonStr = JVariant.toPrettyJson(variant)
-            println(jsonStr)
+//            println(jsonStr)
 
             expectThat(JVariant.fromJson(jsonStr).expectSuccess()).isEqualTo(variant)
         }

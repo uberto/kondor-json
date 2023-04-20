@@ -8,7 +8,6 @@ import com.mongodb.client.model.ReturnDocument
 import org.bson.BsonDocument
 import org.bson.BsonValue
 import org.bson.conversions.Bson
-import java.util.concurrent.atomic.AtomicReference
 
 interface MongoSession {
 
@@ -40,18 +39,18 @@ interface MongoSession {
 
 }
 
+typealias CollectionCache = MutableMap<String, MongoCollection<BsonDocument>>
 
-class MongoDbSession(val database: MongoDatabase) : MongoSession {
-
-    val collectionCache = AtomicReference<Map<String, MongoCollection<BsonDocument>>>(emptyMap())
+class MongoDbSession(val database: MongoDatabase, val collections: CollectionCache) : MongoSession {
 
     private fun withCollection(mongoTable: MongoTable<*>): MongoCollection<BsonDocument> =
-        collectionCache.get().getOrElse(mongoTable.collectionName) {
+        collections.getOrPut(mongoTable.collectionName) {
             database.getCollection(
                 mongoTable.collectionName, BsonDocument::class.java
-            ).also { mongoTable.onConnection(it) }
+            ).also {
+                mongoTable.onConnection(it)
+            }
         }
-
 
     fun <T> MongoTable<*>.internalRun(block: (MongoCollection<BsonDocument>) -> T): T =
         block(

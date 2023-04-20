@@ -9,13 +9,6 @@ import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
-import java.util.Map
-import kotlin.collections.List
-import kotlin.collections.emptyList
-import kotlin.collections.first
-import kotlin.collections.get
-import kotlin.collections.mutableMapOf
-import kotlin.collections.plus
 
 
 interface StringWrapper {

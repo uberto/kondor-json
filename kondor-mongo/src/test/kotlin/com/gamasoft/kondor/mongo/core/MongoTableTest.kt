@@ -5,23 +5,25 @@ import com.mongodb.client.model.*
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
-import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 
 @Testcontainers
 class MongoTableTest {
     //TODO add tests for retention... policy.. index
-    companion object{
+    companion object {
         @Container
         private val mongoContainer = mongoForTests()
 
         val mongoConnection = mongoContainer.connection
     }
+
     object simpleDocTable : TypedTable<SmallClass>(JSmallClass) {
         override val collectionName: String = "simpleDocs"
 
@@ -33,6 +35,16 @@ class MongoTableTest {
         }
     }
 
+    object testConnectionTable : TypedTable<SmallClass>(JSmallClass) {
+        val counter = AtomicInteger(0)
+
+        override val collectionName: String = "testConnectionTable"
+
+        override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {
+            counter.incrementAndGet()
+        }
+    }
+
     object complexDocTable : TypedTable<SealedClass>(JSealedClass) {
         override val collectionName: String = "complexDocs"
     }
@@ -41,6 +53,20 @@ class MongoTableTest {
         connection = mongoConnection,
         databaseName = "mongoCollTest"
     )
+
+    @BeforeEach
+    fun cleanUp() {
+        val cleanUpExecutor = MongoExecutor(
+            connection = mongoConnection,
+            databaseName = "mongoCollTest"
+        )
+
+        mongoOperation {
+            testConnectionTable.drop()
+            simpleDocTable.drop()
+            complexDocTable.drop()
+        }.exec(cleanUpExecutor)
+    }
 
     @Test
     fun `add and retrieve single doc`() {
@@ -59,10 +85,6 @@ class MongoTableTest {
         expectThat(myDoc).isEqualTo(doc)
     }
 
-    val cleanUp = mongoOperation {
-        simpleDocTable.drop()
-        complexDocTable.drop()
-    }
 
     val myDocs = (1..100).map { buildSealedClass(it) }
     val write100Doc = mongoOperation {
@@ -78,7 +100,7 @@ class MongoTableTest {
     @Test
     fun `add and retrieve many random docs`() {
 
-        val res = cleanUp + write100Doc exec localMongo
+        val res = write100Doc exec localMongo
 
         res.expectSuccess()
 
@@ -104,8 +126,7 @@ class MongoTableTest {
     @Test
     fun `add and delete`() {
 
-        val tot = cleanUp
-            .bind { write100Doc }
+        val tot = write100Doc
             .bind { delete3Docs(42) }
             .bind { readAll }
             .transform { it.count() }
@@ -117,7 +138,7 @@ class MongoTableTest {
     @Test
     fun `add and delete alternate syntax`() {
 
-        val res = cleanUp + write100Doc + delete3Docs(42) + readAll
+        val res = write100Doc + delete3Docs(42) + readAll
 
         val tot = res.transform { it.count() }
             .exec(localMongo).expectSuccess()
@@ -125,16 +146,42 @@ class MongoTableTest {
         expectThat(97).isEqualTo(tot)
     }
 
+
+    @Test
+    fun `call onConnection just once for connection`() {
+        val myDoc = SmallClass("abc", 123, 3.14, true)
+
+        testConnectionTable.counter.set(0)
+
+        mongoOperation {
+            testConnectionTable.addDocument(myDoc)
+            testConnectionTable.addDocument(myDoc)
+
+            testConnectionTable.countDocuments()
+
+        }.exec(localMongo).expectSuccess()
+
+        expectThat(testConnectionTable.counter.get()).isEqualTo(1)
+
+        mongoOperation {
+            testConnectionTable.countDocuments()
+        }.exec(localMongo).expectSuccess()
+
+
+        expectThat(testConnectionTable.counter.get()).isEqualTo(1)
+
+    }
+
     @Test
     fun `verify Indexes`() {
 
-        val indexes = cleanUp.bindCalculation {
+        val indexes = mongoOperation {
             expectThat(complexDocTable.listIndexes().count()).isEqualTo(0)
             simpleDocTable.listIndexes()
         }.exec(localMongo).expectSuccess()
 
         val definitions = indexes.toList().map { it.toJson() }
-        println(definitions)
+//        definitions.printIt("Indexes")
         expectThat(definitions.count()).isEqualTo(2)
         expectThat(definitions[1]).contains("MyIndex")
     }
@@ -142,14 +189,13 @@ class MongoTableTest {
     @Test
     fun `query and aggregate results`() {
 
-        val aggr = cleanUp.bind {
-            write100Doc
-        }.bindCalculation {
-            complexDocTable.aggregate(
-                Aggregates.match(Filters.exists("name")),
-                Aggregates.group("name", Accumulators.sum("count", 1))
-            )
-        }.exec(localMongo).expectSuccess()
+        val aggr = write100Doc
+            .bindCalculation {
+                complexDocTable.aggregate(
+                    Aggregates.match(Filters.exists("name")),
+                    Aggregates.group("name", Accumulators.sum("count", 1))
+                )
+            }.exec(localMongo).expectSuccess()
 
         val count = aggr.single()["count"]!!.asInt32().value
         expectThat(count).isEqualTo(33)
