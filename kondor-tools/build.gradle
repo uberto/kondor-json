@@ -4,9 +4,6 @@ plugins {
     id 'signing'
 }
 
-kotlin {
-    jvmToolchain(17)
-}
 
 java {
     withJavadocJar()
