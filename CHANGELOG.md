@@ -3,9 +3,13 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.9.0 - 4 May 2023
+
+all: upgraded to Java 17. Version 1.8.x will stay on Java 8
+
 ### v.1.8.5 - 4 May 2023
 
-all: reverted to Java8 for compatibility
+all: reverted to Java 8 for compatibility
 Kondor-cor: Added toCompactJson method for max performance
 Kondor-mongo: Introduced MongoExecutor interface and other improvements
 

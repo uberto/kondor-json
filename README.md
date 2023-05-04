@@ -41,6 +41,7 @@ A live code presentation to see how to use Kondor and some insights on how it wo
 
 ## What's Changed Recently
 
+- New Kondor-mongo to reuse the converters working with MongoDb
 - Automatic JsonSchema generation from any converter
 - Code generation of converters from data classes
 - JMap works with any type as key (thanks to Alistair O'Neill)
@@ -161,10 +162,17 @@ Will output the following Json schema:
 }
 ```
 
-### Converters Generation
+### Using ChatGPT to generate converters
 
-Make sure to import `kondor-tools` as a dependency of the project. 
-Then you create a new kotlin file for your converters and add a temporary main function that calls `kondorGenerator`, like this:
+I made a video explaining how to generate the converters quickly using ChatGPT:
+
+https://youtu.be/4v0VuxZeIIY?t=500
+
+### Converters Generation Tool
+
+Make sure to import `kondor-tools` as a dependency of the project.
+Then you create a new kotlin file for your converters and add a temporary main function that calls `kondorGenerator`,
+like this:
 
 ```kotlin
 

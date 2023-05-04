@@ -5,6 +5,9 @@ plugins {
     id 'java-library'
 }
 
+kotlin {
+    jvmToolchain(17)
+}
 
 java {
     withJavadocJar()

@@ -2,25 +2,13 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "${kotlin_version}"
 }
 
-tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).all {
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
-}
-
-compileKotlin {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-
-}
-
 allprojects {
 
     group 'com.ubertob.kondor'
     version '1.8.5'
 
     wrapper {
-        gradleVersion = "8.1"
+        gradleVersion = "8.1.1"
     }
 
     repositories {
