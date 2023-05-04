@@ -10,6 +10,15 @@ java {
     withSourcesJar()
 }
 
+test {
+    useJUnitPlatform()
+    maxHeapSize = "2g"
+    testLogging {
+//        showStandardStreams = true
+        events "skipped", "failed", "passed"
+    }
+}
+
 dependencies {
     api project(":kondor-core")
 
@@ -31,14 +40,6 @@ dependencies {
 }
 
 
-tasks {
-    test {
-        useJUnitPlatform()
-        testLogging {
-            events "skipped", "failed", "passed"
-        }
-    }
-}
 
 archivesBaseName = 'kondor-mongo'
 

@@ -38,11 +38,6 @@ subprojects {
         testContainerVersion = "1.16.0"
     }
 
-    test {
-        useJUnitPlatform()
-//        testLogging.showStandardStreams = true
-    }
-
 }
 
 

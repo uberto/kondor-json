@@ -6,6 +6,16 @@ java {
     withJavadocJar()
     withSourcesJar()
 }
+
+test {
+    useJUnitPlatform()
+    maxHeapSize = "2g"
+    testLogging {
+//        showStandardStreams = true
+        events "skipped", "failed", "passed"
+    }
+}
+
 dependencies {
     implementation project(":kondor-core")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
@@ -20,11 +30,3 @@ dependencies {
     implementation "io.strikt:strikt-core:$striktVersion"
 }
 
-tasks {
-    test {
-        useJUnitPlatform()
-        testLogging {
-            events "skipped", "failed", "passed"
-        }
-    }
-}

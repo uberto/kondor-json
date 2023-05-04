@@ -11,6 +11,15 @@ java {
     withSourcesJar()
 }
 
+test {
+    useJUnitPlatform()
+    maxHeapSize = "2g"
+    testLogging {
+//        showStandardStreams = true
+        events "skipped", "failed", "passed"
+    }
+}
+
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
 
@@ -22,15 +31,6 @@ dependencies {
 
 }
 
-
-tasks {
-    test {
-        useJUnitPlatform()
-        testLogging {
-            events "skipped", "failed", "passed"
-        }
-    }
-}
 
 archivesBaseName = 'kondor-outcome'
 
