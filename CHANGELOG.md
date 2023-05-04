@@ -6,6 +6,7 @@ rationale when appropriate:
 ### v.1.8.5 - 4 May 2023
 
 all: reverted to Java8 for compatibility
+Kondor-cor: Added toCompactJson method for max performance
 Kondor-mongo: Introduced MongoExecutor interface and other improvements
 
 ### v.1.8.4 - 17 April 2023

@@ -3,6 +3,7 @@ package com.ubertob.kondor
 
 import org.leadpony.justify.api.JsonSchema
 import org.leadpony.justify.api.JsonValidationService
+import java.time.Duration
 import kotlin.random.Random
 
 const val uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -56,11 +57,17 @@ fun validateJsonAgainstSchema(schemaJson: String, json: String) {
         .use { reader -> reader.readValue() }
 }
 
-fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T {
+fun <T> chrono(fn: () -> T): Pair<T, Duration> {
     val start = System.nanoTime()
     val res = fn()
     val elapsed = System.nanoTime() - start
 
-    println("$logPrefix ${elapsed / 1_000_000} ms")
-    return res
+    return res to Duration.ofNanos(elapsed)
 }
+
+fun <T> Pair<T, Duration>.logIt(logPrefix: String) =
+    println("$logPrefix ${this.second.toMillis()} ms")
+        .let { first }
+
+fun <T> chronoAndLog(logPrefix: String, fn: () -> T): T =
+    chrono(fn).logIt(logPrefix)

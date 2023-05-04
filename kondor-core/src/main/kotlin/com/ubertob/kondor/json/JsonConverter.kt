@@ -27,7 +27,6 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     override fun <D> rmap(g: (T) -> D): ProfunctorConverter<T, D> =
         ProfunctorConverter<T, T>(::fromJson, ::toJson).rmap(g)
 
-
     val _nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
@@ -84,6 +83,9 @@ fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(true, 2)
+
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toCompactJson(value: T): String =
+    buildString { toJsonNode(value, NodePathRoot).compact(this) }
 
 
 private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =

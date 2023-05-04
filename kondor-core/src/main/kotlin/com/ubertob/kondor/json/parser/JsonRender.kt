@@ -3,7 +3,7 @@ package com.ubertob.kondor.json.parser
 import com.ubertob.kondor.json.jsonnode.*
 
 
-fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
+fun JsonNode.render(): String =
     when (this) {
         is JsonNodeNull -> "null"
         is JsonNodeString -> text.putInQuotes()
@@ -12,6 +12,25 @@ fun JsonNode.render(): String = //todo: try returning StringBuilder for perf?
         is JsonNodeArray -> notNullValues.map { it.render() }.joinToString(prefix = "[", postfix = "]")
         is JsonNodeObject -> notNullFields.map { it.key.putInQuotes() + ": " + it.value.render() }
             .joinToString(prefix = "{", postfix = "}")
+    }
+
+fun JsonNode.compact(stringBuilder: StringBuilder): StringBuilder =
+    stringBuilder.also { sb ->
+        when (this) {
+            is JsonNodeNull -> sb.append("null")
+            is JsonNodeString -> sb.append(text.putInQuotes())
+            is JsonNodeBoolean -> sb.append(value.toString())
+            is JsonNodeNumber -> sb.append(num.toString())
+            is JsonNodeArray -> notNullValues
+                .appendAndJoin(builder = sb, prefix = "[", postfix = "]", separator = ",") { it.compact(this) }
+
+            is JsonNodeObject -> notNullFields.appendAndJoin(builder = sb, prefix = "{", postfix = "}", separator = ",")
+            {
+                append(it.key.putInQuotes())
+                append(':')
+                it.value.compact(this)
+            }
+        }
     }
 
 
@@ -33,6 +52,7 @@ fun JsonNode.pretty(explicitNull: Boolean = false, indent: Int = 2, offset: Int 
                 postfix = "${br(offset)}]",
                 separator = ",${br(offset + indent)}"
             )
+
         is JsonNodeObject -> fieldsFiltered(explicitNull).map {
             it.key.putInQuotes() + ": " + it.value.pretty(
                 explicitNull, indent,
@@ -69,3 +89,21 @@ private fun String.putInQuotes(): String =
             else -> ""
         }
     }.let { "\"${it}\"" }
+
+
+fun <T> Iterable<T>.appendAndJoin(
+    builder: StringBuilder,
+    separator: CharSequence,
+    prefix: CharSequence,
+    postfix: CharSequence,
+    onEach: StringBuilder.(T) -> Unit
+): StringBuilder {
+    builder.append(prefix)
+    var count = 0
+    for (element in this) {
+        if (++count > 1) builder.append(separator)
+        onEach(builder, element)
+    }
+    builder.append(postfix)
+    return builder
+}

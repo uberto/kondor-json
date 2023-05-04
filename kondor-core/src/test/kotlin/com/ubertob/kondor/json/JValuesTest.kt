@@ -5,6 +5,7 @@ import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import com.ubertob.kondortools.expectSuccess
+import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -249,10 +250,26 @@ class JValuesTest {
         }
     }
 
+    @Test
+    fun `Compact Json with objects inside and back`() {
+
+        repeat(100) {
+            val invoice = randomInvoice()
+            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
+
+            val actual = JInvoice.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(invoice)
+
+            val jsonStr = JInvoice.toCompactJson(invoice).printIt("Compact Invoice!")
+
+            expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
+        }
+    }
 
 
     @Test
-    fun `JVariant and back`(){
+    fun `JVariant and back`() {
         repeat(10) {
             val variant = randomVariant()
 

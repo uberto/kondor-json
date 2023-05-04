@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.compact
 import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.json.parser.render
 import org.junit.jupiter.api.Test
@@ -192,6 +193,20 @@ class JsonRenderTest {
               |  "name": "Ann"
               |}""".trimMargin()
         expectThat(jsonStringNN).isEqualTo(expectedNN)
+    }
+
+
+    @Test
+    fun `compact render object`() {
+        val jsonString = JsonNodeObject(
+            mapOf(
+                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot)
+            ),
+            NodePathRoot
+        ).compact(StringBuilder()).toString()
+
+        expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann"}""")
     }
 
 }

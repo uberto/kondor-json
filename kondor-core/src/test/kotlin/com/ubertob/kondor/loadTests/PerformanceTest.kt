@@ -12,34 +12,37 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 /*
+On my laptop: 4/5/2023
+
 JInvoices 50k Invoices, 63MB
-serialization 2175 ms
-total parsing 2501 ms
-tokenizing 1146 ms
-toJsonNode 757 ms
-marshalling 297 ms
+serialization 1300 ms
+serialization compact 1157 ms
+total parsing 1339 ms
+tokenizing 672 ms
+toJsonNode 524 ms
+marshalling 224 ms
 
 
 JFileInfo 100k 15MB
-
-serialization 318 ms
-total parsing 592 ms
-tokenizing 248 ms
-toJsonNode 233 ms
-marshalling 101 ms
+serialization 282 ms
+serialization compact 220 ms
+total parsing 470 ms
+tokenizing 163 ms
+toJsonNode 303 ms
+marshalling 70 ms
 
 JStrings 100k 1.6Mb
-serialization 14 ms
-total parsing 30 ms
-tokenizing 16 ms
-toJsonNode 11 ms
+serialization 11 ms
+serialization compact 10 ms
+total parsing 20 ms
+tokenizing 31 ms
+toJsonNode 22 ms
 marshalling 3 ms
 
  */
 
 @Disabled
-class LoadTest {
-
+class PerformanceTest {
 
     @Test
     fun `serialize and parse invoices`() {
@@ -54,6 +57,8 @@ class LoadTest {
         repeat(100) {
 
             val jsonString = chronoAndLog("serialization") { JInvoices.toJson(invoices) }
+
+            chronoAndLog("serialization compact") { JInvoices.toCompactJson(invoices) }
 
             chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
 
@@ -73,14 +78,16 @@ class LoadTest {
 
         val jFileInfos = JList(JFileInfo)
 
-        val invoices = generateSequence(0) { it + 1 }.take(100_000).map {
+        val fileInfos = generateSequence(0) { it + 1 }.take(100_000).map {
             randomFileInfo().copy(name = it.toString())
         }.toList()
 
-        println("Json String length ${jFileInfos.toJson(invoices).length}")
+        println("Json String length ${jFileInfos.toJson(fileInfos).length}")
         repeat(100) {
 
-            val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(invoices) }
+            val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(fileInfos) }
+
+            chronoAndLog("serialization compact") { jFileInfos.toCompactJson(fileInfos) }
 
             chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
 
@@ -108,6 +115,9 @@ class LoadTest {
         repeat(100) {
 
             val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
+
+            chronoAndLog("serialization compact") { jStrings.toCompactJson(strings) }
+
 
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
 
