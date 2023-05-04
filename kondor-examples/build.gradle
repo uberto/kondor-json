@@ -6,6 +6,10 @@ kotlin {
     jvmToolchain(17)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
 dependencies {
     implementation project(":kondor-core")
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"

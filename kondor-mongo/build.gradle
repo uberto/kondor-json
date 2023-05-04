@@ -9,14 +9,19 @@ kotlin {
     jvmToolchain(17)
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 dependencies {
-    api project (":kondor-core")
+    api project(":kondor-core")
 
     api "org.mongodb:mongodb-driver-sync:4.8.2"
-    
-    implementation  "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 
-    testImplementation  "io.strikt:strikt-core:$striktVersion"
+    implementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+
+    testImplementation "io.strikt:strikt-core:$striktVersion"
 
     testRuntimeOnly  "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
     testRuntimeOnly  "org.junit.platform:junit-platform-launcher:$junitLauncherVersion"
