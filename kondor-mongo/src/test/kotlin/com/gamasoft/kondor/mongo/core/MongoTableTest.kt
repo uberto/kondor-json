@@ -13,6 +13,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.random.Random
 
 @Testcontainers
 class MongoTableTest {
@@ -71,7 +72,7 @@ class MongoTableTest {
     @Test
     fun `add and retrieve single doc`() {
 
-        val myDoc = SmallClass("abc", 123, 3.14, true)
+        val myDoc = randomSmallClass()
 
         val doc = mongoOperation {
             simpleDocTable.drop()
@@ -149,7 +150,7 @@ class MongoTableTest {
 
     @Test
     fun `call onConnection just once for connection`() {
-        val myDoc = SmallClass("abc", 123, 3.14, true)
+        val myDoc = randomSmallClass()
 
         testConnectionTable.counter.set(0)
 
@@ -172,6 +173,13 @@ class MongoTableTest {
 
     }
 
+    private fun randomSmallClass() = SmallClass(
+        string = Random.nextInt(100000, 999999).let { "String$it" },
+        int = Random.nextInt(),
+        double = Random.nextDouble(),
+        boolean = Random.nextBoolean()
+    )
+
     @Test
     fun `verify Indexes`() {
 
@@ -184,6 +192,37 @@ class MongoTableTest {
 //        definitions.printIt("Indexes")
         expectThat(definitions.count()).isEqualTo(2)
         expectThat(definitions[1]).contains("MyIndex")
+    }
+
+    @Test
+    fun `list all collections`() {
+
+        writeASimpleDocAndAComplexDoc.exec(localMongo).expectSuccess()
+
+        val allColls = mongoOperation {
+            listCollections()
+        }.exec(localMongo).expectSuccess()
+
+//        allColls.printIt("colls")
+        expectThat(allColls.count()).isEqualTo(2)
+        expectThat(allColls[1].toJson()).contains(complexDocTable.collectionName)
+    }
+
+    private val writeASimpleDocAndAComplexDoc = mongoOperation {
+        simpleDocTable.addDocument(randomSmallClass()) ?: error("Cannot create simpledoc")
+        complexDocTable.addDocument(buildSealedClass(Random.nextInt())) ?: error("Cannot create complexdoc")
+    }
+
+    @Test
+    fun `list only some collections`() {
+        writeASimpleDocAndAComplexDoc.exec(localMongo).expectSuccess()
+
+        val oneColl = mongoOperation {
+            listCollectionNames(Filters.eq("name", simpleDocTable.collectionName))
+        }.exec(localMongo).expectSuccess()
+
+        expectThat(oneColl.count()).isEqualTo(1)
+        expectThat(oneColl.first()).isEqualTo(simpleDocTable.collectionName)
     }
 
     @Test
