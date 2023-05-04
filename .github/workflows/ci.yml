@@ -39,4 +39,4 @@ jobs:
 
       - name: Build with Gradle
         if: steps.tests.outcome == 'success'
-        run: ./gradlew clean build
+        run: ./gradlew clean build -x test
