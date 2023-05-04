@@ -1,11 +1,7 @@
-package com.gamasoft.kondor.mongo.json
+package com.ubertob.kondor.mongo.json
 
-import com.gamasoft.kondor.mongo.core.DB_NAME
-import com.gamasoft.kondor.mongo.core.connection
-import com.gamasoft.kondor.mongo.core.mongoForTests
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.core.*
-import com.ubertob.kondor.mongo.json.toBsonDocument
 import com.ubertob.kondortools.chronoAndLog
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument

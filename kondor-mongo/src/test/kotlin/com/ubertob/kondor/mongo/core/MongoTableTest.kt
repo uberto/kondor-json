@@ -1,8 +1,7 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
-import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.BeforeEach

@@ -1,8 +1,5 @@
-package com.gamasoft.kondor.mongo.json
+package com.ubertob.kondor.mongo.json
 
-import com.gamasoft.kondor.mongo.core.DB_NAME
-import com.gamasoft.kondor.mongo.core.connection
-import com.gamasoft.kondor.mongo.core.mongoForTests
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test

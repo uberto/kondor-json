@@ -1,4 +1,4 @@
-package com.gamasoft.kondor.mongo.json
+package com.ubertob.kondor.mongo.json
 
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.bool

@@ -1,6 +1,5 @@
-package com.gamasoft.kondor.mongo.core
+package com.ubertob.kondor.mongo.core
 
-import com.ubertob.kondor.mongo.core.MongoConnection
 import org.testcontainers.containers.MongoDBContainer
 import java.time.Duration
 
