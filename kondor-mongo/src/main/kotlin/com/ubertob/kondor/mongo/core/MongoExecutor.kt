@@ -39,7 +39,8 @@ class MongoExecutorDbClient(private val connection: MongoConnection, override va
 
     override fun listDatabaseNames(): List<String> = listDatabases().map { it["name"].toString() }
 
-    fun clusterDescription(): ClusterDescription = mongoClient.clusterDescription //TODO add test
+    fun clusterDescription(): ClusterDescription = mongoClient.clusterDescription
+
     fun watch(): ChangeStreamIterable<Document> = mongoClient.watch() //TODO add test
 
 }

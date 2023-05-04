@@ -1,5 +1,8 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.MongoTimeoutException
+import com.mongodb.connection.ServerConnectionState
+import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -7,8 +10,10 @@ import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
+import java.time.Duration
 import java.util.*
 
 private object collForTest: BsonTable() {
@@ -49,11 +54,11 @@ class MongoExecutorTest {
         }""".trimIndent()
     )
 
-    val oneDocReader = mongoOperation {
+    val writeAndReadOneDoc = mongoOperation {
         collForTest.drop()
         collForTest.addDocument(doc)
         val docs = collForTest.all()
-        expectThat(1).isEqualTo( docs.count())
+        expectThat(1).isEqualTo(docs.count())
         docs.first()
     }
 
@@ -75,7 +80,7 @@ class MongoExecutorTest {
     fun `add and query doc safely`() {
         val executor = MongoExecutorDbClient(mongoConnection, dbName)
 
-        val outcome = oneDocReader exec executor
+        val outcome = writeAndReadOneDoc exec executor
         val myDoc = outcome.expectSuccess()
         expectThat(doc).isEqualTo(myDoc)
     }
@@ -110,5 +115,31 @@ class MongoExecutorTest {
 
         val dbNames = executor.listDatabaseNames() //.printIt("db names")
         expectThat(dbNames.size).isGreaterThan(0)
+    }
+
+    @Test
+    fun `retrieve connection state`() {
+        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        executor(writeAndReadOneDoc).expectSuccess()
+
+        val clusterDesc = executor.clusterDescription()
+
+        expectThat(clusterDesc.serverDescriptions[0].state).isEqualTo(ServerConnectionState.CONNECTED)
+    }
+
+    @Test
+    fun `handle wrong connection`() {
+        val wrongConn = MongoConnection(
+            connString = "mongodb://mynonexistanthost:1234/dbname",
+            timeout = Duration.ofMillis(10)
+        )
+        val executor = MongoExecutorDbClient(wrongConn, dbName)
+
+        val error = executor(writeAndReadOneDoc).expectFailure() as MongoErrorException
+
+        expectThat(error.e).isA<MongoTimeoutException>()
+        val clusterDesc = executor.clusterDescription()
+
+        expectThat(clusterDesc.serverDescriptions[0].state).isEqualTo(ServerConnectionState.CONNECTING)
     }
 }
