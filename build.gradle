@@ -17,7 +17,7 @@ compileKotlin {
 allprojects {
 
     group 'com.ubertob.kondor'
-    version '1.8.4'
+    version '1.8.5'
 
     wrapper {
         gradleVersion = "8.1"
