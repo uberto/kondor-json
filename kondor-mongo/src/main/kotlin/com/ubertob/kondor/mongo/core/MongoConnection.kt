@@ -6,7 +6,7 @@ import com.mongodb.connection.ClusterSettings
 import java.time.Duration
 import java.util.concurrent.TimeUnit
 
-data class MongoConnection(val connString: String, val timeout: Duration = Duration.ofMillis(100)) {
+data class MongoConnection(val connString: String, val timeout: Duration = Duration.ofMillis(500)) {
     fun toMongoClientSettings(): MongoClientSettings = MongoClientSettings.builder()
         .applyToSocketSettings { builder ->
             builder.applySettings(

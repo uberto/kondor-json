@@ -50,14 +50,14 @@ class MongoTableTest {
         override val collectionName: String = "complexDocs"
     }
 
-    private val localMongo = MongoExecutor(
+    private val localMongo = MongoExecutorDbClient(
         connection = mongoConnection,
         databaseName = "mongoCollTest"
     )
 
     @BeforeEach
     fun cleanUp() {
-        val cleanUpExecutor = MongoExecutor(
+        val cleanUpExecutor = MongoExecutorDbClient(
             connection = mongoConnection,
             databaseName = "mongoCollTest"
         )

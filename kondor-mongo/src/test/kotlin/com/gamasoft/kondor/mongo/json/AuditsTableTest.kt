@@ -89,7 +89,7 @@ class AuditsTableTest {
         AuditsTable.drop()
     }
 
-    val executor = MongoExecutor(mongoConnection, DB_NAME)
+    val executor = MongoExecutorDbClient(mongoConnection, DB_NAME)
 
     @Test
     fun `add and query doc safely`() {

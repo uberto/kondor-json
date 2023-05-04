@@ -9,6 +9,7 @@ import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.isGreaterThan
 import java.util.*
 
 private object collForTest: BsonTable() {
@@ -73,34 +74,42 @@ class MongoExecutorTest {
 
     @Test
     fun `add and query doc safely`() {
-        val provider = MongoExecutor(mongoConnection, dbName)
+        val executor = MongoExecutorDbClient(mongoConnection, dbName)
 
-        val outcome = oneDocReader exec provider
+        val outcome = oneDocReader exec executor
         val myDoc = outcome.expectSuccess()
         expectThat(doc).isEqualTo(myDoc)
     }
 
     @Test
     fun `drop collection safely`() {
-        val provider = MongoExecutor(mongoConnection, dbName)
+        val executor = MongoExecutorDbClient(mongoConnection, dbName)
 
-        val tot: Int = provider(dropCollReader).expectSuccess()
+        val tot: Int = executor(dropCollReader).expectSuccess()
         expectThat(0).isEqualTo( tot)
     }
 
     @Test
     fun `return error in case of wrong connection`() {
-        val provider = MongoExecutor(MongoConnection("mongodb://localhost:12345"), dbName)
+        val executor = MongoExecutorDbClient(MongoConnection("mongodb://localhost:12345"), dbName)
 
-        val res = provider(dropCollReader)
+        val res = executor(dropCollReader)
         assertTrue(res.toString().contains("MongoErrorException"))
     }
 
     @Test
     fun `parsing query safely`() {
-        val provider = MongoExecutor(mongoConnection, dbName)
+        val executor = MongoExecutorDbClient(mongoConnection, dbName)
 
-        val myDoc = provider(docQueryReader).expectSuccess()
-        expectThat(42).isEqualTo( myDoc["index"]!!.asInt32().value)
+        val myDoc = executor(docQueryReader).expectSuccess()
+        expectThat(42).isEqualTo(myDoc["index"]!!.asInt32().value)
+    }
+
+    @Test
+    fun `list database names`() {
+        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+
+        val dbNames = executor.listDatabaseNames() //.printIt("db names")
+        expectThat(dbNames.size).isGreaterThan(0)
     }
 }

@@ -1,6 +1,9 @@
 package com.ubertob.kondor.mongo.core
 
-import com.mongodb.client.*
+import com.mongodb.client.ChangeStreamIterable
+import com.mongodb.client.MongoClient
+import com.mongodb.client.MongoClients
+import com.mongodb.client.MongoCollection
 import com.mongodb.connection.ClusterDescription
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
@@ -9,8 +12,15 @@ import org.bson.BsonDocument
 import org.bson.Document
 import java.util.concurrent.ConcurrentHashMap
 
+interface MongoExecutor : ContextProvider<MongoSession> {
+    val databaseName: String
+    fun listDatabaseNames(): List<String>
 
-class MongoExecutor(private val connection: MongoConnection, val databaseName: String): ContextProvider<MongoSession> {
+    override operator fun <T> invoke(context: ContextReader<MongoSession, T>): Outcome<MongoError, T>
+}
+
+class MongoExecutorDbClient(private val connection: MongoConnection, override val databaseName: String) :
+    MongoExecutor {
 
     private val mongoClient: MongoClient by lazy { MongoClients.create(connection.toMongoClientSettings()) }
 
@@ -25,8 +35,11 @@ class MongoExecutor(private val connection: MongoConnection, val databaseName: S
             MongoErrorException(connection, databaseName, e).asFailure()
         }
 
-    fun listDatabases(): ListDatabasesIterable<Document> = mongoClient.listDatabases()
-    fun clusterDescription(): ClusterDescription = mongoClient.clusterDescription
-    fun watch(): ChangeStreamIterable<Document> = mongoClient.watch()
+    fun listDatabases(): List<Document> = mongoClient.listDatabases().toList() //TODO add test
+
+    override fun listDatabaseNames(): List<String> = listDatabases().map { it["name"].toString() }
+
+    fun clusterDescription(): ClusterDescription = mongoClient.clusterDescription //TODO add test
+    fun watch(): ChangeStreamIterable<Document> = mongoClient.watch() //TODO add test
 
 }

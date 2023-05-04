@@ -16,5 +16,5 @@ fun mongoForTests() =
 val MongoDBContainer.connection
     get() = MongoConnection(
         connString = getReplicaSetUrl(DB_NAME),
-        timeout = Duration.ofMillis(50)
+        timeout = Duration.ofMillis(500)
     )

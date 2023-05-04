@@ -32,5 +32,5 @@ operator fun  <T, U> MongoReader<T>.plus(operation: (T) -> MongoReader<U>): Mong
 operator fun  <U> MongoReader<Unit>.plus(otherReader: MongoReader<U>): MongoReader<U> =
     combineWith { otherReader }
 
-infix fun <T : Any> MongoReader<T>.exec(provider: MongoExecutor): MongoOutcome<T> = provider(this)
+infix fun <T : Any> MongoReader<T>.exec(executor: MongoExecutor): MongoOutcome<T> = executor(this)
 
