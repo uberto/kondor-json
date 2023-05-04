@@ -68,6 +68,6 @@ fun buildSealedClass(index: Int): SealedClass =
     when(index % 3){
         0 -> SmallClass("SmallClass$index", index, index.toDouble(), index % 2 == 0)
         1 -> NestedClass(Instant.now(), SmallClass("Nested$index", index, index.toDouble(), index % 2 == 0))
-        else -> ClassWithArray(name = "ClassWithArray$index", (0..index).map { it.toString() })
+        else -> ClassWithArray(name = "ClassWithArray$index", (0..(index % 10)).map { it.toString() })
     }
 
