@@ -113,7 +113,7 @@ class AuditsTableTest {
     }
 
 
-    private object auditsPerf : BsonTable() {
+    private object AuditsPerf : BsonTable() {
         override val collectionName: String = "performanceTests"
         //retention... policy.. index
     }
@@ -130,7 +130,7 @@ class AuditsTableTest {
 
         repeat(1) {
             executor(mongoOperation {
-                auditsPerf.drop()
+                AuditsPerf.drop()
                 AuditsTable.drop()
             })
 
@@ -154,7 +154,7 @@ class AuditsTableTest {
                 executor(
                     mongoOperation {
                         bsonDocs.forEach {
-                            auditsPerf.addDocument(it)
+                            AuditsPerf.addDocument(it)
                         }
                     }
                 )
