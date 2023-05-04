@@ -26,5 +26,17 @@ jobs:
       - name: Validate Gradle wrapper
         uses: gradle/wrapper-validation-action@v1
 
+      - name: Run tests and generate test report
+        id: tests
+        run: ./gradlew test --info
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: build/reports/tests/
+
       - name: Build with Gradle
+        if: steps.tests.outcome == 'success'
         run: ./gradlew clean build
