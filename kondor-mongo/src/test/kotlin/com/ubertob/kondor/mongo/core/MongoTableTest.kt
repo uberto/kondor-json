@@ -195,7 +195,6 @@ class MongoTableTest {
 
     @Test
     fun `list all collections`() {
-
         writeASimpleDocAndAComplexDoc.exec(localMongo).expectSuccess()
 
         val allColls = mongoOperation {
@@ -204,7 +203,10 @@ class MongoTableTest {
 
 //        allColls.printIt("colls")
         expectThat(allColls.count()).isEqualTo(2)
-        expectThat(allColls[1].toJson()).contains(complexDocTable.collectionName)
+        expectThat(allColls.map { it.toJson() }.joinToString()) {
+            contains(complexDocTable.collectionName)
+            contains(simpleDocTable.collectionName)
+        }
     }
 
     private val writeASimpleDocAndAComplexDoc = mongoOperation {
