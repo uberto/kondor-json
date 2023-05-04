@@ -35,7 +35,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: test-results
-          path: build/reports/tests/
+          path: /kondor-*/build/reports/tests/
 
       - name: Build with Gradle
         if: steps.tests.outcome == 'success'
