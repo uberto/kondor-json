@@ -52,7 +52,7 @@ dependencies {
     testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitLauncherVersion"
 
     testImplementation 'org.leadpony.justify:justify:3.1.0'
-    runtimeOnly 'org.leadpony.joy:joy-classic:2.0.0'
+    testRuntimeOnly 'org.leadpony.joy:joy-classic:2.0.0'
 }
 
 
