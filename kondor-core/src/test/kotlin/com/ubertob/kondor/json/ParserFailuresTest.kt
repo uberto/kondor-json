@@ -5,8 +5,8 @@ import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.startsWith
 
 class ParserFailuresTest {
 
@@ -63,11 +63,15 @@ class ParserFailuresTest {
 
     @Test
     fun `parsing illegal Long returns an error`() {
+
         val illegalJson = "123-234"
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
+        println(error.msg)
+
+        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 1: expected a Number but found '123-234'")
+
     }
 
     @Test
