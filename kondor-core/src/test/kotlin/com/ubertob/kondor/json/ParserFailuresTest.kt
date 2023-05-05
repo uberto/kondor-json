@@ -5,13 +5,12 @@ import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 class ParserFailuresTest {
 
     @Test
-    fun `parsing json not completely returns an error`() {
+    fun `parsing not complaint json fails`() {
         val illegalJson = "123 b"
 
         val error = JInt.fromJson(illegalJson).expectFailure()
