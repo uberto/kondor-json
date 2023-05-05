@@ -25,7 +25,7 @@ compileJava {
 allprojects {
 
     group 'com.ubertob.kondor'
-    version '1.8.5'
+    version '1.8.6'
 
     wrapper {
         gradleVersion = "8.1.1"
