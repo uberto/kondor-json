@@ -13,13 +13,13 @@ object JSimpleFlatDoc : JAny<SimpleFlatDoc>() {
     val index by num(SimpleFlatDoc::index)
     val name by str(SimpleFlatDoc::name)
     val localDate by str(SimpleFlatDoc::date)
-    val yesOrNo by bool(SimpleFlatDoc::bool)
+    val isEven by bool(SimpleFlatDoc::bool)
 
     override fun JsonNodeObject.deserializeOrThrow() = SimpleFlatDoc(
         index = +index,
         name = +name,
         date = +localDate,
-        bool = +yesOrNo
+        bool = +isEven
     )
 }
 

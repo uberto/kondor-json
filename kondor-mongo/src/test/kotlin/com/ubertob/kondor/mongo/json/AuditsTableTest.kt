@@ -11,7 +11,6 @@ import org.testcontainers.junit.jupiter.Testcontainers
 import strikt.api.expectThat
 import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
-import kotlin.reflect.KClass
 
 @Testcontainers
 class AuditsTableTest {
@@ -25,13 +24,6 @@ class AuditsTableTest {
     private object AuditsTable : TypedTable<AuditMessage>(JAuditMessage) {
         override val collectionName: String = "Audits"
         //retention... policy.. index
-    }
-
-
-    inline fun <reified T : Any> getRandomSealedSubclass(): KClass<out T> {
-        val subclasses = T::class.sealedSubclasses
-        val randomSubclass = subclasses.random()
-        return randomSubclass
     }
 
     fun randomString(lengthRange: IntRange = (1..10)): String {
@@ -75,7 +67,7 @@ class AuditsTableTest {
 
     val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
 
-    val cleanUp = mongoOperation {
+    private val cleanUp = mongoOperation {
         AuditsTable.drop()
     }
 

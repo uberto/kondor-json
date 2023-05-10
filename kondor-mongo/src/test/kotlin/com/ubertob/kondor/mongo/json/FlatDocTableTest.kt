@@ -1,6 +1,7 @@
 package com.ubertob.kondor.mongo.json
 
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Updates
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondor.outcome.OutcomeError
 import com.ubertob.kondor.outcome.failIfNull
@@ -30,23 +31,28 @@ class FlatDocTableTest {
 
     val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
 
-    private fun createDoc(i: Int): SimpleFlatDoc =
-        SimpleFlatDoc(
+
+    private fun createDoc(i: Int): SimpleFlatDoc {
+
+        return SimpleFlatDoc(
             index = i,
             name = "mydoc $i",
-            date = LocalDate.now().minusDays(i.toLong()),
+            date = calcDocDate(i),
             bool = i % 2 == 0
         )
+    }
+
+    private fun calcDocDate(i: Int): LocalDate = LocalDate.now().minusDays(i.toLong())
 
     private val doc = createDoc(0)
 
-    val cleanup: ContextReader<MongoSession, Unit> =
-        mongoOperation {
-            FlatDocs.drop()
-        }
+    private val cleanUp = mongoOperation {
+        FlatDocs.drop()
+    }
 
-    fun reader(id: Int) = mongoOperation {
-        FlatDocs.find(Filters.eq("index"))
+    fun reader(index: Int) = mongoOperation {
+        FlatDocs.find(Filters.eq("index", index))
+            .firstOrNull()
     }
 
     fun docWriter(doc: SimpleFlatDoc): ContextReader<MongoSession, Unit> =
@@ -59,7 +65,7 @@ class FlatDocTableTest {
             FlatDocs.find("{ index: $index }").firstOrNull()
         }
 
-    val hundredDocWriter: ContextReader<MongoSession, Long> =
+    private val hundredDocWriter: ContextReader<MongoSession, Long> =
         mongoOperation {
             (1..100).forEach {
                 FlatDocs.addDocument(createDoc(it))
@@ -72,7 +78,7 @@ class FlatDocTableTest {
     fun `add and query doc safely`() {
 
         val myDoc = onMongo(
-            cleanup +
+            cleanUp +
                     docWriter(doc) +
                     docQuery(doc.index)
         ).expectSuccess()
@@ -99,14 +105,59 @@ class FlatDocTableTest {
 
     }
 
-//    @Test
-//    fun `findOnexxx methods work correctly`() {
-//
-//        val myDocs = onMongo(cleanUp + write100Audits).expectSuccess()
-//
-//        val doc42 = onMongo{ mongoOperation {  }}
-//    }
 
+    @Test
+    fun `findOneAndUpdate methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.findOneAndUpdate(
+                Filters.eq("index", 42),
+                Updates.combine(
+                    Updates.set("name", "updated 42"),
+                    Updates.set("isEven", false)
+                )
+            )
+        }).expectSuccess()
+
+        val newDoc42 = onMongo(reader(42)).expectSuccess()
+
+        val expected = SimpleFlatDoc(42, "updated 42", calcDocDate(42), false)
+        expectThat(newDoc42).isEqualTo(expected)
+    }
+
+    @Test
+    fun `findOneAndReplace methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        val updatedDoc = SimpleFlatDoc(43, "updated doc", calcDocDate(43), true)
+        onMongo(mongoOperation {
+            FlatDocs.findOneAndReplace(
+                Filters.eq("index", 42),
+                updatedDoc
+            )
+        }).expectSuccess()
+
+        val newDoc43 = onMongo(reader(43)).expectSuccess()
+
+        expectThat(newDoc43).isEqualTo(updatedDoc)
+    }
+
+    @Test
+    fun `findOneAndDelete methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.findOneAndDelete(Filters.eq("index", 44))
+        }).expectSuccess()
+
+        val noDoc = onMongo(reader(44)).expectSuccess()
+
+        expectThat(noDoc).isEqualTo(null)
+    }
 
 }
 
