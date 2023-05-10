@@ -245,6 +245,32 @@ internal class OutcomeTest {
         expectThat(joined).isEqualTo(Success(42))
     }
 
+
+    @Test
+    fun `failIfNull fails null successes`() {
+        val value = Success(42)
+
+        val res = value.transform { null }.failIfNull { Err("Null failure!") }.expectFailure()
+
+        expectThat(res.msg).isEqualTo("Null failure!")
+    }
+
+    @Test
+    fun `transformIfNotNull transform only non null values`() {
+
+        val value: Success<Int?> = Success(42)
+
+        val res = value.transform { null }
+            .transformIfNotNull(Int::toString)
+            .expectSuccess()
+        expectThat(res).isEqualTo(null)
+
+        val res2 = value
+            .transformIfNotNull(Int::toString)
+            .expectSuccess()
+        expectThat(res2).isEqualTo("42")
+    }
+
     @Test
     fun `withSuccess to handle sideeffects`() {
         var sideEffect: Int? = null

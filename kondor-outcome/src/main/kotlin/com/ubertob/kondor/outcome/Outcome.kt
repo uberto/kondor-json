@@ -100,6 +100,11 @@ fun <T : Any, E : OutcomeError> Outcome<E, T?>.failIfNull(error: () -> E): Outco
         is Failure -> this
     }
 
+fun <T, U, E : OutcomeError> Outcome<E, T?>.transformIfNotNull(f: (T) -> U): Outcome<E, U?> =
+    transform { value ->
+        value?.let(f)
+    }
+
 inline fun <T, E : OutcomeError> Outcome<E, T>.onFailure(exitBlock: (E) -> Nothing): T =
     when (this) {
         is Success<T> -> value
