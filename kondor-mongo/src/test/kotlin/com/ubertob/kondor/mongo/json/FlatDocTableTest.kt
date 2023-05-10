@@ -1,6 +1,9 @@
 package com.ubertob.kondor.mongo.json
 
+import com.mongodb.client.model.Filters
 import com.ubertob.kondor.mongo.core.*
+import com.ubertob.kondor.outcome.OutcomeError
+import com.ubertob.kondor.outcome.failIfNull
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import org.testcontainers.junit.jupiter.Container
@@ -25,7 +28,7 @@ class FlatDocTableTest {
         //retention... policy.. index
     }
 
-    val executor = MongoExecutorDbClient(mongoConnection, DB_NAME)
+    val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
 
     private fun createDoc(i: Int): SimpleFlatDoc =
         SimpleFlatDoc(
@@ -42,14 +45,18 @@ class FlatDocTableTest {
             FlatDocs.drop()
         }
 
+    fun reader(id: Int) = mongoOperation {
+        FlatDocs.find(Filters.eq("index"))
+    }
+
     fun docWriter(doc: SimpleFlatDoc): ContextReader<MongoSession, Unit> =
         mongoOperation {
             FlatDocs.addDocument(doc)
         }
 
-    fun docQuery(index: Int): ContextReader<MongoSession, SimpleFlatDoc> =
+    fun docQuery(index: Int): ContextReader<MongoSession, SimpleFlatDoc?> =
         mongoOperation {
-            FlatDocs.find("{ index: $index }").first()
+            FlatDocs.find("{ index: $index }").firstOrNull()
         }
 
     val hundredDocWriter: ContextReader<MongoSession, Long> =
@@ -64,7 +71,7 @@ class FlatDocTableTest {
     @Test
     fun `add and query doc safely`() {
 
-        val myDoc = executor(
+        val myDoc = onMongo(
             cleanup +
                     docWriter(doc) +
                     docQuery(doc.index)
@@ -75,19 +82,31 @@ class FlatDocTableTest {
 
     fun extractInfo(doc: SimpleFlatDoc): String = "${doc.date}-${doc.name}#${doc.index}"
 
+    class NotFoundError(override val msg: String) : OutcomeError
+
+
     @Test
     fun `operate on results`() {
         val docIndex = Random.nextInt(100)
-        val operation = hundredDocWriter
-            .bind { docQuery(docIndex) }
-            .transform(::extractInfo)
 
-        val myDoc = executor(
-            operation
-        ).expectSuccess()
+        val myDoc = onMongo(
+            hundredDocWriter
+                .bind { docQuery(docIndex) }
+                .transformIfNotNull(::extractInfo)
+        ).failIfNull { NotFoundError("The doc $docIndex is not present!") }
+            .expectSuccess()
         expectThat(myDoc).contains(docIndex.toString())
 
     }
+
+//    @Test
+//    fun `findOnexxx methods work correctly`() {
+//
+//        val myDocs = onMongo(cleanUp + write100Audits).expectSuccess()
+//
+//        val doc42 = onMongo{ mongoOperation {  }}
+//    }
+
 
 }
 

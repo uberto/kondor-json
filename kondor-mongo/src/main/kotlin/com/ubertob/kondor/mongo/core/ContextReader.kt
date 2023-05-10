@@ -14,6 +14,10 @@ data class ContextReader<CTX, out T>(val runWith: (CTX) -> T) {
 
 
 }
+fun <CTX, T, U> ContextReader<CTX, T?>.transformIfNotNull(f: (T) -> U): ContextReader<CTX, U?> =
+    transform { value ->
+        value?.let(f)
+    }
 
 typealias KArrow<A, B, CTX> = (A) -> ContextReader<CTX, B>
 
