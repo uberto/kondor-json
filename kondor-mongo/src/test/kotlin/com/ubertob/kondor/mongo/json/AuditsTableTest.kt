@@ -73,34 +73,43 @@ class AuditsTableTest {
         docs.first()
     }
 
-    val audits = (1..100).map { randomAudit() }
-    val docWriteAndReadAll = mongoOperation {
-        audits.forEach {
-            AuditsTable.addDocument(it)
-        }
-        AuditsTable.all()
-    }
+    val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
 
     val cleanUp = mongoOperation {
         AuditsTable.drop()
     }
 
-    val executor = MongoExecutorDbClient(mongoConnection, DB_NAME)
+    val audits = (1..100).map { randomAudit() }
+    val write100Audits = mongoOperation {
+        audits.forEach {
+            AuditsTable.addDocument(it)
+        }
+    }
+
+    val readAllAudits = mongoOperation {
+        AuditsTable.all()
+    }
+
+    @Test
+    fun `read and write from db`() {
+        val myAudits: List<AuditMessage> = onMongo(cleanUp + write100Audits + readAllAudits)
+            .expectSuccess().toList()
+
+        expectThat(myAudits).hasSize(100)
+        expectThat(myAudits).isEqualTo(audits)
+    }
 
     @Test
     fun `add and query doc safely`() {
 
-        val myDoc = executor(oneDocReader).expectSuccess()
+        val myDoc = onMongo(oneDocReader).expectSuccess()
         expectThat(audit).isEqualTo(myDoc)
-
-
     }
-
 
     @Test
     fun `parsing query safely`() {
 
-        val myDocs = executor(cleanUp + docWriteAndReadAll).expectSuccess().toList()
+        val myDocs = onMongo(cleanUp + write100Audits + readAllAudits).expectSuccess().toList()
 
         expectThat(myDocs).hasSize(100)
         expectThat(myDocs).isEqualTo(audits)
@@ -125,7 +134,7 @@ class AuditsTableTest {
 //        Audits Table 1336 ms
 
         repeat(1) {
-            executor(mongoOperation {
+            onMongo(mongoOperation {
                 AuditsPerf.drop()
                 AuditsTable.drop()
             })
@@ -147,7 +156,7 @@ class AuditsTableTest {
 
 
             chronoAndLog("to DB") {
-                executor(
+                onMongo(
                     mongoOperation {
                         bsonDocs.forEach {
                             AuditsPerf.addDocument(it)
@@ -158,7 +167,7 @@ class AuditsTableTest {
 
 
             chronoAndLog("Audits Table") {
-                executor(
+                onMongo(
                     mongoOperation {
                         audits.forEach {
                             AuditsTable.addDocument(it)
