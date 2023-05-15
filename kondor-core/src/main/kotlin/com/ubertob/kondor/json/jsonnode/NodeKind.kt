@@ -6,7 +6,13 @@ import com.ubertob.kondor.json.parser.*
 sealed class NodeKind<JN : JsonNode>(
     val desc: String,
     val parse: TokensPath.() -> JsonOutcome<JN>
-)
+) {
+    fun fromJsonString(json: String): JsonOutcome<JN> = parse(
+        TokensPath(
+            KondorTokenizer.tokenize(json), NodePathRoot
+        )
+    )
+}
 
 object ArrayNode : NodeKind<JsonNodeArray>("Array", TokensPath::parseJsonNodeArray)
 object BooleanNode : NodeKind<JsonNodeBoolean>("Boolean", TokensPath::parseJsonNodeBoolean)
