@@ -803,7 +803,6 @@ https://typeclasses.com/profunctors
 
 https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
 
-
 https://en.wikipedia.org/wiki/Adjoint_functors
 
 https://bartoszmilewski.com/2016/04/18/adjunctions/
@@ -811,3 +810,8 @@ https://bartoszmilewski.com/2016/04/18/adjunctions/
 https://www.youtube.com/watch?v=TNtntlVo4LY
 
 https://www.youtube.com/watch?v=TnV9SQGPcLY
+
+TODO:
+better example with FileInfo, show types and add array
+example JInstance on sealed
+example extracting fields from JNode

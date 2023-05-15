@@ -1,5 +1,8 @@
 package com.ubertob.kondor.json.jsonnode
 
+import com.ubertob.kondor.json.FromJson
+import com.ubertob.kondor.json.JsonOutcome
+import com.ubertob.kondor.json.JsonPropertyError
 import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -9,9 +12,7 @@ import strikt.assertions.isEqualTo
 
 class NodeKindTest {
 
-    @Test
-    fun `from Json to JsonNode`() {
-        val jsonString = """
+    val jsonString = """
           {
             "id": 123,
             "name": "Ann",
@@ -19,9 +20,29 @@ class NodeKindTest {
           }
         """.trimIndent()
 
+    @Test
+    fun `from Json to JsonNode`() {
         val jsonNode: JsonNodeObject = ObjectNode.fromJsonString(jsonString).expectSuccess()
 
         expectThat(jsonNode._fieldMap.keys).containsExactly(setOf("id", "name", "somethingelse"))
         expectThat(jsonNode.pretty(true)).isEqualTo(jsonString)
     }
+
+
+    object ExtractId : FromJson<Long> {
+        override fun fromJson(json: String): JsonOutcome<Long> =
+            ObjectNode.fromJsonString(json)
+                .transform { it._fieldMap["id"] }
+                .castOrFail<JsonNodeNumber> { JsonPropertyError(NodePathRoot, "id", "expected Number, found $it") }
+                .transform { it.num.longValueExact() }
+    }
+
+    @Test
+    fun `extracting only a field`() {
+        val id = ExtractId.fromJson(jsonString).expectSuccess()
+
+        expectThat(id).isEqualTo(123)
+    }
+
+
 }
