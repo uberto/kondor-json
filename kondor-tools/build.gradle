@@ -24,11 +24,11 @@ test {
 
 dependencies {
     implementation project(":kondor-core")
+    api "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
     implementation "com.squareup:kotlinpoet:1.8.0"
     implementation "org.jetbrains.kotlin:kotlin-reflect"
-    implementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
 
     testImplementation "io.strikt:strikt-core:$striktVersion"
 

@@ -20,8 +20,8 @@ allprojects {
 subprojects {
 
     ext {
-        junitVersion = "5.9.1"
-        junitLauncherVersion = "1.9.1"
+        junitVersion = "5.9.3"
+        junitLauncherVersion = "1.9.3"
         striktVersion = "0.34.0"
         testContainerVersion = "1.16.0"
     }

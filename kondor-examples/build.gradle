@@ -26,10 +26,7 @@ dependencies {
     implementation "org.http4k:http4k-core:4.6.0.0"
 
     testImplementation project(":kondor-tools")
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
-
-    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-    testRuntimeOnly "org.junit.platform:junit-platform-launcher:$junitLauncherVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
 
     implementation "io.strikt:strikt-core:$striktVersion"
 }

@@ -28,12 +28,9 @@ dependencies {
 
     api "org.mongodb:mongodb-driver-sync:4.8.2"
 
-    implementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
 
     testImplementation "io.strikt:strikt-core:$striktVersion"
-
-    testRuntimeOnly  "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
-    testRuntimeOnly  "org.junit.platform:junit-platform-launcher:$junitLauncherVersion"
 
     testImplementation("org.testcontainers:testcontainers:$testContainerVersion")
     testImplementation ("org.testcontainers:junit-jupiter:$testContainerVersion")

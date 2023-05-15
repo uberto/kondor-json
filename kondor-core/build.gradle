@@ -28,7 +28,7 @@ dependencies {
     api project(":kondor-outcome")
 
     testImplementation project(":kondor-tools")
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testImplementation "org.junit.jupiter:junit-jupiter:$junitVersion"
     testImplementation "io.strikt:strikt-core:$striktVersion"
 
     testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
