@@ -59,7 +59,7 @@ class AuditsTableTest {
 
     val oneDocReader = mongoOperation {
         AuditsTable.drop()
-        AuditsTable.addDocument(audit)
+        AuditsTable.insertOne(audit)
         val docs = AuditsTable.all()
         expectThat(1).isEqualTo(docs.count())
         docs.first()
@@ -74,7 +74,7 @@ class AuditsTableTest {
     val audits = (1..100).map { randomAudit() }
     val write100Audits = mongoOperation {
         audits.forEach {
-            AuditsTable.addDocument(it)
+            AuditsTable.insertOne(it)
         }
     }
 
@@ -110,7 +110,7 @@ class AuditsTableTest {
     }
 
 
-    private object AuditsPerf : BsonTable() {
+    private object AuditsBsonTable : BsonTable() {
         override val collectionName: String = "performanceTests"
         //retention... policy.. index
     }
@@ -127,7 +127,7 @@ class AuditsTableTest {
 
         repeat(1) {
             onMongo(mongoOperation {
-                AuditsPerf.drop()
+                AuditsBsonTable.drop()
                 AuditsTable.drop()
             })
 
@@ -151,7 +151,7 @@ class AuditsTableTest {
                 onMongo(
                     mongoOperation {
                         bsonDocs.forEach {
-                            AuditsPerf.addDocument(it)
+                            AuditsBsonTable.insertOne(it)
                         }
                     }
                 )
@@ -162,7 +162,7 @@ class AuditsTableTest {
                 onMongo(
                     mongoOperation {
                         audits.forEach {
-                            AuditsTable.addDocument(it)
+                            AuditsTable.insertOne(it)
                         }
                     }
                 )

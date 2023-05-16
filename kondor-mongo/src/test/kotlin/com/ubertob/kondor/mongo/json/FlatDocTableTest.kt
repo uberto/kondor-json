@@ -57,7 +57,7 @@ class FlatDocTableTest {
 
     fun docWriter(doc: SimpleFlatDoc): ContextReader<MongoSession, Unit> =
         mongoOperation {
-            FlatDocs.addDocument(doc)
+            FlatDocs.insertOne(doc)
         }
 
     fun docQuery(index: Int): ContextReader<MongoSession, SimpleFlatDoc?> =
@@ -68,7 +68,7 @@ class FlatDocTableTest {
     private val hundredDocWriter: ContextReader<MongoSession, Long> =
         mongoOperation {
             (1..100).forEach {
-                FlatDocs.addDocument(createDoc(it))
+                FlatDocs.insertOne(createDoc(it))
             }
             FlatDocs.countDocuments()
         }

@@ -56,7 +56,7 @@ class MongoExecutorTest {
 
     val writeAndReadOneDoc = mongoOperation {
         collForTest.drop()
-        collForTest.addDocument(doc)
+        collForTest.insertOne(doc)
         val docs = collForTest.all()
         expectThat(1).isEqualTo(docs.count())
         docs.first()
@@ -69,7 +69,7 @@ class MongoExecutorTest {
 
     val docQueryReader = mongoOperation {
         (1..100).forEach {
-            collForTest.addDocument(createDoc(it))
+            collForTest.insertOne(createDoc(it))
         }
         collForTest.find("{ index: 42 }").first()
     }

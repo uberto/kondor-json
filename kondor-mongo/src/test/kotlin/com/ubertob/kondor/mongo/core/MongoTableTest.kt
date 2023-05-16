@@ -75,7 +75,7 @@ class MongoTableTest {
 
         val doc = mongoOperation {
             simpleDocTable.drop()
-            simpleDocTable.addDocument(myDoc)
+            simpleDocTable.insertOne(myDoc)
 
             val docs = simpleDocTable.all()
             expectThat(1).isEqualTo(docs.count())
@@ -88,7 +88,7 @@ class MongoTableTest {
 
     val myDocs = (1..100).map { buildSealedClass(it) }
     val write100Doc = mongoOperation {
-        complexDocTable.addDocuments(myDocs)
+        complexDocTable.insertMany(myDocs)
         complexDocTable.countDocuments()
     }.withAction { expectThat(it).isEqualTo(100) }
 
@@ -110,11 +110,11 @@ class MongoTableTest {
     }
 
     fun delete3Docs(id: Int) = mongoOperation {
-        complexDocTable.removeDocuments("""{ string: "SmallClass$id" }""")
+        complexDocTable.deleteMany(Filters.eq("string", "SmallClass$id"))
             .expectedOne()
-        complexDocTable.removeDocuments("""{ "small_class.string" : "Nested${id + 1}" }""")
+        complexDocTable.deleteMany(Filters.eq("small_class.string", "Nested${id + 1}"))
             .expectedOne()
-        complexDocTable.removeDocuments("""{ "name" : "ClassWithArray${id + 2}" }""")
+        complexDocTable.deleteMany(Filters.eq("name", "ClassWithArray${id + 2}"))
             .expectedOne()
         Unit
     }
@@ -154,8 +154,8 @@ class MongoTableTest {
         testConnectionTable.counter.set(0)
 
         mongoOperation {
-            testConnectionTable.addDocument(myDoc)
-            testConnectionTable.addDocument(myDoc)
+            testConnectionTable.insertOne(myDoc)
+            testConnectionTable.insertOne(myDoc)
 
             testConnectionTable.countDocuments()
 
@@ -210,8 +210,8 @@ class MongoTableTest {
     }
 
     private val writeASimpleDocAndAComplexDoc = mongoOperation {
-        simpleDocTable.addDocument(randomSmallClass()) ?: error("Cannot create simpledoc")
-        complexDocTable.addDocument(buildSealedClass(Random.nextInt())) ?: error("Cannot create complexdoc")
+        simpleDocTable.insertOne(randomSmallClass()) ?: error("Cannot create simpledoc")
+        complexDocTable.insertOne(buildSealedClass(Random.nextInt())) ?: error("Cannot create complexdoc")
     }
 
     @Test

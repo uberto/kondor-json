@@ -33,25 +33,22 @@ class MongoDbSession(val database: MongoDatabase, val collections: CollectionCac
     override fun listCollectionNames(filter: Bson?): List<String> =
         listCollections(filter).map { it["name"].toString() }
 
-    override fun <T : Any> MongoTable<T>.addDocument(doc: T): BsonValue? =
+    override fun <T : Any> MongoTable<T>.insertOne(doc: T): BsonValue? =
         internalRun {
             it.insertOne(toBsonDoc(doc)).insertedId
         }
 
-    override fun <T : Any> MongoTable<T>.addDocuments(docs: Iterable<T>): List<BsonValue> =
+    override fun <T : Any> MongoTable<T>.insertMany(docs: Iterable<T>): List<BsonValue> =
         internalRun {
             it.insertMany(docs.map(this::toBsonDoc))
                 .insertedIds.values.toList()
         }
 
-    override fun <T : Any> MongoTable<T>.removeDocuments(bsonFilters: Bson): Long =
+    override fun <T : Any> MongoTable<T>.deleteMany(bsonFilters: Bson): Long =
         internalRun {
             it.deleteMany(bsonFilters)
                 .deletedCount
         }
-
-    override fun <T : Any> MongoTable<T>.removeDocuments(queryString: String): Long =
-        removeDocuments(BsonDocument.parse(queryString))
 
     override fun <T : Any> MongoTable<T>.findOneAndUpdate(
         bsonFilters: Bson,

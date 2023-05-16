@@ -18,11 +18,9 @@ interface MongoSession {
     fun listCollectionNames(filter: Bson? = null): List<String>
 
     //Edit Methods
-    fun <T : Any> MongoTable<T>.addDocument(doc: T): BsonValue?
-    fun <T : Any> MongoTable<T>.addDocuments(docs: Iterable<T>): List<BsonValue>
-
-    fun <T : Any> MongoTable<T>.removeDocuments(queryString: String): Long
-    fun <T : Any> MongoTable<T>.removeDocuments(bsonFilters: Bson): Long
+    fun <T : Any> MongoTable<T>.insertOne(doc: T): BsonValue?
+    fun <T : Any> MongoTable<T>.insertMany(docs: Iterable<T>): List<BsonValue>
+    fun <T : Any> MongoTable<T>.deleteMany(bsonFilters: Bson): Long
     fun <T : Any> MongoTable<T>.findOneAndUpdate(
         bsonFilters: Bson,
         bsonSetter: Bson,
