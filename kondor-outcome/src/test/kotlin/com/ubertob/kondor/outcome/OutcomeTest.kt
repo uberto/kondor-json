@@ -329,7 +329,7 @@ internal class OutcomeTest {
     }
 
     @Test
-    fun `* add an outcome to a partial function`() {
+    fun `star add an outcome to a partial function`() {
         val addPartial = { y: Int -> 2 + y }.asSuccess()
         val b = 3.asSuccess()
 

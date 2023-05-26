@@ -457,7 +457,7 @@ data class DynamicAttr(
 object JDynamicAttr : JAny<DynamicAttr>() {
     private val id by num(DynamicAttr::id)
     private val name by str(DynamicAttr::name)
-    private val attributes by flatten(JJsonNode, DynamicAttr::attributes)
+    private val attributes by flatten(DynamicAttr::attributes)
     override fun JsonNodeObject.deserializeOrThrow() = DynamicAttr(
         id = +id,
         name = +name,
