@@ -3,6 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.9.2 - 26 May 2023
+
+Kondor-core: Added JJsonNode field for dynamic nodes mapping
+Kondor-mongo: Renamed some functions closer to the mongo driver names
+
 ### v.1.9.1 - 10 May 2023
 
 Kondor-mongo: added findOneAndUpdate, findOneAndReplace, and findOneAndDelete methods
