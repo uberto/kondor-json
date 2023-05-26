@@ -7,12 +7,12 @@ import com.ubertob.kondor.outcome.failIfNull
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
     private val valueConverter: JConverter<V>
-) : ObjectNodeConverter<Map<K, V>>() {
+) : ObjectNodeConverterWriters<Map<K, V>>() {
 
     companion object {
-        operator fun <V: Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
+        operator fun <V : Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
             JMap(
-                object: JStringRepresentable<String>() {
+                object : JStringRepresentable<String>() {
                     override val cons: (String) -> String = { it }
                     override val render: (String) -> String = { it }
                 },

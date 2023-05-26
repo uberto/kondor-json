@@ -6,7 +6,9 @@ import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.isNotNull
 import java.math.BigDecimal
 import kotlin.random.Random
 
@@ -277,10 +279,45 @@ class JsonParserTest {
     }
 
     private fun lastPosRead(tokens: TokensStream): Int =
-        when(val t = tokens.last()){
+        when (val t = tokens.last()) {
             is Separator -> t.pos
             is Value -> t.pos + t.text.length - 1
             null -> 0
         }
+
+    @Test
+    fun `parse an object with JsonNode field`() {
+        val jsonString = """
+          {
+            "id": 123,
+            "name": "Ann",
+            "aString": "String",
+            "aObj": {
+              "aNestedString": "NestedString",
+              "aNestedNum": 123123
+            }
+          }
+        """.trimIndent()
+
+        val objWithDynamicAttr = JDynamicAttr.fromJson(jsonString).expectSuccess()
+
+        expectThat(objWithDynamicAttr) {
+            get { id }.isEqualTo(123)
+            get { name }.isEqualTo("Ann")
+            get { attributes._fieldMap["aString"] }.isEqualTo(
+                JsonNodeString(
+                    "String",
+                    NodePathSegment(nodeName = "aString", parent = NodePathRoot)
+                )
+            )
+            get { attributes._fieldMap["aObj"] }.isA<JsonNodeObject>()
+        }
+
+        expectThat(objWithDynamicAttr.attributes._fieldMap["aObj"] as? JsonNodeObject).isNotNull()
+            .and {
+                get { (_fieldMap["aNestedString"] as? JsonNodeString)?.text }.isEqualTo("NestedString")
+                get { (_fieldMap["aNestedNum"] as JsonNodeNumber).num.toInt() }.isEqualTo(123123)
+            }
+    }
 
 }

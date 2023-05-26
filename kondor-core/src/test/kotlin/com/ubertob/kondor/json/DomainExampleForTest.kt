@@ -4,8 +4,7 @@ import com.ubertob.kondor.*
 import com.ubertob.kondor.json.TitleType.Companion.fromLabel
 import com.ubertob.kondor.json.datetime.num
 import com.ubertob.kondor.json.datetime.str
-import com.ubertob.kondor.json.jsonnode.ArrayNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.*
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.time.Instant
@@ -73,6 +72,22 @@ fun randomMetadata(): Map<String, String> =
         randomString(lowercase, 4, 6) to randomString(text, 1, 50)
     }.toMap()
 
+
+fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
+    id = Random.nextInt(1, 1000),
+    name = randomString(lowercase, 1, 10),
+    attributes = JsonNodeObject(
+        randomNodeFields(), NodePathRoot
+    )
+)
+
+fun randomNodeFields(): Map<String, JsonNode> =
+    mapOf(
+        "bool_f" to JsonNodeBoolean(Random.nextBoolean(), NodePathRoot + "bool_f"),
+        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal(), NodePathRoot + "double_f"),
+        "string_f" to JsonNodeString(randomString(uppercase, 1, 10), NodePathRoot + "string_f")
+    )
+
 //------------
 
 sealed class Customer()
@@ -93,12 +108,11 @@ object JGraphNode : JAny<GraphNode>() {
 
     override fun JsonNodeObject.deserializeOrThrow() =
         GraphNode(
-             name = +name,
+            name = +name,
             nodeType = +nodeType,
             path = +path
         )
 }
-
 
 
 object JPerson : JAny<Person>() {
@@ -166,7 +180,7 @@ object JCustomer : JSealed<Customer>() {
 
     override val discriminatorFieldName = "type"
 
-    override val subConverters: Map<String, ObjectNodeConverter<out Customer>> =
+    override val subConverters: Map<String, ObjectNodeConverterWriters<out Customer>> =
         mapOf(
             "private" to JPerson,
             "company" to JCompany
@@ -247,14 +261,14 @@ object JNotes : JAny<Notes>() {
 }
 
 data class TaskId(val value: String)
-object JTaskId: JStringRepresentable<TaskId>() {
+object JTaskId : JStringRepresentable<TaskId>() {
     override val cons: (String) -> TaskId = ::TaskId
     override val render: (TaskId) -> String = TaskId::value
 
 }
 
 data class Task(val name: String, val description: String)
-object JTask: JAny<Task>() {
+object JTask : JAny<Task>() {
     private val name by str(Task::name)
     private val description by str(Task::description)
 
@@ -311,10 +325,10 @@ data class MetadataFile(val filename: String, val metadata: Map<String, String>)
 
 object JMetadataFile : JAny<MetadataFile>() {
 
-    val fileName by str( MetadataFile::filename)
+    val fileName by str(MetadataFile::filename)
     val metadata by flatten(JMap(), MetadataFile::metadata)
 
-    override fun JsonNodeObject.deserializeOrThrow()=
+    override fun JsonNodeObject.deserializeOrThrow() =
         MetadataFile(
             filename = +fileName,
             metadata = +metadata
@@ -347,13 +361,13 @@ enum class TitleType(val label: String) {
     Movie("movie"), Series("series"), Episoode("episode");
 
     companion object {
-        fun fromLabel(label: String) = values().firstOrNull() { it.label == label}
+        fun fromLabel(label: String) = values().firstOrNull() { it.label == label }
     }
 }
 
 object JTitleType : JStringRepresentable<TitleType?>() {
     override val cons: (String) -> TitleType? = ::fromLabel
-    override val render: (TitleType?) -> String = {it?.label.orEmpty()}
+    override val render: (TitleType?) -> String = { it?.label.orEmpty() }
 }
 
 object JTitleRequest : JAny<TitleRequest>() {
@@ -370,26 +384,26 @@ object JTitleRequest : JAny<TitleRequest>() {
 
 // sealed with default
 
-sealed class Variant{
+sealed class Variant {
     abstract val name: String
 }
 
-data class VariantString(override val name: String, val value: String): Variant()
+data class VariantString(override val name: String, val value: String) : Variant()
 
-data class VariantInt(override val name: String, val value: Int): Variant()
+data class VariantInt(override val name: String, val value: Int) : Variant()
 
-fun randomVariant() = when (Random.nextBoolean()){
-    true -> VariantString(randomString(lowercase,5,5), randomText(20))
-    false -> VariantInt(randomString(lowercase,5,5), Random.nextInt())
+fun randomVariant() = when (Random.nextBoolean()) {
+    true -> VariantString(randomString(lowercase, 5, 5), randomText(20))
+    false -> VariantInt(randomString(lowercase, 5, 5), Random.nextInt())
 }
 
-object JVariantString: JAny<VariantString>(){
+object JVariantString : JAny<VariantString>() {
 
     private val name by str(VariantString::name)
 
     private val value by str(VariantString::value)
 
-    override fun JsonNodeObject.deserializeOrThrow()=
+    override fun JsonNodeObject.deserializeOrThrow() =
         VariantString(
             +name,
             +value
@@ -397,13 +411,13 @@ object JVariantString: JAny<VariantString>(){
 
 }
 
-object JVariantInt: JAny<VariantInt>(){
+object JVariantInt : JAny<VariantInt>() {
 
     private val name by str(VariantInt::name)
 
     private val value by num(VariantInt::value)
 
-    override fun JsonNodeObject.deserializeOrThrow()=
+    override fun JsonNodeObject.deserializeOrThrow() =
         VariantInt(
             +name,
             +value
@@ -411,16 +425,16 @@ object JVariantInt: JAny<VariantInt>(){
 
 }
 
-object JVariant: JSealed<Variant>() {
+object JVariant : JSealed<Variant>() {
 
     private val STR = "VariantString"
-    private val INT ="VariantInt"
+    private val INT = "VariantInt"
 
     override val discriminatorFieldName = "type"
     override val defaultConverter = JVariantString
 
 
-    override fun extractTypeName(obj: Variant)=
+    override fun extractTypeName(obj: Variant) =
         when (obj) {
             is VariantInt -> INT
             is VariantString -> STR
@@ -432,4 +446,21 @@ object JVariant: JSealed<Variant>() {
             INT to JVariantInt
         )
 
+}
+
+data class DynamicAttr(
+    val id: Int,
+    val name: String,
+    val attributes: JsonNodeObject
+)
+
+object JDynamicAttr : JAny<DynamicAttr>() {
+    private val id by num(DynamicAttr::id)
+    private val name by str(DynamicAttr::name)
+    private val attributes by flatten(JJsonNode, DynamicAttr::attributes)
+    override fun JsonNodeObject.deserializeOrThrow() = DynamicAttr(
+        id = +id,
+        name = +name,
+        attributes = +attributes
+    )
 }

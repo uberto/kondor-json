@@ -10,7 +10,14 @@ import java.util.concurrent.atomic.AtomicReference
 typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert to (T) -> Pair<String, JsonNode>
 
 
-sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
+interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
+
+
+    override val _nodeType get() = ObjectNode
+}
+
+
+sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
@@ -28,12 +35,11 @@ sealed class ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
                 writer(acc, value)
             }
 
-    override val _nodeType get() = ObjectNode
 
 }
 
 
-abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
+abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
     private val properties: AtomicReference<List<JsonProperty<*>>> = AtomicReference(emptyList())
@@ -56,15 +62,15 @@ abstract class JAny<T : Any> : ObjectNodeConverter<T>() {
 }
 
 
-abstract class PolymorphicConverter<T : Any> : ObjectNodeConverter<T>() {
+abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterWriters<T>() {
 
     abstract fun extractTypeName(obj: T): String
-    abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
+    abstract val subConverters: Map<String, ObjectNodeConverterWriters<out T>>
 
 
     @Suppress("UNCHECKED_CAST") //todo: add tests for this
-    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
-        subConverters[typeName] as? ObjectNodeConverter<T>
+    fun findSubTypeConverter(typeName: String): ObjectNodeConverterWriters<T>? =
+        subConverters[typeName] as? ObjectNodeConverterWriters<T>
 
 }
 

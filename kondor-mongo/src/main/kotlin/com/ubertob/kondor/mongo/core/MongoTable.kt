@@ -1,7 +1,7 @@
 package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
-import com.ubertob.kondor.json.ObjectNodeConverter
+import com.ubertob.kondor.json.ObjectNodeConverterWriters
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.json.toBsonDocument
 import com.ubertob.kondor.outcome.onFailure
@@ -24,7 +24,7 @@ abstract class BsonTable : MongoTable<BsonDocument> {
     override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {} //todo something better
 }
 
-abstract class TypedTable<T : Any>(private val converter: ObjectNodeConverter<T>) : MongoTable<T> {
+abstract class TypedTable<T : Any>(private val converter: ObjectNodeConverterWriters<T>) : MongoTable<T> {
     override fun fromBsonDoc(doc: BsonDocument): T = converter.fromJson(doc.toJson())
         .onFailure {
             error("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")

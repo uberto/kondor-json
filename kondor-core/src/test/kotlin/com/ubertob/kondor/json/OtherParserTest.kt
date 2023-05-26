@@ -120,7 +120,7 @@ class OtherParserTest {
                 else -> error( "$obj not expected")
             }
 
-        override val subConverters: Map<String, ObjectNodeConverter<out ChangeLogItem>> =
+        override val subConverters: Map<String, ObjectNodeConverterWriters<out ChangeLogItem>> =
             mapOf("preConditions" to JPreconditions, "changeSet" to JChangeSet)
     }
 

@@ -301,6 +301,25 @@ class JValuesExtraTest {
 
         }
     }
+
+
+    @Test
+    fun `render object with jsonNode field and back`() {
+
+        repeat(10) {
+            val objWithDynamicAttr = randomObjectWithDynamicAttr()
+
+            val json = JDynamicAttr.toJsonNode(objWithDynamicAttr, NodePathRoot)
+
+            val actual = JDynamicAttr.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(objWithDynamicAttr)
+
+            val jsonStr = JDynamicAttr.toJson(objWithDynamicAttr)
+
+            expectThat(JDynamicAttr.fromJson(jsonStr).expectSuccess()).isEqualTo(objWithDynamicAttr)
+        }
+    }
 }
 
 

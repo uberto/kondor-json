@@ -40,7 +40,7 @@ object JAuditMessage : JSealed<AuditMessage>() {
 
     override val discriminatorFieldName = "___type"
 
-    override val subConverters: Map<String, ObjectNodeConverter<out AuditMessage>> =
+    override val subConverters: Map<String, ObjectNodeConverterWriters<out AuditMessage>> =
         mapOf(
             ERRCODE to JErrorCodeAudit,
             STR to JStringAudit,

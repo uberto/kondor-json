@@ -3,10 +3,16 @@ package com.ubertob.kondor.json.jsonnode
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 
-sealed class NodePath()
+sealed class NodePath() {
+    operator fun plus(nodePath: String): NodePath =
+        NodePathSegment(nodePath, this)
+
+}
+
 object NodePathRoot : NodePath() {
     override fun toString(): String = ROOT_NODE
 }
+
 data class NodePathSegment(val nodeName: String, val parent: NodePath) : NodePath()
 
 private val ROOT_NODE = "[root]"

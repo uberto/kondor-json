@@ -52,7 +52,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     open val discriminatorFieldName: String = "_type"
 
-    open val defaultConverter: ObjectNodeConverter<out T>? = null
+    open val defaultConverter: ObjectNodeConverterWriters<out T>? = null
 
     fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
         jno.copy(
