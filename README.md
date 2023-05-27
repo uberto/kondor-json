@@ -41,6 +41,7 @@ A live code presentation to see how to use Kondor and some insights on how it wo
 
 ## What's Changed Recently
 
+- It's not easy to insert existing Json inside a converter
 - New Kondor-mongo to reuse the converters working with MongoDb
 - Automatic JsonSchema generation from any converter
 - Code generation of converters from data classes
@@ -349,6 +350,48 @@ And it will be mapped to this Json format:
    "tax_type": "Domestic"
 }
 ```
+
+TODO:
+better example with FileInfo, show types and add array
+example JInstance on sealed
+
+
+### Inserting xternal Json in a Field
+
+Sometime it's convenient to declare some attributes as JsonNode, in this way we can create a structured data dynamically. Another possible case is if we want to store an external Json (for example a response from another service) as a field in our types. For this cases Kondor can serialize/deserialize directly fields of type `JsonNodeObject`. This can be also used in a `flatten` field to merge the Json attributes with the typed ones.
+
+For example with this class and this converter:
+```kotlin
+data class DynamicAttr(
+    val id: Int,
+    val name: String,
+    val attributes: JsonNodeObject
+)
+
+object JDynamicAttr : JAny<DynamicAttr>() {
+    private val id by num(DynamicAttr::id)
+    private val name by str(DynamicAttr::name)
+    private val attributes by flatten(DynamicAttr::attributes)
+    override fun JsonNodeObject.deserializeOrThrow() = DynamicAttr(
+        id = +id,
+        name = +name,
+        attributes = +attributes
+    )
+}
+```
+We can parse and render a Json like this:
+```json
+ {
+   "id": 123,
+   "name": "Ann",
+   "aString": "String",
+   "aObj": {
+     "aNestedString": "NestedString",
+     "aNestedNum": 123123
+   }
+ }
+```
+Where `id` and `name` are typed fields of the objects and all the rest are stored in the `attributes` field as JsonNode.
 
 ### Sealed classes and polymorphic Json
 
@@ -781,13 +824,11 @@ TODO: comparison of performance
 
 ## Ideas for Future Features (PRs welcome)
 
-- Generate Json schema and automatically validate
-
 - A DSL for Java
 
 - Generating random values from the converters
 
-- Add a converter that use Jackson for simplify the migration/adopting
+- Add a converter that use Jackson to simplify the migration/adoption
 
 - Add integration with Snodge for fuzzy testing
 
@@ -801,17 +842,5 @@ https://en.wikipedia.org/wiki/Profunctor
 
 https://typeclasses.com/profunctors
 
-https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
 
-https://en.wikipedia.org/wiki/Adjoint_functors
 
-https://bartoszmilewski.com/2016/04/18/adjunctions/
-
-https://www.youtube.com/watch?v=TNtntlVo4LY
-
-https://www.youtube.com/watch?v=TnV9SQGPcLY
-
-TODO:
-better example with FileInfo, show types and add array
-example JInstance on sealed
-example extracting fields from JNode
