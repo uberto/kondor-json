@@ -93,6 +93,7 @@ fun randomNodeFields(): Map<String, JsonNode> =
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer()
 data class Company(val name: String, val taxType: TaxType) : Customer()
+object AnonymousCustomer : Customer()
 
 data class GraphNode(val name: String, val nodeType: String, val path: String)
 
@@ -183,13 +184,15 @@ object JCustomer : JSealed<Customer>() {
     override val subConverters: Map<String, ObjectNodeConverterWriters<out Customer>> =
         mapOf(
             "private" to JPerson,
-            "company" to JCompany
+            "company" to JCompany,
+            "anonymous" to JInstance(AnonymousCustomer)
         )
 
     override fun extractTypeName(obj: Customer): String =
         when (obj) {
             is Person -> "private"
             is Company -> "company"
+            AnonymousCustomer -> "anonymous"
         }
 
 }

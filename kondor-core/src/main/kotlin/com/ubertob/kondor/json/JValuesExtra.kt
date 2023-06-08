@@ -45,8 +45,7 @@ data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List
 //for serializing Kotlin object and other single instance types
 data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow() = singleton
-} //TODO: add a test for this!
-
+}
 
 abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
