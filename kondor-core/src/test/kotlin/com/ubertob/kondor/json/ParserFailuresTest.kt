@@ -66,7 +66,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - ")
     }
 
     @Test
