@@ -211,58 +211,67 @@ class JsonSchemaTest {
     }
 
     @Test
-    fun `schema for polimorphic object`() {
+    fun `schema for polymorphic object`() {
         val schema = JCustomer.schema().pretty(false, 2)
 
         expectThat(schema).isEqualTo(
             """{
-              |  "description": "discriminant field: type",
-              |  "oneOf": [
-              |      {
-              |          "properties": {
-              |              "id": {
-              |                  "type": "number"
-              |                },
-              |              "name": {
-              |                  "type": "string"
-              |                },
-              |              "type": {
-              |                  "const": "private",
-              |                  "type": "string"
-              |                }
-              |            },
-              |          "required": [
-              |              "id",
-              |              "name"
-              |            ]
-              |        },
-              |      {
-              |          "properties": {
-              |              "name": {
-              |                  "type": "string"
-              |                },
-              |              "tax_type": {
-              |                  "enum": [
-              |                      "Domestic",
-              |                      "Exempt",
-              |                      "EU",
-              |                      "US",
-              |                      "Other"
-              |                    ]
-              |                },
-              |              "type": {
-              |                  "const": "company",
-              |                  "type": "string"
-              |                }
-              |            },
-              |          "required": [
-              |              "name",
-              |              "tax_type"
-              |            ]
-              |        }
-              |    ],
-              |  "type": "object"
-              |}""".trimMargin())
+                |  "description": "discriminant field: type",
+                |  "oneOf": [
+                |      {
+                |          "properties": {
+                |              "id": {
+                |                  "type": "number"
+                |                },
+                |              "name": {
+                |                  "type": "string"
+                |                },
+                |              "type": {
+                |                  "const": "private",
+                |                  "type": "string"
+                |                }
+                |            },
+                |          "required": [
+                |              "id",
+                |              "name"
+                |            ]
+                |        },
+                |      {
+                |          "properties": {
+                |              "name": {
+                |                  "type": "string"
+                |                },
+                |              "tax_type": {
+                |                  "enum": [
+                |                      "Domestic",
+                |                      "Exempt",
+                |                      "EU",
+                |                      "US",
+                |                      "Other"
+                |                    ]
+                |                },
+                |              "type": {
+                |                  "const": "company",
+                |                  "type": "string"
+                |                }
+                |            },
+                |          "required": [
+                |              "name",
+                |              "tax_type"
+                |            ]
+                |        },
+                |      {
+                |          "properties": {
+                |              "type": {
+                |                  "const": "anonymous",
+                |                  "type": "string"
+                |                }
+                |            }
+                |        }
+                |    ],
+                |  "type": "object"
+                |}""".trimMargin()
+        )
     }
 
     @Test
@@ -272,106 +281,114 @@ class JsonSchemaTest {
 
         expectThat(schema).isEqualTo(
             """{
-              |  "properties": {
-              |      "created_date": {
-              |          "type": "string"
-              |        },
-              |      "customer": {
-              |          "description": "discriminant field: type",
-              |          "oneOf": [
-              |              {
-              |                  "properties": {
-              |                      "id": {
-              |                          "type": "number"
-              |                        },
-              |                      "name": {
-              |                          "type": "string"
-              |                        },
-              |                      "type": {
-              |                          "const": "private",
-              |                          "type": "string"
-              |                        }
-              |                    },
-              |                  "required": [
-              |                      "id",
-              |                      "name"
-              |                    ]
-              |                },
-              |              {
-              |                  "properties": {
-              |                      "name": {
-              |                          "type": "string"
-              |                        },
-              |                      "tax_type": {
-              |                          "enum": [
-              |                              "Domestic",
-              |                              "Exempt",
-              |                              "EU",
-              |                              "US",
-              |                              "Other"
-              |                            ]
-              |                        },
-              |                      "type": {
-              |                          "const": "company",
-              |                          "type": "string"
-              |                        }
-              |                    },
-              |                  "required": [
-              |                      "name",
-              |                      "tax_type"
-              |                    ]
-              |                }
-              |            ],
-              |          "type": "object"
-              |        },
-              |      "id": {
-              |          "type": "string"
-              |        },
-              |      "items": {
-              |          "items": {
-              |              "properties": {
-              |                  "id": {
-              |                      "type": "number"
-              |                    },
-              |                  "long_description": {
-              |                      "type": "string"
-              |                    },
-              |                  "price": {
-              |                      "type": "number"
-              |                    },
-              |                  "short-desc": {
-              |                      "type": "string"
-              |                    }
-              |                },
-              |              "required": [
-              |                  "id",
-              |                  "long_description",
-              |                  "short-desc"
-              |                ],
-              |              "type": "object"
-              |            },
-              |          "type": "array"
-              |        },
-              |      "paid_datetime": {
-              |          "type": "number"
-              |        },
-              |      "total": {
-              |          "type": "number"
-              |        },
-              |      "vat-to-pay": {
-              |          "type": "boolean"
-              |        }
-              |    },
-              |  "required": [
-              |      "id",
-              |      "vat-to-pay",
-              |      "customer",
-              |      "items",
-              |      "total",
-              |      "created_date"
-              |    ],
-              |  "type": "object"
-              |}""".trimMargin()
+                |  "properties": {
+                |      "created_date": {
+                |          "type": "string"
+                |        },
+                |      "customer": {
+                |          "description": "discriminant field: type",
+                |          "oneOf": [
+                |              {
+                |                  "properties": {
+                |                      "id": {
+                |                          "type": "number"
+                |                        },
+                |                      "name": {
+                |                          "type": "string"
+                |                        },
+                |                      "type": {
+                |                          "const": "private",
+                |                          "type": "string"
+                |                        }
+                |                    },
+                |                  "required": [
+                |                      "id",
+                |                      "name"
+                |                    ]
+                |                },
+                |              {
+                |                  "properties": {
+                |                      "name": {
+                |                          "type": "string"
+                |                        },
+                |                      "tax_type": {
+                |                          "enum": [
+                |                              "Domestic",
+                |                              "Exempt",
+                |                              "EU",
+                |                              "US",
+                |                              "Other"
+                |                            ]
+                |                        },
+                |                      "type": {
+                |                          "const": "company",
+                |                          "type": "string"
+                |                        }
+                |                    },
+                |                  "required": [
+                |                      "name",
+                |                      "tax_type"
+                |                    ]
+                |                },
+                |              {
+                |                  "properties": {
+                |                      "type": {
+                |                          "const": "anonymous",
+                |                          "type": "string"
+                |                        }
+                |                    }
+                |                }
+                |            ],
+                |          "type": "object"
+                |        },
+                |      "id": {
+                |          "type": "string"
+                |        },
+                |      "items": {
+                |          "items": {
+                |              "properties": {
+                |                  "id": {
+                |                      "type": "number"
+                |                    },
+                |                  "long_description": {
+                |                      "type": "string"
+                |                    },
+                |                  "price": {
+                |                      "type": "number"
+                |                    },
+                |                  "short-desc": {
+                |                      "type": "string"
+                |                    }
+                |                },
+                |              "required": [
+                |                  "id",
+                |                  "long_description",
+                |                  "short-desc"
+                |                ],
+                |              "type": "object"
+                |            },
+                |          "type": "array"
+                |        },
+                |      "paid_datetime": {
+                |          "type": "number"
+                |        },
+                |      "total": {
+                |          "type": "number"
+                |        },
+                |      "vat-to-pay": {
+                |          "type": "boolean"
+                |        }
+                |    },
+                |  "required": [
+                |      "id",
+                |      "vat-to-pay",
+                |      "customer",
+                |      "items",
+                |      "total",
+                |      "created_date"
+                |    ],
+                |  "type": "object"
+                |}""".trimMargin()
         )
     }
 
