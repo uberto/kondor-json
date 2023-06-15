@@ -178,18 +178,24 @@ class JsonNodeDslTest {
             )
         )
 
-        node.pretty().isEquivalentJson(
+        node.pretty(explicitNull = true).isEquivalentJson(
             """
            {
-             "booleanField": true,
-             "doubleField": 123.456,
-             "intField": 123,
-             "longField": 123,
-             "objectField": {
-                 "nestedStringField": "nestedStringValue"
-               },
-             "stringField": "stringValue"
-           }
+              "booleanField": true,
+              "doubleField": 123.456,
+              "intField": 123,
+              "longField": 123,
+              "nullBooleanField": null,
+              "nullDoubleField": null,
+              "nullIntField": null,
+              "nullLongField": null,
+              "nullStringField": null,
+              "objectField": {
+                  "nestedNullField": null,
+                  "nestedStringField": "nestedStringValue"
+                },
+              "stringField": "stringValue"
+            }
         """.trimIndent()
         ).expectSuccess()
 

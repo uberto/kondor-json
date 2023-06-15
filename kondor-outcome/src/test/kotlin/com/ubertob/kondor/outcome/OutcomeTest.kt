@@ -6,6 +6,7 @@ import strikt.api.expectThat
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
+import kotlin.random.Random
 
 internal class OutcomeTest {
 
@@ -200,10 +201,6 @@ internal class OutcomeTest {
     }
 
 
-
-
-    // GPT generated
-
     @Test
     fun `combine successes`() {
         val a = 2.asSuccess()
@@ -238,17 +235,18 @@ internal class OutcomeTest {
 
     @Test
     fun `join nested outcomes`() {
-        val nested = Success(Success(42))
+        val value = Random.nextInt().asSuccess()
+        val nested = Success(value)
 
         val joined = nested.join()
 
-        expectThat(joined).isEqualTo(Success(42))
+        expectThat(joined).isEqualTo(value)
     }
 
 
     @Test
     fun `failIfNull fails null successes`() {
-        val value = Success(42)
+        val value = 42.asSuccess()
 
         val res = value.transform { null }.failIfNull { Err("Null failure!") }.expectFailure()
 
@@ -279,7 +277,7 @@ internal class OutcomeTest {
 
         val result = successOutcome.withSuccess { sideEffect = it }
 
-        expectThat(result).isEqualTo(Success(42))
+        expectThat(result).isEqualTo(successOutcome)
         expectThat(sideEffect).isEqualTo(42)
     }
 
@@ -346,6 +344,7 @@ internal class OutcomeTest {
 
         expectThat(user).isA<User>()
     }
+
     @Test
     fun `castOrFail return failure for wrong subcasting`() {
         val person: BaseOutcome<Person> = getUser(12)

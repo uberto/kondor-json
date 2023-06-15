@@ -138,6 +138,7 @@ data class MessageError(override val msg: String) : OutcomeError
 
 fun String.asFailure() = MessageError(this).asFailure()
 
+// fold until end of sequence (success) or first failure
 fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
     initial: U,
     operation: (acc: U, T) -> Outcome<ERR, U>
@@ -162,6 +163,7 @@ fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List
     traverse { it }
 
 
+// fold until end of sequence (success) or first failure
 fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(
     initial: U,
     operation: (acc: U, T) -> Outcome<ERR, U>
