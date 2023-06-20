@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.1.9.4 - 20 June 2023
+
+Kondor-mongo: ensureIndex() function
+
 ### v.1.9.3 - 9 June 2023
 
 Kondor-core: Added DSL functions to build JsonNode on the fly

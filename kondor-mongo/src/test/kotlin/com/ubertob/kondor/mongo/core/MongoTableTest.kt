@@ -28,7 +28,7 @@ class MongoTableTest {
         override val collectionName: String = "simpleDocs"
 
         override val onConnection: (MongoCollection<BsonDocument>) -> Unit = { coll ->
-            coll.createIndex(
+            coll.ensureIndex(
                 Indexes.ascending("int", "string"),
                 IndexOptions().background(true).name("MyIndex")
             )
@@ -49,14 +49,14 @@ class MongoTableTest {
         override val collectionName: String = "complexDocs"
     }
 
-    private val localMongo = MongoExecutorDbClient(
+    private val localMongo = MongoExecutorDbClient.fromConnectionString(
         connection = mongoConnection,
         databaseName = "mongoCollTest"
     )
 
     @BeforeEach
     fun cleanUp() {
-        val cleanUpExecutor = MongoExecutorDbClient(
+        val cleanUpExecutor = MongoExecutorDbClient.fromConnectionString(
             connection = mongoConnection,
             databaseName = "mongoCollTest"
         )
@@ -243,3 +243,4 @@ class MongoTableTest {
     }
 
 }
+

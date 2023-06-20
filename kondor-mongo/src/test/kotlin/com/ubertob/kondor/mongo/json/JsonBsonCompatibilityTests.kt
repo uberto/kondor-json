@@ -21,7 +21,7 @@ class JsonBsonCompatibilityTests {
         val mongoConnection = mongoContainer.connection
     }
 
-    val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
+    val onMongo = MongoExecutorDbClient.fromConnectionString(mongoConnection, DB_NAME)
 
     object ABsonTable : BsonTable() {
         override val collectionName: String = "CompatibilityDocs"

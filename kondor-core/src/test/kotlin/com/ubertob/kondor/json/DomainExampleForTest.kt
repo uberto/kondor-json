@@ -218,7 +218,6 @@ object JInvoice : JAny<Invoice>() {
             created = +created_date,
             paid = +paid_datetime
         )
-
 }
 
 

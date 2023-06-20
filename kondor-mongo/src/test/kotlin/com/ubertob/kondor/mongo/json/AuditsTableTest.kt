@@ -1,5 +1,6 @@
 package com.ubertob.kondor.mongo.json
 
+import com.mongodb.client.MongoClients
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.chronoAndLog
@@ -19,6 +20,10 @@ class AuditsTableTest {
         private val mongoContainer = mongoForTests()
 
         val mongoConnection = mongoContainer.connection
+
+        fun buildMongoClient() =
+            MongoClients.create(mongoConnection.toMongoClientSettings())
+
     }
 
     private object AuditsTable : TypedTable<AuditMessage>(JAuditMessage) {
@@ -65,7 +70,8 @@ class AuditsTableTest {
         docs.first()
     }
 
-    val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
+
+    val onMongo = MongoExecutorDbClient(DB_NAME) { buildMongoClient() }
 
     private val cleanUp = mongoOperation {
         AuditsTable.drop()

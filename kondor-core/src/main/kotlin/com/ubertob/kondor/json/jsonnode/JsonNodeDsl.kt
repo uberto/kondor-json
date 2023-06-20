@@ -6,7 +6,7 @@ infix fun String.toNode(fieldValuesMap: Map<String, String?>): Pair<String, Json
     this to JsonNodeObject(fieldValuesMap.toNodes(NodePathRoot + this), NodePathRoot + this)
 
 fun Map<String, String?>.toNodes(basePath: NodePath): Map<String, JsonNode> =
-    mapValues { (k, str) -> str?.let { JsonNodeString(str, basePath) } ?: JsonNodeNull(basePath) }
+    mapValues { (_, str) -> str?.let { JsonNodeString(str, basePath) } ?: JsonNodeNull(basePath) }
 
 infix fun String.toNode(fieldValue: String): Pair<String, JsonNode> =
     this to JsonNodeString(fieldValue, NodePathRoot + this)

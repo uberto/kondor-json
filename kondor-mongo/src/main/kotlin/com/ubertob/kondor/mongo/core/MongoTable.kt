@@ -1,11 +1,14 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.MongoCommandException
 import com.mongodb.client.MongoCollection
+import com.mongodb.client.model.IndexOptions
 import com.ubertob.kondor.json.ObjectNodeConverterWriters
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.json.toBsonDocument
 import com.ubertob.kondor.outcome.onFailure
 import org.bson.BsonDocument
+import org.bson.conversions.Bson
 
 interface MongoTable<T : Any> { //actual collections are objects
     val collectionName: String
@@ -38,3 +41,17 @@ abstract class TypedTable<T : Any>(private val converter: ObjectNodeConverterWri
 
 }
 
+fun MongoCollection<*>.ensureIndex(keys: Bson, indexOptions: IndexOptions) {
+    try {
+        createIndex(keys, indexOptions)
+    } catch (e: MongoCommandException) {
+        //println(e) if a previous index with same name existed it will fail. so try to delete it and recreate it
+        try {
+            dropIndex(keys)
+        } catch (e: MongoCommandException) {
+            //println(e) //TODO add audits
+        }
+
+        createIndex(keys, indexOptions)
+    }
+}

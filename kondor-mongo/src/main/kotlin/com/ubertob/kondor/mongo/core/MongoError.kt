@@ -3,9 +3,9 @@ package com.ubertob.kondor.mongo.core
 import com.ubertob.kondor.outcome.OutcomeError
 
 sealed class MongoError : OutcomeError
-data class MongoErrorException(val connection: MongoConnection, val databaseName: String, val e: Exception) :
+data class MongoErrorException(val clusterDesc: String, val databaseName: String, val e: Exception) :
     MongoError() {
-    override val msg: String = "$e - dbname:$databaseName instance:${connection.connString}"
+    override val msg: String = "$e - dbname:$databaseName instance:$clusterDesc"
 }
 
 data class MongoErrorInternal(val connection: MongoConnection, val databaseName: String, val errorDesc: String) :

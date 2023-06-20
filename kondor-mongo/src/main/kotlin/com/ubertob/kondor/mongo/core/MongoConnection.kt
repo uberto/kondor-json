@@ -22,3 +22,5 @@ data class MongoConnection(val connString: String, val timeout: Duration = Durat
         .applyConnectionString(ConnectionString(connString))
         .build()
 }
+
+

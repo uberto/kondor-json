@@ -29,8 +29,7 @@ class FlatDocTableTest {
         //retention... policy.. index
     }
 
-    val onMongo = MongoExecutorDbClient(mongoConnection, DB_NAME)
-
+    val onMongo = MongoExecutorDbClient.fromConnectionString(mongoConnection, DB_NAME)
 
     private fun createDoc(i: Int): SimpleFlatDoc {
 

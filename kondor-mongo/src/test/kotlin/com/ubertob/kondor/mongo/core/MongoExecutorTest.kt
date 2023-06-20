@@ -16,7 +16,7 @@ import strikt.assertions.isGreaterThan
 import java.time.Duration
 import java.util.*
 
-private object collForTest: BsonTable() {
+private object collForTest : BsonTable() {
     override val collectionName: String = "collForTest"
     //retention... policy.. index
 }
@@ -24,7 +24,7 @@ private object collForTest: BsonTable() {
 @Testcontainers
 class MongoExecutorTest {
 
-    companion object{
+    companion object {
         @Container
         private val mongoContainer = mongoForTests()
 
@@ -78,7 +78,7 @@ class MongoExecutorTest {
 
     @Test
     fun `add and query doc safely`() {
-        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        val executor = buildExecutor()
 
         val outcome = writeAndReadOneDoc exec executor
         val myDoc = outcome.expectSuccess()
@@ -87,15 +87,15 @@ class MongoExecutorTest {
 
     @Test
     fun `drop collection safely`() {
-        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        val executor = buildExecutor()
 
         val tot: Int = executor(dropCollReader).expectSuccess()
-        expectThat(0).isEqualTo( tot)
+        expectThat(0).isEqualTo(tot)
     }
 
     @Test
     fun `return error in case of wrong connection`() {
-        val executor = MongoExecutorDbClient(MongoConnection("mongodb://localhost:12345"), dbName)
+        val executor = MongoExecutorDbClient.fromConnectionString(MongoConnection("mongodb://localhost:12345"), dbName)
 
         val res = executor(dropCollReader)
         assertTrue(res.toString().contains("MongoErrorException"))
@@ -103,7 +103,7 @@ class MongoExecutorTest {
 
     @Test
     fun `parsing query safely`() {
-        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        val executor = buildExecutor()
 
         val myDoc = executor(docQueryReader).expectSuccess()
         expectThat(42).isEqualTo(myDoc["index"]!!.asInt32().value)
@@ -111,7 +111,7 @@ class MongoExecutorTest {
 
     @Test
     fun `list database names`() {
-        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        val executor = buildExecutor()
 
         val dbNames = executor.listDatabaseNames() //.printIt("db names")
         expectThat(dbNames.size).isGreaterThan(0)
@@ -119,7 +119,7 @@ class MongoExecutorTest {
 
     @Test
     fun `retrieve connection state`() {
-        val executor = MongoExecutorDbClient(mongoConnection, dbName)
+        val executor = buildExecutor()
         executor(writeAndReadOneDoc).expectSuccess()
 
         val clusterDesc = executor.clusterDescription()
@@ -133,7 +133,7 @@ class MongoExecutorTest {
             connString = "mongodb://mynonexistanthost:1234/dbname",
             timeout = Duration.ofMillis(10)
         )
-        val executor = MongoExecutorDbClient(wrongConn, dbName)
+        val executor = MongoExecutorDbClient.fromConnectionString(wrongConn, dbName)
 
         val error = executor(writeAndReadOneDoc).expectFailure() as MongoErrorException
 
@@ -142,4 +142,6 @@ class MongoExecutorTest {
 
         expectThat(clusterDesc.serverDescriptions[0].state).isEqualTo(ServerConnectionState.CONNECTING)
     }
+
+    fun buildExecutor() = MongoExecutorDbClient.fromConnectionString(mongoConnection, dbName)
 }

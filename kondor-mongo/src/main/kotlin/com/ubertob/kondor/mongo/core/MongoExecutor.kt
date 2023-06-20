@@ -19,10 +19,10 @@ interface MongoExecutor : ContextProvider<MongoSession> {
     override operator fun <T> invoke(context: ContextReader<MongoSession, T>): Outcome<MongoError, T>
 }
 
-class MongoExecutorDbClient(private val connection: MongoConnection, override val databaseName: String) :
+class MongoExecutorDbClient(override val databaseName: String, clientProvider: () -> MongoClient) :
     MongoExecutor {
 
-    private val mongoClient: MongoClient by lazy { MongoClients.create(connection.toMongoClientSettings()) }
+    private val mongoClient: MongoClient by lazy(clientProvider)
 
     private val collectionsCache: CollectionCache = ConcurrentHashMap<String, MongoCollection<BsonDocument>>()
 
@@ -32,7 +32,7 @@ class MongoExecutorDbClient(private val connection: MongoConnection, override va
 //            println("Connected to ${connection.connString} found dbs: ${mongoClient.listDatabases()}") //TODO add an audit function to constructor (MongoAudit) -> Unit
             context.runWith(sess).asSuccess()
         } catch (e: Exception) {
-            MongoErrorException(connection, databaseName, e).asFailure()
+            MongoErrorException(mongoClient.clusterDescription.shortDescription, databaseName, e).asFailure()
         }
 
     fun listDatabases(): List<Document> = mongoClient.listDatabases().toList() //TODO add test
@@ -43,4 +43,10 @@ class MongoExecutorDbClient(private val connection: MongoConnection, override va
 
     fun watch(): ChangeStreamIterable<Document> = mongoClient.watch() //TODO add test
 
+
+    companion object {
+        fun fromConnectionString(connection: MongoConnection, databaseName: String): MongoExecutorDbClient =
+            MongoExecutorDbClient(databaseName)
+            { MongoClients.create(connection.toMongoClientSettings()) }
+    }
 }
