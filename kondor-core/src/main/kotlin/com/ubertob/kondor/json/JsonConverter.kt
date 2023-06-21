@@ -84,8 +84,8 @@ fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
     toJsonNode(value, NodePathRoot).pretty(true, 2)
 
-fun <T, JN : JsonNode> JsonConverter<T, JN>.toCompactJson(value: T): String =
-    buildString { toJsonNode(value, NodePathRoot).compact(this) }
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toCompactJson(value: T, explicitNull: Boolean = false): String =
+    buildString { toJsonNode(value, NodePathRoot).compact(this, explicitNull) }
 
 
 private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =

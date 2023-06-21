@@ -14,22 +14,24 @@ fun JsonNode.render(): String =
             .joinToString(prefix = "{", postfix = "}")
     }
 
-fun JsonNode.compact(stringBuilder: StringBuilder): StringBuilder =
+fun JsonNode.compact(stringBuilder: StringBuilder, explicitNull: Boolean = false): StringBuilder =
     stringBuilder.also { sb ->
         when (this) {
             is JsonNodeNull -> sb.append("null")
             is JsonNodeString -> sb.append(text.putInQuotes())
             is JsonNodeBoolean -> sb.append(value.toString())
             is JsonNodeNumber -> sb.append(num.toString())
-            is JsonNodeArray -> notNullValues
-                .appendAndJoin(builder = sb, prefix = "[", postfix = "]", separator = ",") { it.compact(this) }
+            is JsonNodeArray -> valuesFiltered(explicitNull)
+                .appendAndJoin(builder = sb, prefix = "[", postfix = "]", separator = ",") {
+                    it.compact(this, explicitNull)
+                }
 
-            is JsonNodeObject -> notNullFields.appendAndJoin(builder = sb, prefix = "{", postfix = "}", separator = ",")
-            {
-                append(it.key.putInQuotes())
-                append(':')
-                it.value.compact(this)
-            }
+            is JsonNodeObject -> fieldsFiltered(explicitNull)
+                .appendAndJoin(builder = sb, prefix = "{", postfix = "}", separator = ",") {
+                    append(it.key.putInQuotes())
+                    append(':')
+                    it.value.compact(this, explicitNull)
+                }
         }
     }
 

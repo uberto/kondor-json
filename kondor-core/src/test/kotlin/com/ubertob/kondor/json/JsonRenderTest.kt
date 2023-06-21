@@ -195,13 +195,13 @@ class JsonRenderTest {
         expectThat(jsonStringNN).isEqualTo(expectedNN)
     }
 
-
     @Test
     fun `compact render object`() {
         val jsonString = JsonNodeObject(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
-                "name" to JsonNodeString("Ann", NodePathRoot)
+                "name" to JsonNodeString("Ann", NodePathRoot),
+                "nullable" to JsonNodeNull(NodePathRoot)
             ),
             NodePathRoot
         ).compact(StringBuilder()).toString()
@@ -209,4 +209,25 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann"}""")
     }
 
+    @Test
+    fun `compact render object with null explicit`() {
+        val jsonString = JsonNodeObject(
+            mapOf(
+                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot),
+                "nullable" to JsonNodeNull(NodePathRoot),
+                "arrayNullable" to JsonNodeArray(listOf(JsonNodeString("Bob", NodePathRoot), JsonNodeNull(NodePathRoot)), NodePathRoot),
+                "objectNullable" to JsonNodeObject(
+                    mapOf(
+                        "one" to JsonNodeString("two", NodePathRoot),
+                        "three" to JsonNodeNull(NodePathRoot)
+                    ),
+                    NodePathRoot
+                )
+            ),
+            NodePathRoot
+        ).compact(StringBuilder(), explicitNull = true).toString()
+
+        expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann","nullable":null,"arrayNullable":["Bob",null],"objectNullable":{"one":"two","three":null}}""")
+    }
 }
