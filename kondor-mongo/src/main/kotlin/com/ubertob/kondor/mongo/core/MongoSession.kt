@@ -1,10 +1,7 @@
 package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
-import com.mongodb.client.model.FindOneAndDeleteOptions
-import com.mongodb.client.model.FindOneAndReplaceOptions
-import com.mongodb.client.model.FindOneAndUpdateOptions
-import com.mongodb.client.model.ReturnDocument
+import com.mongodb.client.model.*
 import org.bson.BsonDocument
 import org.bson.BsonValue
 import org.bson.Document
@@ -20,7 +17,9 @@ interface MongoSession {
     //Edit Methods
     fun <T : Any> MongoTable<T>.insertOne(doc: T): BsonValue?
     fun <T : Any> MongoTable<T>.insertMany(docs: Iterable<T>): List<BsonValue>
+    fun <T : Any> MongoTable<T>.deleteOne(bsonFilters: Bson): Long
     fun <T : Any> MongoTable<T>.deleteMany(bsonFilters: Bson): Long
+    fun <T : Any> MongoTable<T>.replaceOne(filter: Bson, doc: T, options: ReplaceOptions = ReplaceOptions()): BsonValue?
     fun <T : Any> MongoTable<T>.findOneAndUpdate(
         bsonFilters: Bson,
         bsonSetter: Bson,
@@ -58,6 +57,17 @@ interface MongoSession {
         val UPSERT_RETURN_UPDATED = FindOneAndReplaceOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
     }
 
+    fun <T : Any> MongoTable<T>.updateOne(
+        filter: Bson,
+        updateModel: Bson,
+        options: UpdateOptions = UpdateOptions()
+    ): BsonValue?
+
+    fun <T : Any> MongoTable<T>.updateMany(
+        filter: Bson,
+        updateModel: Bson,
+        options: UpdateOptions = UpdateOptions()
+    ): Long
 }
 
 typealias CollectionCache = MutableMap<String, MongoCollection<BsonDocument>>

@@ -2,10 +2,7 @@ package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import com.mongodb.client.model.Filters
-import com.mongodb.client.model.FindOneAndDeleteOptions
-import com.mongodb.client.model.FindOneAndReplaceOptions
-import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.*
 import org.bson.BsonDocument
 import org.bson.BsonValue
 import org.bson.Document
@@ -44,10 +41,35 @@ class MongoDbSession(val database: MongoDatabase, val collections: CollectionCac
                 .insertedIds.values.toList()
         }
 
+    override fun <T : Any> MongoTable<T>.deleteOne(bsonFilters: Bson): Long =
+        internalRun {
+            it.deleteOne(bsonFilters)
+                .deletedCount
+        }
+
     override fun <T : Any> MongoTable<T>.deleteMany(bsonFilters: Bson): Long =
         internalRun {
             it.deleteMany(bsonFilters)
                 .deletedCount
+        }
+
+    override fun <T : Any> MongoTable<T>.replaceOne(filter: Bson, doc: T, options: ReplaceOptions): BsonValue? =
+        internalRun {
+            it.replaceOne(filter, toBsonDoc(doc), options).upsertedId
+        }
+
+    override fun <T : Any> MongoTable<T>.updateOne(
+        filter: Bson,
+        updateModel: Bson,
+        options: UpdateOptions
+    ): BsonValue? =
+        internalRun {
+            it.updateOne(filter, updateModel, options).upsertedId
+        }
+
+    override fun <T : Any> MongoTable<T>.updateMany(filter: Bson, updateModel: Bson, options: UpdateOptions): Long =
+        internalRun {
+            it.updateMany(filter, updateModel, options).modifiedCount
         }
 
     override fun <T : Any> MongoTable<T>.findOneAndUpdate(

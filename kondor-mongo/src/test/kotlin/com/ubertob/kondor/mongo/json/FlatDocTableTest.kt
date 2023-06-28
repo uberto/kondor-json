@@ -54,6 +54,10 @@ class FlatDocTableTest {
             .firstOrNull()
     }
 
+    val count = mongoOperation {
+        FlatDocs.countDocuments()
+    }
+
     fun docWriter(doc: SimpleFlatDoc): ContextReader<MongoSession, Unit> =
         mongoOperation {
             FlatDocs.insertOne(doc)
@@ -158,6 +162,90 @@ class FlatDocTableTest {
         expectThat(noDoc).isEqualTo(null)
     }
 
+    @Test
+    fun `replaceOne methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        val updatedDoc = SimpleFlatDoc(43, "updated doc", calcDocDate(43), true)
+        onMongo(mongoOperation {
+            FlatDocs.replaceOne(
+                Filters.eq("index", 43),
+                updatedDoc
+            )
+        }).expectSuccess()
+
+        val newDoc43 = onMongo(reader(43)).expectSuccess()
+
+        expectThat(newDoc43).isEqualTo(updatedDoc)
+    }
+
+    @Test
+    fun `updateOne methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.updateOne(
+                Filters.eq("index", 43),
+                Updates.combine(
+                    Updates.mul("index", 10),
+                    Updates.set("name", "updated doc 43")
+                )
+            )
+        }).expectSuccess()
+
+        val newDoc430 = onMongo(reader(430)).expectSuccess()
+
+        expectThat(newDoc430?.name).isEqualTo("updated doc 43")
+    }
+
+    @Test
+    fun `updateMany methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.updateMany(
+                Filters.`in`("index", setOf(43, 73)),
+                Updates.set("name", "updated doc")
+            )
+        }).expectSuccess()
+
+        val newDoc43 = onMongo(reader(43)).expectSuccess()
+        expectThat(newDoc43?.name).isEqualTo("updated doc")
+        val newDoc73 = onMongo(reader(73)).expectSuccess()
+        expectThat(newDoc73?.name).isEqualTo("updated doc")
+    }
+
+    @Test
+    fun `deleteOne methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.deleteOne(Filters.eq("index", 44))
+        }).expectSuccess()
+
+        val noDoc = onMongo(reader(44)).expectSuccess()
+
+        expectThat(noDoc).isEqualTo(null)
+    }
+
+    @Test
+    fun `deleteMulti methods work correctly`() {
+
+        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+
+        onMongo(mongoOperation {
+            FlatDocs.deleteMany(Filters.and(Filters.lt("index", 60), Filters.gt("index", 40)))
+        }).expectSuccess()
+
+        val noDoc = onMongo(count).expectSuccess()
+        expectThat(noDoc).isEqualTo(81)
+
+        val missing = onMongo(reader(41)).expectSuccess()
+        expectThat(missing).isEqualTo(null)
+    }
+
 }
-
-
