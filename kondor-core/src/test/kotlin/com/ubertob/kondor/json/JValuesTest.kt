@@ -206,7 +206,7 @@ class JValuesTest {
 
             expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(product)
 
-            val jsonStrNull = JProduct.toNullJson(product)
+            val jsonStrNull = JProduct.toJson(product, JsonRenderer.prettyIncludeNulls)
 
             expectThat(JProduct.fromJson(jsonStrNull).expectSuccess()).isEqualTo(product)
 
@@ -244,7 +244,7 @@ class JValuesTest {
 
             expectThat(actual).isEqualTo(invoice)
 
-            val jsonStr = JInvoice.toPrettyJson(invoice)
+            val jsonStr = JInvoice.toJson(invoice, JsonRenderer.pretty)
 
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
@@ -261,7 +261,7 @@ class JValuesTest {
 
             expectThat(actual).isEqualTo(invoice)
 
-            val jsonStr = JInvoice.toCompactJson(invoice).printIt("Compact Invoice!")
+            val jsonStr = JInvoice.toJson(invoice, JsonRenderer.compact).printIt("Compact Invoice!")
 
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
@@ -273,7 +273,7 @@ class JValuesTest {
         repeat(10) {
             val variant = randomVariant()
 
-            val jsonStr = JVariant.toPrettyJson(variant)
+            val jsonStr = JVariant.toJson(variant, JsonRenderer.pretty)
 //            println(jsonStr)
 
             expectThat(JVariant.fromJson(jsonStr).expectSuccess()).isEqualTo(variant)

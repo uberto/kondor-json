@@ -3,7 +3,7 @@ package com.ubertob.kondor.json.jsonnode
 import com.ubertob.kondor.json.FromJson
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.JsonPropertyError
-import com.ubertob.kondor.json.parser.pretty
+import com.ubertob.kondor.json.pretty
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat

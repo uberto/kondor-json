@@ -1,7 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.parser.pretty
-import com.ubertob.kondor.json.parser.render
 import com.ubertob.kondor.validateJsonAgainstSchema
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching

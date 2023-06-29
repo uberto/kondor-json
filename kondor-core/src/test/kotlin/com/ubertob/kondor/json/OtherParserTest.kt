@@ -30,7 +30,7 @@ class OtherParserTest {
 
         val dcl = JDatabaseChangeLog.fromJson(json).expectSuccess()
 
-        val prettyJson = JDatabaseChangeLog.toPrettyJson(dcl)
+        val prettyJson = JDatabaseChangeLog.toJson(dcl, JsonRenderer.pretty)
 
 //        println(prettyJson)
     }

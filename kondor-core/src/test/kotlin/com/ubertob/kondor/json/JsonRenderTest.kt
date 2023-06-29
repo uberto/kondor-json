@@ -1,9 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.compact
-import com.ubertob.kondor.json.parser.pretty
-import com.ubertob.kondor.json.parser.render
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -145,23 +142,20 @@ class JsonRenderTest {
     fun `pretty render object`() {
 
         repeat(5) {
-            val indent = Random.nextInt(4)
-            val offset = Random.nextInt(10)
+            val indent = Random.nextInt(8)
             val jsonString = JsonNodeObject(
                 mapOf(
                     "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
                     "name" to JsonNodeString("Ann", NodePathRoot)
                 ),
                 NodePathRoot
-            ).pretty(false, indent, offset)
+            ).pretty(false, indent)
 
-
-            val external = " ".repeat(offset)
-            val internal = " ".repeat(indent + offset)
+            val internal = " ".repeat(indent)
             val expected = """{
                 |$internal"id": 123,
                 |$internal"name": "Ann"
-                |$external}""".trimMargin()
+                |}""".trimMargin()
             expectThat(jsonString).isEqualTo(expected)
         }
     }
@@ -177,7 +171,7 @@ class JsonRenderTest {
             ),
             NodePathRoot
         )
-        val jsonString = nodeObject.pretty(true, 2)
+        val jsonString = nodeObject.pretty(true)
 
         val expected = """{
               |  "id": 123,
@@ -186,7 +180,7 @@ class JsonRenderTest {
               |}""".trimMargin()
         expectThat(jsonString).isEqualTo(expected)
 
-        val jsonStringNN = nodeObject.pretty(false, 2)
+        val jsonStringNN = nodeObject.pretty(false)
 
         val expectedNN = """{
               |  "id": 123,
