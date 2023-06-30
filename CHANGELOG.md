@@ -7,7 +7,11 @@ rationale when appropriate:
 
 Kondor-core: Added Serializer with multiple options (thanks to Fred Nordin)
 
+Kondor-core: Made compact the default mode
+
 Kondor-mongo: Kotlin infix syntax for filters
+
+Kondor-mongo: Added Audit
 
 Kondor-mongo: Added readme
 

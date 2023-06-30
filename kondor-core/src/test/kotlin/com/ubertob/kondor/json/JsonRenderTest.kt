@@ -60,7 +60,7 @@ class JsonRenderTest {
                 NodePathRoot
             ).render()
 
-        expectThat(jsonString).isEqualTo("""["abc", "def"]""")
+        expectThat(jsonString).isEqualTo("""["abc","def"]""")
     }
 
     @Test
@@ -74,7 +74,7 @@ class JsonRenderTest {
                 ), NodePathRoot
             ).render()
 
-        expectThat(jsonString).isEqualTo("""["abc", "def"]""")
+        expectThat(jsonString).isEqualTo("""["abc","def"]""")
     }
 
     @Test
@@ -118,7 +118,7 @@ class JsonRenderTest {
             NodePathRoot
         ).render()
 
-        val expected = """{"id": 123, "name": "Ann"}"""
+        val expected = """{"id":123,"name":"Ann"}"""
         expectThat(jsonString).isEqualTo(expected)
     }
 
@@ -134,7 +134,7 @@ class JsonRenderTest {
             NodePathRoot
         ).render()
 
-        val expected = """{"id": 123, "name": "Ann"}"""
+        val expected = """{"id":123,"name":"Ann"}"""
         expectThat(jsonString).isEqualTo(expected)
     }
 
