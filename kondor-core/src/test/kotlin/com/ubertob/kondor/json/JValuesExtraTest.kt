@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
-import com.ubertob.kondor.json.parser.pretty
 import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
@@ -83,7 +82,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toPrettyJson(value)
+            val jsonStr = JNotes.toJson(value, JsonRenderer.pretty)
 
 //            println(jsonStr)
 
@@ -102,7 +101,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JTasks.toPrettyJson(value)
+            val jsonStr = JTasks.toJson(value, JsonRenderer.pretty)
 
             expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
@@ -125,7 +124,7 @@ class JValuesExtraTest {
             "foo2" to "bar2"
         )
 
-        expectThat(JMap(JString).toPrettyJson(map)).isEqualTo(
+        expectThat(JMap(JString).toJson(map, JsonRenderer.pretty)).isEqualTo(
             """{
                 |  "foo1": "bar1",
                 |  "foo2": "bar2"
@@ -146,7 +145,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JProducts.toPrettyJson(value)
+            val jsonStr = JProducts.toJson(value, JsonRenderer.pretty)
 
 //            println(jsonStr)
 
@@ -168,7 +167,7 @@ class JValuesExtraTest {
             )
         )
 
-        val json = JSelectedFile.toPrettyJson(selectedFile)
+        val json = JSelectedFile.toJson(selectedFile, JsonRenderer.pretty)
 
         expectThat(json).isEqualTo(
             """{
@@ -191,7 +190,7 @@ class JValuesExtraTest {
             metadata = mapOf("type" to "picture", "owner" to "uberto")
         )
 
-        val json = JMetadataFile.toPrettyJson(metadataFile)
+        val json = JMetadataFile.toJson(metadataFile, JsonRenderer.pretty)
 
         expectThat(json).isEqualTo(
             """{
