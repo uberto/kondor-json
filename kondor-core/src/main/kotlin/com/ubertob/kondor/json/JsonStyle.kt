@@ -2,45 +2,59 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 
-data class JsonRenderer(private val style: Style, private val includeNulls: Boolean) {
+data class JsonStyle(
+    val fieldSeparator: String,
+    val valueSeparator: String,
+    val indent: Int?,
+    val sortedObjectFields: Boolean,
+    val includeNulls: Boolean
+) {
     fun render(node: JsonNode): String = buildString { render(node, this) }
 
-    fun render(node: JsonNode, appendable: Appendable) = appendable.append(node, style, includeNulls)
-
-    sealed interface Style { //merge with JsonRenderer TODO
-        val fieldSeparator: String
-        val valueSeparator: String
-        val indent: Int?
-        val sortedObjectFields: Boolean
-    }
-
-    object DefaultStyle : Style {
-        override val fieldSeparator: String = ", "
-        override val valueSeparator: String = ": "
-        override val indent = null
-        override val sortedObjectFields: Boolean = false
-    }
-
-    object CompactStyle : Style {
-        override val fieldSeparator: String = ","
-        override val valueSeparator: String = ":"
-        override val indent = null
-        override val sortedObjectFields: Boolean = false
-    }
-
-    data class PrettyStyle(override val indent: Int = 2, override val sortedObjectFields: Boolean = true) : Style {
-        override val fieldSeparator: String = ","
-        override val valueSeparator: String = ": "
-    }
+    fun render(node: JsonNode, appendable: Appendable) = appendable.append(node, this)
 
     companion object {
-        val default: JsonRenderer = JsonRenderer(DefaultStyle, includeNulls = false)
-        val compact: JsonRenderer = JsonRenderer(CompactStyle, includeNulls = false)
-        val compactIncludeNulls: JsonRenderer = JsonRenderer(CompactStyle, includeNulls = true)
-        val pretty: JsonRenderer = JsonRenderer(PrettyStyle(), includeNulls = false)
-        val prettyIncludeNulls: JsonRenderer = JsonRenderer(PrettyStyle(), includeNulls = true)
+        val singleLine = JsonStyle(
+            fieldSeparator = ", ",
+            valueSeparator = ": ",
+            indent = null,
+            sortedObjectFields = false,
+            includeNulls = false
+        )
 
-        private fun Appendable.append(node: JsonNode, style: Style, includeNulls: Boolean, offset: Int = 0) {
+        val compact = JsonStyle(
+            fieldSeparator = ",",
+            valueSeparator = ":",
+            indent = null,
+            sortedObjectFields = false,
+            includeNulls = false
+        )
+
+        val compactIncludeNulls = JsonStyle(
+            fieldSeparator = ",",
+            valueSeparator = ":",
+            indent = null,
+            sortedObjectFields = false,
+            includeNulls = true
+        )
+
+        val pretty = JsonStyle(
+            fieldSeparator = ",",
+            valueSeparator = ": ",
+            indent = 2,
+            sortedObjectFields = true,
+            includeNulls = false
+        )
+
+        val prettyIncludeNulls: JsonStyle = JsonStyle(
+            fieldSeparator = ",",
+            valueSeparator = ": ",
+            indent = 2,
+            sortedObjectFields = true,
+            includeNulls = true
+        )
+
+        private fun Appendable.append(node: JsonNode, style: JsonStyle, offset: Int = 0) {
             when (node) {
                 is JsonNodeNull -> append("null")
                 is JsonNodeString -> append(node.text.quoted())
@@ -49,12 +63,12 @@ data class JsonRenderer(private val style: Style, private val includeNulls: Bool
                 is JsonNodeArray -> {
                     append('[')
                     appendIndentationIfNeeded(style.indent, offset + 1)
-                    node.values(includeNulls).forEachIndexed { index, each ->
+                    node.values(style.includeNulls).forEachIndexed { index, each ->
                         if (index > 0) {
                             append(style.fieldSeparator)
                             appendIndentationIfNeeded(style.indent, offset + 1)
                         }
-                        append(each, style, includeNulls, offset + 2)
+                        append(each, style, offset + 2)
                     }
                     appendIndentationIfNeeded(style.indent, offset)
                     append(']')
@@ -63,7 +77,7 @@ data class JsonRenderer(private val style: Style, private val includeNulls: Bool
                 is JsonNodeObject -> {
                     append('{')
                     appendIndentationIfNeeded(style.indent, offset + 1)
-                    node.fields(includeNulls, style.sortedObjectFields)
+                    node.fields(style.includeNulls, style.sortedObjectFields)
                         .forEachIndexed { index, entry ->
                             if (index > 0) {
                                 append(style.fieldSeparator)
@@ -71,7 +85,7 @@ data class JsonRenderer(private val style: Style, private val includeNulls: Bool
                             }
                             append(entry.key.quoted())
                             append(style.valueSeparator)
-                            append(entry.value, style, includeNulls, offset + 2)
+                            append(entry.value, style, offset + 2)
                         }
                     appendIndentationIfNeeded(style.indent, offset)
                     append('}')

@@ -82,7 +82,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toJson(value, JsonRenderer.pretty)
+            val jsonStr = JNotes.toJson(value, JsonStyle.pretty)
 
 //            println(jsonStr)
 
@@ -101,7 +101,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JTasks.toJson(value, JsonRenderer.pretty)
+            val jsonStr = JTasks.toJson(value, JsonStyle.pretty)
 
             expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
@@ -124,7 +124,7 @@ class JValuesExtraTest {
             "foo2" to "bar2"
         )
 
-        expectThat(JMap(JString).toJson(map, JsonRenderer.pretty)).isEqualTo(
+        expectThat(JMap(JString).toJson(map, JsonStyle.pretty)).isEqualTo(
             """{
                 |  "foo1": "bar1",
                 |  "foo2": "bar2"
@@ -145,7 +145,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JProducts.toJson(value, JsonRenderer.pretty)
+            val jsonStr = JProducts.toJson(value, JsonStyle.pretty)
 
 //            println(jsonStr)
 
@@ -167,7 +167,7 @@ class JValuesExtraTest {
             )
         )
 
-        val json = JSelectedFile.toJson(selectedFile, JsonRenderer.pretty)
+        val json = JSelectedFile.toJson(selectedFile, JsonStyle.pretty)
 
         expectThat(json).isEqualTo(
             """{
@@ -190,7 +190,7 @@ class JValuesExtraTest {
             metadata = mapOf("type" to "picture", "owner" to "uberto")
         )
 
-        val json = JMetadataFile.toJson(metadataFile, JsonRenderer.pretty)
+        val json = JMetadataFile.toJson(metadataFile, JsonStyle.pretty)
 
         expectThat(json).isEqualTo(
             """{

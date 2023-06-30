@@ -3,6 +3,14 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.0,0 - ... 2023
+
+Kondor-core: Added Serializer with multiple options (thanks to Fred Nordin)
+
+Kondor-mongo: Kotlin infix syntax for filters
+
+Kondor-mongo: Added readme
+
 ### v.1.9.5 - 28 June 2023
 
 Kondor-mongo: added more methods to modify collections

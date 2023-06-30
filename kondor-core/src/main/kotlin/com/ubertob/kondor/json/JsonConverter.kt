@@ -1,18 +1,7 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeArray
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodeKind
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
-import com.ubertob.kondor.json.jsonnode.NullNode
-import com.ubertob.kondor.json.jsonnode.onRoot
-import com.ubertob.kondor.json.parser.EndOfCollection
-import com.ubertob.kondor.json.parser.KondorTokenizer
-import com.ubertob.kondor.json.parser.TokensStream
-import com.ubertob.kondor.json.parser.lastToken
-import com.ubertob.kondor.json.parser.parsingFailure
+import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
@@ -63,7 +52,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             parsingFailure("a valid Json", lastToken(), NodePathRoot, t.message.orEmpty())
         }
 
-    override fun toJson(value: T): String = JsonRenderer.default.render(toJsonNode(value, NodePathRoot))
+    override fun toJson(value: T): String = JsonStyle.singleLine.render(toJsonNode(value, NodePathRoot))
 
     override fun fromJson(json: String): JsonOutcome<T> =
         safeTokenize(json).bind(::parseAndConvert)
@@ -85,7 +74,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
 }
 
-fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonRenderer): String =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     renderer.render(toJsonNode(value, NodePathRoot))
 
 private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =

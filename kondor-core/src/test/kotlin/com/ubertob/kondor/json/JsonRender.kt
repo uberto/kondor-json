@@ -1,11 +1,16 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.JsonNode
 
-fun JsonNode.render(): String = JsonRenderer.default.render(this)
+fun JsonNode.render(): String = JsonStyle.singleLine.render(this) //TODO compact
 
+//TODO obsolete
 fun JsonNode.compact(stringBuilder: StringBuilder, explicitNull: Boolean = false): StringBuilder =
-    stringBuilder.append(JsonRenderer(JsonRenderer.CompactStyle, explicitNull).render(this))
+    stringBuilder.append(
+        (if (explicitNull) JsonStyle.compactIncludeNulls else JsonStyle.compact)
+            .render(this)
+    )
 
+//TODO obsolete
 fun JsonNode.pretty(explicitNull: Boolean = false, indent: Int = 2): String =
-    JsonRenderer(JsonRenderer.PrettyStyle(indent), explicitNull).render(this)
+    JsonStyle.pretty.copy(indent = indent, includeNulls = explicitNull).render(this)

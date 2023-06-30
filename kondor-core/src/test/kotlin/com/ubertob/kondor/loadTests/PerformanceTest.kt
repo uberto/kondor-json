@@ -58,7 +58,7 @@ class PerformanceTest {
 
             val jsonString = chronoAndLog("serialization") { JInvoices.toJson(invoices) }
 
-            chronoAndLog("serialization compact") { JInvoices.toJson(invoices, JsonRenderer.compact) }
+            chronoAndLog("serialization compact") { JInvoices.toJson(invoices, JsonStyle.compact) }
 
             chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
 
@@ -87,7 +87,7 @@ class PerformanceTest {
 
             val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(fileInfos) }
 
-            chronoAndLog("serialization compact") { jFileInfos.toJson(fileInfos, JsonRenderer.compact) }
+            chronoAndLog("serialization compact") { jFileInfos.toJson(fileInfos, JsonStyle.compact) }
 
             chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
 
@@ -116,7 +116,7 @@ class PerformanceTest {
 
             val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
 
-            chronoAndLog("serialization compact") { jStrings.toJson(strings, JsonRenderer.compact) }
+            chronoAndLog("serialization compact") { jStrings.toJson(strings, JsonStyle.compact) }
 
 
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
