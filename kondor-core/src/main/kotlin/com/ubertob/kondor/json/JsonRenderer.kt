@@ -1,36 +1,30 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeArray
-import com.ubertob.kondor.json.jsonnode.JsonNodeBoolean
-import com.ubertob.kondor.json.jsonnode.JsonNodeNull
-import com.ubertob.kondor.json.jsonnode.JsonNodeNumber
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.*
 
-class JsonRenderer(private val style: Style, private val includeNulls: Boolean) {
+data class JsonRenderer(private val style: Style, private val includeNulls: Boolean) {
     fun render(node: JsonNode): String = buildString { render(node, this) }
 
     fun render(node: JsonNode, appendable: Appendable) = appendable.append(node, style, includeNulls)
 
-    sealed interface Style {
+    sealed interface Style { //merge with JsonRenderer TODO
         val fieldSeparator: String
         val valueSeparator: String
-        val indent: Int
+        val indent: Int?
         val sortedObjectFields: Boolean
     }
 
     object DefaultStyle : Style {
         override val fieldSeparator: String = ", "
         override val valueSeparator: String = ": "
-        override val indent: Int = -1
+        override val indent = null
         override val sortedObjectFields: Boolean = false
     }
 
     object CompactStyle : Style {
         override val fieldSeparator: String = ","
         override val valueSeparator: String = ":"
-        override val indent: Int = -1
+        override val indent = null
         override val sortedObjectFields: Boolean = false
     }
 
@@ -54,42 +48,43 @@ class JsonRenderer(private val style: Style, private val includeNulls: Boolean) 
                 is JsonNodeNumber -> append(node.num.toString())
                 is JsonNodeArray -> {
                     append('[')
-                    appendIndentationIfNeeded(style, offset + style.indent)
+                    appendIndentationIfNeeded(style.indent, offset + 1)
                     node.values(includeNulls).forEachIndexed { index, each ->
                         if (index > 0) {
                             append(style.fieldSeparator)
-                            appendIndentationIfNeeded(style, offset + style.indent)
+                            appendIndentationIfNeeded(style.indent, offset + 1)
                         }
-                        append(each, style, includeNulls, offset + style.indent + style.indent)
+                        append(each, style, includeNulls, offset + 2)
                     }
-                    appendIndentationIfNeeded(style, offset)
+                    appendIndentationIfNeeded(style.indent, offset)
                     append(']')
                 }
 
                 is JsonNodeObject -> {
                     append('{')
-                    appendIndentationIfNeeded(style, offset + style.indent)
-                    node.fields(includeNulls, style.sortedObjectFields).forEachIndexed { index, entry ->
-                        if (index > 0) {
-                            append(style.fieldSeparator)
-                            appendIndentationIfNeeded(style, offset + style.indent)
+                    appendIndentationIfNeeded(style.indent, offset + 1)
+                    node.fields(includeNulls, style.sortedObjectFields)
+                        .forEachIndexed { index, entry ->
+                            if (index > 0) {
+                                append(style.fieldSeparator)
+                                appendIndentationIfNeeded(style.indent, offset + 1)
+                            }
+                            append(entry.key.quoted())
+                            append(style.valueSeparator)
+                            append(entry.value, style, includeNulls, offset + 2)
                         }
-                        append(entry.key.quoted())
-                        append(style.valueSeparator)
-                        append(entry.value, style, includeNulls, offset + style.indent + style.indent)
-                    }
-                    appendIndentationIfNeeded(style, offset)
+                    appendIndentationIfNeeded(style.indent, offset)
                     append('}')
                 }
             }
         }
 
-        private fun Appendable.appendIndentationIfNeeded(style: Style, indent: Int) {
-            if (style.indent > -1) {
+        private fun Appendable.appendIndentationIfNeeded(indent: Int?, offset: Int) =
+            indent?.also {
                 append('\n')
-                append(" ".repeat(indent))
+                append(" ".repeat(indent * offset))
             }
-        }
+
 
         private val regex = """[\\"\n\r\t]""".toRegex()
         private fun String.quoted(): String =
