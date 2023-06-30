@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomList
@@ -82,7 +83,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toJson(value, JsonStyle.pretty)
+            val jsonStr = JNotes.toJson(value, pretty)
 
 //            println(jsonStr)
 
@@ -101,7 +102,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JTasks.toJson(value, JsonStyle.pretty)
+            val jsonStr = JTasks.toJson(value, pretty)
 
             expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
@@ -112,7 +113,7 @@ class JValuesExtraTest {
         val value = randomTasks()
 
         val json = JTasks.toJson(value)
-        val schemaJson = JTasks.schema().pretty()
+        val schemaJson = JTasks.schema().render(pretty)
 
         validateJsonAgainstSchema(schemaJson, json)
     }
@@ -124,7 +125,7 @@ class JValuesExtraTest {
             "foo2" to "bar2"
         )
 
-        expectThat(JMap(JString).toJson(map, JsonStyle.pretty)).isEqualTo(
+        expectThat(JMap(JString).toJson(map, pretty)).isEqualTo(
             """{
                 |  "foo1": "bar1",
                 |  "foo2": "bar2"
@@ -145,7 +146,7 @@ class JValuesExtraTest {
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JProducts.toJson(value, JsonStyle.pretty)
+            val jsonStr = JProducts.toJson(value, pretty)
 
 //            println(jsonStr)
 
@@ -167,7 +168,7 @@ class JValuesExtraTest {
             )
         )
 
-        val json = JSelectedFile.toJson(selectedFile, JsonStyle.pretty)
+        val json = JSelectedFile.toJson(selectedFile, pretty)
 
         expectThat(json).isEqualTo(
             """{
@@ -190,7 +191,7 @@ class JValuesExtraTest {
             metadata = mapOf("type" to "picture", "owner" to "uberto")
         )
 
-        val json = JMetadataFile.toJson(metadataFile, JsonStyle.pretty)
+        val json = JMetadataFile.toJson(metadataFile, pretty)
 
         expectThat(json).isEqualTo(
             """{

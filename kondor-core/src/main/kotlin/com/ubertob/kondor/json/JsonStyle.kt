@@ -30,7 +30,7 @@ data class JsonStyle(
             includeNulls = false
         )
 
-        val compactIncludeNulls = JsonStyle(
+        val compactWithNulls = JsonStyle(
             fieldSeparator = ",",
             valueSeparator = ":",
             indent = null,

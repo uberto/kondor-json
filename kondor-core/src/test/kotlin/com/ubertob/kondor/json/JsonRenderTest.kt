@@ -1,5 +1,7 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.compact
+import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
 import com.ubertob.kondor.json.jsonnode.*
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -198,7 +200,7 @@ class JsonRenderTest {
                 "nullable" to JsonNodeNull(NodePathRoot)
             ),
             NodePathRoot
-        ).compact(StringBuilder()).toString()
+        ).render(compact)
 
         expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann"}""")
     }
@@ -210,7 +212,12 @@ class JsonRenderTest {
                 "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
                 "nullable" to JsonNodeNull(NodePathRoot),
-                "arrayNullable" to JsonNodeArray(listOf(JsonNodeString("Bob", NodePathRoot), JsonNodeNull(NodePathRoot)), NodePathRoot),
+                "arrayNullable" to JsonNodeArray(
+                    listOf(
+                        JsonNodeString("Bob", NodePathRoot),
+                        JsonNodeNull(NodePathRoot)
+                    ), NodePathRoot
+                ),
                 "objectNullable" to JsonNodeObject(
                     mapOf(
                         "one" to JsonNodeString("two", NodePathRoot),
@@ -220,7 +227,7 @@ class JsonRenderTest {
                 )
             ),
             NodePathRoot
-        ).compact(StringBuilder(), explicitNull = true).toString()
+        ).render(compactWithNulls)
 
         expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann","nullable":null,"arrayNullable":["Bob",null],"objectNullable":{"one":"two","three":null}}""")
     }
