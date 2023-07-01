@@ -41,7 +41,7 @@ internal class OutcomeTest {
     fun `transform only operate on success`() {
 
         val msg = getUser(-1)
-            .transform { TODO("never arrives here!") }
+            .transform { error("never arrives here!") }
             .expectFailure()
             .msg
 
@@ -52,7 +52,7 @@ internal class OutcomeTest {
     fun `transform failure only operate on failures`() {
 
         val name = getUser(21)
-            .transformFailure { TODO("never arrives here!") }
+            .transformFailure { error("never arrives here!") }
             .expectSuccess()
             .name
 

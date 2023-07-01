@@ -208,7 +208,11 @@ class JsonLexerEager(val jsonStr: CharSequence) {
 }
 
 object KondorTokenizer {
+
+    //faster but putting all in memory
     fun tokenize(jsonString: CharSequence): TokensStream = JsonLexerEager(jsonString).tokenize()
+
+    //a bit slower but consuming as little memory as possible
     fun tokenize(jsonStream: InputStream): TokensStream = JsonLexerLazy(jsonStream).tokenize()
 }
 

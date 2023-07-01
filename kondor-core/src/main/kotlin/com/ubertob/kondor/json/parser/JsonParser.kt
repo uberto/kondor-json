@@ -78,11 +78,10 @@ fun <T> surrounded(
     }
 
 
-//todo make it recursive
 fun <T> TokensPath.extractNodesIndexed(f: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> {
     var arrayIndex = 0
     val nodes = mutableListOf<T>()
-    while (true) {
+    while (true) { //is it possible to use recursion here?
         val v = f(subNodePath(arrayIndex++)) ?: break
         v.transform { nodes.add(it) }.onFailure { return it.asFailure() }
     }

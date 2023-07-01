@@ -10,7 +10,7 @@ import com.ubertob.kondor.outcome.onFailure
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
 
-interface MongoTable<T : Any> { //actual collections are objects
+sealed interface MongoTable<T : Any> { //actual collections are objects
     val collectionName: String
     val onConnection: (MongoCollection<BsonDocument>) -> Unit
 
@@ -25,9 +25,11 @@ abstract class BsonTable : MongoTable<BsonDocument> {
     override fun fromBsonDoc(doc: BsonDocument): BsonDocument = doc
     override fun toBsonDoc(obj: BsonDocument): BsonDocument = obj
 
-    override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {} //todo something better
+    override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {}
+
 }
 
+//abstract class TypedTable<T : Any, CONV: ObjectNodeConverter<T>>(val converter: CONV) : MongoTable<T> {
 abstract class TypedTable<T : Any>(val converter: ObjectNodeConverter<T>) : MongoTable<T> {
     override fun fromBsonDoc(doc: BsonDocument): T = converter.fromJson(doc.toJson()) //TODO translate directly
         .onFailure {

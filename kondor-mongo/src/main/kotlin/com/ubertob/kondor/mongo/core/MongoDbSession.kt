@@ -8,7 +8,11 @@ import org.bson.BsonValue
 import org.bson.Document
 import org.bson.conversions.Bson
 
-class MongoDbSession(val database: MongoDatabase, val collections: CollectionCache) : MongoSession {
+class MongoDbSession(
+    val database: MongoDatabase,
+    val collections: CollectionCache,
+    override val _logger: (String) -> Unit = {}
+) : MongoSession {
 
     private fun withCollection(mongoTable: MongoTable<*>): MongoCollection<BsonDocument> =
         collections.getOrPut(mongoTable.collectionName) {
@@ -117,6 +121,10 @@ class MongoDbSession(val database: MongoDatabase, val collections: CollectionCac
             it.find(bsonFilters)
                 .asSequence().map(::fromBsonDoc)
         }
+
+//    override fun <T : Any, CONV: ObjectNodeConverter<T>> TypedTable<T, CONV>.find(filter: (CONV) -> Bson): Sequence<T> =
+//        find(filter(this.converter))
+
 
     override fun <T : Any> MongoTable<T>.aggregate(vararg pipeline: Bson): Sequence<BsonDocument> =
         internalRun {

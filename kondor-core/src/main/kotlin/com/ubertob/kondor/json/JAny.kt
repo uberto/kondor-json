@@ -11,8 +11,6 @@ typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert 
 
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
-
-
     override val _nodeType get() = ObjectNode
 }
 
@@ -63,10 +61,8 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
 
 abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterWriters<T>() {
-
     abstract fun extractTypeName(obj: T): String
     abstract val subConverters: Map<String, ObjectNodeConverterWriters<out T>>
-
 
     @Suppress("UNCHECKED_CAST") //todo: add tests for this
     fun findSubTypeConverter(typeName: String): ObjectNodeConverterWriters<T>? =

@@ -42,4 +42,3 @@ data class JsonNodeObject(val _fieldMap: Map<String, JsonNode>, override val _pa
 fun parseJsonNode(jsonString: CharSequence): Outcome<JsonError, JsonNode> =
     JsonLexerEager(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
 //    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray()))).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
-//TODO!!!

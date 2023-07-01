@@ -9,6 +9,8 @@ import org.bson.conversions.Bson
 
 interface MongoSession {
 
+    val _logger: (String) -> Unit
+
     //General Methods
     fun listCollections(filter: Bson? = null): List<Document>
 
@@ -39,8 +41,10 @@ interface MongoSession {
 
     //Query Methods
     fun <T : Any> MongoTable<T>.findById(id: Any): T?
-    fun <T : Any> MongoTable<T>.find(queryString: String): Sequence<T>
     fun <T : Any> MongoTable<T>.find(bsonFilters: Bson): Sequence<T>
+
+    //    fun <T : Any, CONV: ObjectNodeConverter<T>> TypedTable<T, CONV>.find(filter: (CONV) -> Bson): Sequence<T>
+    fun <T : Any> MongoTable<T>.find(queryString: String): Sequence<T>
 
     fun <T : Any> MongoTable<T>.all(): Sequence<T> = find("")
     fun <T : Any> MongoTable<T>.aggregate(vararg pipeline: Bson): Sequence<BsonDocument>
