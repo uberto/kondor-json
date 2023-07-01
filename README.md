@@ -352,13 +352,16 @@ And it will be mapped to this Json format:
 ```
 
 TODO:
-better example with FileInfo, show types and add array
+better example with FileInfo, show types one by one and add array
 example JInstance on sealed
+example default JsonStyle
 
+### Inserting External Json in a Field
 
-### Inserting xternal Json in a Field
-
-Sometime it's convenient to declare some attributes as JsonNode, in this way we can create a structured data dynamically. Another possible case is if we want to store an external Json (for example a response from another service) as a field in our types. For this cases Kondor can serialize/deserialize directly fields of type `JsonNodeObject`. This can be also used in a `flatten` field to merge the Json attributes with the typed ones.
+Sometimes it's convenient to declare some attributes as JsonNode, in this way we can create a structured data
+dynamically. Another possible case is if we want to store an external Json (for example a response from another service)
+as a field in our types. For this cases Kondor can serialize/deserialize directly fields of type `JsonNodeObject`. This
+can be also used in a `flatten` field to merge the Json attributes with the typed ones.
 
 For example with this class and this converter:
 ```kotlin
