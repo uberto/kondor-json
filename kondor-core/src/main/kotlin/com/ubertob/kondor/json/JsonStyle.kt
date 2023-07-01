@@ -46,7 +46,7 @@ data class JsonStyle(
             includeNulls = false
         )
 
-        val prettyIncludeNulls: JsonStyle = JsonStyle(
+        val prettyWithNulls: JsonStyle = JsonStyle(
             fieldSeparator = ",",
             valueSeparator = ": ",
             indent = 2,

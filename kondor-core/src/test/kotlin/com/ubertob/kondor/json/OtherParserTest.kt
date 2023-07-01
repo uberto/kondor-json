@@ -17,11 +17,6 @@ class OtherParserTest {
         val json =
             """{"databaseChangeLog":[{"preConditions":[{"runningAs":{"username":"liquibase"}}]},{"changeSet":{"id":"1","author":"nvoxland","changes":[{"createTable":{"tableName":"person","columns":[{"column":{"name":"id","type":"int","autoIncrement":true,"constraints":{"primaryKey":true,"nullable":false}}},{"column":{"name":"firstname","type":"varchar(50)"}},{"column":{"name":"lastname","type":"varchar(50)","constraints":{"nullable":false}}},{"column":{"name":"state","type":"char(2)"}}]}}]}},{"changeSet":{"id":"2","author":"nvoxland","changes":[{"addColumn":{"tableName":"person","columns":[{"column":{"name":"username","type":"varchar(8)"}}]}}]}},{"changeSet":{"id":"3","author":"nvoxland","changes":[{"addLookupTable":{"existingTableName":"person","existingColumnName":"state","newTableName":"state","newColumnName":"id","newColumnDataType":"char(2)"}}]}}]}"""
 
-
-        """
-
-        """.trimIndent()
-
         val tokens = KondorTokenizer.tokenize(json)
         val node = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
@@ -117,7 +112,7 @@ class OtherParserTest {
             when (obj) {
                 is Preconditions -> "preConditions"
                 is ChangeSet -> "changeSet"
-                else -> error( "$obj not expected")
+                else -> error("$obj not expected")
             }
 
         override val subConverters: Map<String, ObjectNodeConverterWriters<out ChangeLogItem>> =
@@ -129,7 +124,9 @@ class OtherParserTest {
 
         override fun JsonNodeObject.deserializeOrThrow() =
             DatabaseChangeLog(
-                preconditions = (+databaseChangeLog).filterIsInstance<Preconditions>().firstOrNull() ?: Preconditions(emptyList()),
+                preconditions = (+databaseChangeLog).filterIsInstance<Preconditions>().firstOrNull() ?: Preconditions(
+                    emptyList()
+                ),
                 changeSets = (+databaseChangeLog).filterIsInstance<ChangeSet>()
             )
     }

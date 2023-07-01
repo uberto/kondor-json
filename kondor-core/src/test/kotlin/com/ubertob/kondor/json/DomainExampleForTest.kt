@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.*
+import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.TitleType.Companion.fromLabel
 import com.ubertob.kondor.json.datetime.num
 import com.ubertob.kondor.json.datetime.str
@@ -464,5 +465,23 @@ object JDynamicAttr : JAny<DynamicAttr>() {
         id = +id,
         name = +name,
         attributes = +attributes
+    )
+}
+
+
+data class OptionalAddress(val name: String, val street: String?, val city: String?)
+
+object JOptionalAddressPretty : JAny<OptionalAddress>() {
+
+    override val jsonStyle = prettyWithNulls
+
+    val name by str(OptionalAddress::name)
+    val street by str(OptionalAddress::street)
+    val city by str(OptionalAddress::city)
+
+    override fun JsonNodeObject.deserializeOrThrow() = OptionalAddress(
+        +name,
+        +street,
+        +city
     )
 }

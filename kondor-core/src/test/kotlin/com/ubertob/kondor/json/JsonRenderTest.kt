@@ -231,4 +231,18 @@ class JsonRenderTest {
 
         expectThat(jsonString).isEqualTo("""{"id":123,"name":"Ann","nullable":null,"arrayNullable":["Bob",null],"objectNullable":{"one":"two","three":null}}""")
     }
+
+    @Test
+    fun `using converter with default style`() {
+        val addr = OptionalAddress("Jack", null, "London")
+        val jsonPretty = JOptionalAddressPretty.toJson(addr)
+
+        expectThat(jsonPretty).isEqualTo(
+            """{
+              |  "city": "London",
+              |  "name": "Jack",
+              |  "street": null
+              |}""".trimMargin()
+        )
+    }
 }

@@ -12,7 +12,7 @@ infix fun String.isEquivalentJson(expected: String): UnitOutcome {
     return parseJsonNode(expected)
         .bind { j1 ->
             parseJsonNode(this).bind { j2 ->
-                if (JsonStyle.prettyIncludeNulls.render(j1) == JsonStyle.prettyIncludeNulls.render(j2))
+                if (JsonStyle.prettyWithNulls.render(j1) == JsonStyle.prettyWithNulls.render(j2))
                     Unit.asSuccess()
                 else
                     MatcherError(expected, this).asFailure()

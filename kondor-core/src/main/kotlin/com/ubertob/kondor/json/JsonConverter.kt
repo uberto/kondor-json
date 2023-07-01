@@ -1,5 +1,8 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.compact
+import com.ubertob.kondor.json.JsonStyle.Companion.pretty
+import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.json.schema.valueSchema
@@ -52,7 +55,10 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             parsingFailure("a valid Json", lastToken(), NodePathRoot, t.message.orEmpty())
         }
 
-    override fun toJson(value: T): String = JsonStyle.singleLine.render(toJsonNode(value, NodePathRoot))
+    val jsonStyle: JsonStyle
+        get() = JsonStyle.singleLine
+
+    override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value, NodePathRoot))
 
     override fun fromJson(json: String): JsonOutcome<T> =
         safeTokenize(json).bind(::parseAndConvert)
@@ -71,11 +77,25 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             }
 
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
-
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     renderer.render(toJsonNode(value, NodePathRoot))
+
+
+//deprecated methods
+@Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, pretty)"))
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toPrettyJson(value: T): String =
+    toJson(value, pretty)
+
+@Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, prettyWithNulls)"))
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
+    toJson(value, prettyWithNulls)
+
+@Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, compact)"))
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toCompactJson(value: T): String =
+    toJson(value, compact)
+
 
 private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =
     try {

@@ -5,9 +5,9 @@ import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import com.ubertob.kondortools.expectSuccess
-import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
 import kotlin.random.Random
@@ -206,7 +206,7 @@ class JValuesTest {
 
             expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(product)
 
-            val jsonStrNull = JProduct.toJson(product, JsonStyle.prettyIncludeNulls)
+            val jsonStrNull = JProduct.toJson(product, JsonStyle.prettyWithNulls)
 
             expectThat(JProduct.fromJson(jsonStrNull).expectSuccess()).isEqualTo(product)
 
@@ -261,8 +261,9 @@ class JValuesTest {
 
             expectThat(actual).isEqualTo(invoice)
 
-            val jsonStr = JInvoice.toJson(invoice, JsonStyle.compact).printIt("Compact Invoice!")
+            val jsonStr = JInvoice.toJson(invoice, JsonStyle.compact)
 
+            expectThat(jsonStr).not().contains("\n")
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
     }
@@ -274,7 +275,6 @@ class JValuesTest {
             val variant = randomVariant()
 
             val jsonStr = JVariant.toJson(variant, JsonStyle.pretty)
-//            println(jsonStr)
 
             expectThat(JVariant.fromJson(jsonStr).expectSuccess()).isEqualTo(variant)
         }
@@ -318,7 +318,7 @@ class JValuesTest {
 }
 
 
-//todo
+//TODO
 // add test example with Java
 // add Converters for all java.time, GUUID, URI, etc.
 // add un-typed option JObject<Any>
