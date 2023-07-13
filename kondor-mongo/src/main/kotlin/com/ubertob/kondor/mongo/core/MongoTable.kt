@@ -14,7 +14,6 @@ sealed interface MongoTable<T : Any> { //actual collections are objects
     val collectionName: String
     val onConnection: (MongoCollection<BsonDocument>) -> Unit
 
-    //todo retention policy etc.
     fun fromBsonDoc(doc: BsonDocument): T
     fun toBsonDoc(obj: T): BsonDocument
 
@@ -31,7 +30,7 @@ abstract class BsonTable : MongoTable<BsonDocument> {
 
 //abstract class TypedTable<T : Any, CONV: ObjectNodeConverter<T>>(val converter: CONV) : MongoTable<T> {
 abstract class TypedTable<T : Any>(val converter: ObjectNodeConverter<T>) : MongoTable<T> {
-    override fun fromBsonDoc(doc: BsonDocument): T = converter.fromJson(doc.toJson()) //TODO translate directly
+    override fun fromBsonDoc(doc: BsonDocument): T = converter.fromJson(doc.toJson())
         .onFailure {
             error("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")
         }

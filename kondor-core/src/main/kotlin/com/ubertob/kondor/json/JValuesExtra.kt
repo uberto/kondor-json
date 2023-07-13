@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
@@ -63,7 +62,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
     private fun discriminatorFieldNode(
         obj: T,
         jno: JsonNodeObject
-    ): Pair<String, JsonNode> = discriminatorFieldName to
+    ): NamedNode = discriminatorFieldName to
             JsonNodeString(extractTypeName(obj), NodePathSegment(discriminatorFieldName, jno._path))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {

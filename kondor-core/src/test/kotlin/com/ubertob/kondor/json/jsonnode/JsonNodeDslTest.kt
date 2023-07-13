@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json.jsonnode
 
-import com.ubertob.kondor.json.pretty
+import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.isEquivalentJson
 import org.junit.jupiter.api.Test
@@ -178,7 +178,7 @@ class JsonNodeDslTest {
             )
         )
 
-        node.pretty(explicitNull = true).isEquivalentJson(
+        prettyWithNulls.render(node).isEquivalentJson(
             """
            {
               "booleanField": true,

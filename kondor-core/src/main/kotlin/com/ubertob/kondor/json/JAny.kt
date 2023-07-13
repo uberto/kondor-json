@@ -1,13 +1,15 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.ObjectNode
 import com.ubertob.kondor.json.schema.objectSchema
 import java.util.concurrent.atomic.AtomicReference
 
+typealias NamedNode = Pair<String, JsonNode>
 
-typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert to (T) -> Pair<String, JsonNode>
+typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert to (T) -> NamedNode
 
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
