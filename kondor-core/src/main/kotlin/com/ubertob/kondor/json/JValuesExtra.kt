@@ -34,10 +34,10 @@ object JCurrency : JStringRepresentable<Currency>() {
     override val render: (Currency) -> String = Currency::getCurrencyCode
 }
 
-//todo get Enum class instead of cons
+//todo capture Enum class instead of cons
 data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList()) :
     JStringRepresentable<E>() {
-    override val render: (E) -> String = { it.name }
+    override val render: (E) -> String = { it.name } //see enumValueOf() and enumValues()
     override fun schema(): JsonNodeObject = enumSchema(values)
 }
 

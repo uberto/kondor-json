@@ -9,7 +9,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
 
-typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject //todo: convert to (T) -> NamedNode
+typealias NodeWriter<T> = (JsonNodeObject, T) -> JsonNodeObject
 
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
@@ -28,9 +28,9 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverter<T> {
             )
         }
 
-    abstract fun getWriters(value: T): List<NodeWriter<T>> //todo getWriters shouldn't need value, but it's a problem on JMap
+    abstract fun getWriters(value: T): List<NodeWriter<T>> //usually getWriters doesn't need value, but sometime does, like in JMap
     override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
-        getWriters(value) //todo: this can be make faster since we know how many prop there are...
+        getWriters(value) //this can be made faster since we know how many prop there are...
             .fold(JsonNodeObject(mutableMapOf(), path)) { acc, writer ->
                 writer(acc, value)
             }
@@ -66,7 +66,7 @@ abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterWriters<T>() {
     abstract fun extractTypeName(obj: T): String
     abstract val subConverters: Map<String, ObjectNodeConverterWriters<out T>>
 
-    @Suppress("UNCHECKED_CAST") //todo: add tests for this
+    @Suppress("UNCHECKED_CAST")
     fun findSubTypeConverter(typeName: String): ObjectNodeConverterWriters<T>? =
         subConverters[typeName] as? ObjectNodeConverterWriters<T>
 

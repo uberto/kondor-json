@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.validateJsonAgainstSchema
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -14,7 +15,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for simple object`() {
 
-        val schema = JPerson.schema().pretty()
+        val schema = JPerson.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -39,7 +40,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for object with optional fields`() {
 
-        val schema = JProduct.schema().pretty()
+        val schema = pretty.render(JProduct.schema())
 
         expectThat(schema).isEqualTo(
             """{
@@ -70,7 +71,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for object with enums fields`() {
 
-        val schema = JCompany.schema().pretty()
+        val schema = JCompany.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -100,7 +101,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for array of objects`() {
 
-        val schema = JProducts.schema().pretty()
+        val schema = JProducts.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -135,7 +136,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for object map`() {
 
-        val schema = JNotes.schema().pretty()
+        val schema = JNotes.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -158,7 +159,7 @@ class JsonSchemaTest {
 
     @Test
     fun `schema for non-string keyed object map`() {
-        val schema = JTasks.schema().pretty()
+        val schema = JTasks.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -171,7 +172,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for a flattened object`() {
 
-        val schema = JSelectedFile.schema().pretty()
+        val schema = JSelectedFile.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -210,7 +211,7 @@ class JsonSchemaTest {
 
     @Test
     fun `schema for polymorphic object`() {
-        val schema = JCustomer.schema().pretty(false, 2)
+        val schema = JCustomer.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{
@@ -275,7 +276,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for complex object`() {
 
-        val schema = JInvoice.schema().pretty(false, 2)
+        val schema = JInvoice.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{

@@ -3,7 +3,8 @@ package com.ubertob.kondor.json.jsonnode
 import com.ubertob.kondor.json.FromJson
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.JsonPropertyError
-import com.ubertob.kondor.json.pretty
+import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
+import com.ubertob.kondor.json.render
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -25,7 +26,7 @@ class NodeKindTest {
         val jsonNode: JsonNodeObject = ObjectNode.fromJsonString(jsonString).expectSuccess()
 
         expectThat(jsonNode._fieldMap.keys).containsExactly(setOf("id", "name", "somethingelse"))
-        expectThat(jsonNode.pretty(true)).isEqualTo(jsonString)
+        expectThat(jsonNode.render(prettyWithNulls)).isEqualTo(jsonString)
     }
 
 

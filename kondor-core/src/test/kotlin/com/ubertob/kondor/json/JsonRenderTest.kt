@@ -2,6 +2,8 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.compact
 import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
+import com.ubertob.kondor.json.JsonStyle.Companion.pretty
+import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -89,7 +91,7 @@ class JsonRenderTest {
             ),
             NodePathRoot
         )
-        val jsonString = nodeArray.pretty(false, 2)
+        val jsonString = pretty.render(nodeArray)
 
         expectThat(jsonString).isEqualTo(
             """[
@@ -98,7 +100,7 @@ class JsonRenderTest {
             |]""".trimMargin()
         )
 
-        val jsonStringNN = nodeArray.pretty(true, 2)
+        val jsonStringNN = prettyWithNulls.render(nodeArray)
 
         expectThat(jsonStringNN).isEqualTo(
             """[
@@ -145,13 +147,14 @@ class JsonRenderTest {
 
         repeat(5) {
             val indent = Random.nextInt(8)
+            val style = pretty.copy(indent = indent)
             val jsonString = JsonNodeObject(
                 mapOf(
                     "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
                     "name" to JsonNodeString("Ann", NodePathRoot)
                 ),
                 NodePathRoot
-            ).pretty(false, indent)
+            ).render(style)
 
             val internal = " ".repeat(indent)
             val expected = """{
@@ -173,7 +176,7 @@ class JsonRenderTest {
             ),
             NodePathRoot
         )
-        val jsonString = nodeObject.pretty(true)
+        val jsonString = prettyWithNulls.render(nodeObject)
 
         val expected = """{
               |  "id": 123,
@@ -182,7 +185,7 @@ class JsonRenderTest {
               |}""".trimMargin()
         expectThat(jsonString).isEqualTo(expected)
 
-        val jsonStringNN = nodeObject.pretty(false)
+        val jsonStringNN = pretty.render(nodeObject)
 
         val expectedNN = """{
               |  "id": 123,

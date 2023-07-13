@@ -128,7 +128,7 @@ error at parsing: Expected a Double at position 55 but found '"' while parsing <
 Finally converters know how to generate a Json schema, for example:
 
 ```kotlin
-JFileInfo.schema().pretty()
+JFileInfo.schema().render(pretty)
 ```
 
 Will output the following Json schema:
@@ -705,7 +705,7 @@ If you need to parse or produce some arbitrary Json that you don't need to map y
 How to "prettify" any json on the fly:
 
 ```kotlin
-parseJsonNode("my json here").expectSuccess().pretty()
+parseJsonNode("my json here").expectSuccess().render(pretty)
 ```
 
 TODO: add example of writing Json
