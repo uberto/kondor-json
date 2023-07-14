@@ -261,7 +261,7 @@ class ParserFailuresTest {
         private val id by JField(Person::id, JInt)
         private val name by JField(Person::name, JString)
 
-        override fun JsonNodeObject.deserializeOrThrow() = TODO("not finished yet!")
+        override fun JsonNodeObject.deserializeOrThrow() = error("not finished yet!")
     }
 
     @Test

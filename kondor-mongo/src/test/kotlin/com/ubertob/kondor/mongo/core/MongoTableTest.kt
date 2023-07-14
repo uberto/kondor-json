@@ -16,7 +16,7 @@ import kotlin.random.Random
 
 @Testcontainers
 class MongoTableTest {
-    //TODO add tests for retention... policy.. index
+
     companion object {
         @Container
         private val mongoContainer = mongoForTests()

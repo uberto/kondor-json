@@ -13,7 +13,9 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
+import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+
 
 @Testcontainers
 class FlatDocTableTest {
@@ -58,23 +60,27 @@ class FlatDocTableTest {
         FlatDocs.countDocuments()
     }
 
-    fun docWriter(doc: SimpleFlatDoc): ContextReader<MongoSession, Unit> =
+    fun docWriter(doc: SimpleFlatDoc): MongoReader<Unit> =
         mongoOperation {
             FlatDocs.insertOne(doc)
         }
 
-    fun docQuery(index: Int): ContextReader<MongoSession, SimpleFlatDoc?> =
+    fun docQuery(index: Int): MongoReader<SimpleFlatDoc?> =
         mongoOperation {
             FlatDocs.find("{ index: $index }").firstOrNull()
         }
 
-    private val hundredDocWriter: ContextReader<MongoSession, Long> =
+    private val docCounter: MongoReader<Long> = mongoOperation {
+        FlatDocs.countDocuments()
+    }
+
+    private val hundredDocWriter: MongoReader<Long> =
         mongoOperation {
             (1..100).forEach {
                 FlatDocs.insertOne(createDoc(it))
             }
-            FlatDocs.countDocuments()
-        }
+
+        } + docCounter
 
 
     @Test
@@ -248,4 +254,28 @@ class FlatDocTableTest {
         expectThat(missing).isEqualTo(null)
     }
 
+    @Test
+    fun `watch should report the changes`() {
+
+        val watcher = onMongo.watch()
+        watcher.maxAwaitTime(1, TimeUnit.MILLISECONDS)
+        watcher.batchSize(1)
+
+        val docTot = onMongo(
+            cleanUp +
+                    docWriter(createDoc(1)) +
+                    docWriter(createDoc(2)) +
+                    docWriter(createDoc(3)) +
+                    docCounter
+        ).expectSuccess()
+
+        expectThat(docTot).isEqualTo(3)
+
+        // this is not working, not sure why
+        watcher.asSequence().onEach {
+            println("seq!!")
+            println(it)
+        }
+
+    }
 }

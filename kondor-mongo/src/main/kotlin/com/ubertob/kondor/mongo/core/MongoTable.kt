@@ -45,11 +45,11 @@ fun MongoCollection<*>.ensureIndex(keys: Bson, indexOptions: IndexOptions) {
     try {
         createIndex(keys, indexOptions)
     } catch (e: MongoCommandException) {
-        //println(e) if a previous index with same name existed it will fail. so try to delete it and recreate it
+        //if a previous index with same name existed it will fail. so try to delete it and recreate it
         try {
             dropIndex(keys)
         } catch (e: MongoCommandException) {
-            //println(e) //TODO add audits
+            //ignore it
         }
 
         createIndex(keys, indexOptions)

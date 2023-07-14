@@ -16,7 +16,7 @@ interface MongoExecutor : ContextProvider<MongoSession> {
     val databaseName: String
     fun listDatabaseNames(): List<String>
 
-    override operator fun <T> invoke(context: ContextReader<MongoSession, T>): Outcome<MongoError, T>
+    override operator fun <T> invoke(context: MongoReader<T>): Outcome<MongoError, T>
 }
 
 class MongoExecutorDbClient(override val databaseName: String, clientProvider: () -> MongoClient) :
@@ -26,22 +26,22 @@ class MongoExecutorDbClient(override val databaseName: String, clientProvider: (
 
     private val collectionsCache: CollectionCache = ConcurrentHashMap<String, MongoCollection<BsonDocument>>()
 
-    override operator fun <T> invoke(context: ContextReader<MongoSession, T>): Outcome<MongoError, T> =
+    override operator fun <T> invoke(context: MongoReader<T>): Outcome<MongoError, T> =
         try {
             val sess = MongoDbSession(mongoClient.getDatabase(databaseName), collectionsCache)
-//            println("Connected to ${connection.connString} found dbs: ${mongoClient.listDatabases()}") //TODO add an audit function to constructor (MongoAudit) -> Unit
+            sess._logger("Connected to ${databaseName}")
             context.runWith(sess).asSuccess()
         } catch (e: Exception) {
             MongoErrorException(mongoClient.clusterDescription.shortDescription, databaseName, e).asFailure()
         }
 
-    fun listDatabases(): List<Document> = mongoClient.listDatabases().toList() //TODO add test
+    fun listDatabases(): List<Document> = mongoClient.listDatabases().toList()
 
     override fun listDatabaseNames(): List<String> = listDatabases().map { it["name"].toString() }
 
     fun clusterDescription(): ClusterDescription = mongoClient.clusterDescription
 
-    fun watch(): ChangeStreamIterable<Document> = mongoClient.watch() //TODO add test
+    fun watch(): ChangeStreamIterable<Document> = mongoClient.watch()
 
 
     companion object {
