@@ -52,7 +52,7 @@ class FlatDocTableTest {
     }
 
     fun reader(index: Int) = mongoOperation {
-        FlatDocs.find(Filters.eq("index", index))
+        FlatDocs.find(JSimpleFlatDoc.index eq index)
             .firstOrNull()
     }
 
@@ -122,7 +122,8 @@ class FlatDocTableTest {
 
         onMongo(mongoOperation {
             FlatDocs.findOneAndUpdate(
-                Filters.eq("index", 42),
+                JSimpleFlatDoc.index eq 42,
+//                Filters.eq("index", 42),
                 Updates.combine(
                     Updates.set("name", "updated 42"),
                     Updates.set("isEven", false)
@@ -244,7 +245,7 @@ class FlatDocTableTest {
         onMongo(cleanUp + hundredDocWriter).expectSuccess()
 
         onMongo(mongoOperation {
-            FlatDocs.deleteMany(Filters.and(Filters.lt("index", 60), Filters.gt("index", 40)))
+            FlatDocs.deleteMany(Filters.and(JSimpleFlatDoc.index lt 60, JSimpleFlatDoc.index gt 40))
         }).expectSuccess()
 
         val noDoc = onMongo(count).expectSuccess()
@@ -279,3 +280,4 @@ class FlatDocTableTest {
 
     }
 }
+
