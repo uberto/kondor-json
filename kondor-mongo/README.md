@@ -1,7 +1,8 @@
 # kondor-mongo
 
 This library provides a simple and robust way to interact with MongoDB in Kotlin, by using the functional programming
-construct Kleisli for composing MongoDB operations. It is built on top of the official MongoDB Java Driver.
+construct Kleisli for composing MongoDB operations. It is built on top of the official MongoDB Java Driver and the
+Kondor Json library.
 
 ## Key Features
 
@@ -28,23 +29,43 @@ data class SimpleFlatDoc(
 
 ### Defining Collection
 
-Collections are defined as objects extending the `TypedTable<T>` class:
+Collections are defined as objects extending the `TypedTable<T>` class and passing the specific Kondor converter in the
+constructor:
 
 ```kotlin
-private object FlatDocs : TypedTable<SimpleFlatDoc>(JSimpleFlatDoc) {
+object JSimpleFlatDoc : JAny<SimpleFlatDoc>() {
+
+    val index by num(SimpleFlatDoc::index)
+    val name by str(SimpleFlatDoc::name)
+    val localDate by str(SimpleFlatDoc::date)
+    val isEven by bool(SimpleFlatDoc::bool)
+
+    override fun JsonNodeObject.deserializeOrThrow() = SimpleFlatDoc(
+        index = +index,
+        name = +name,
+        date = +localDate,
+        bool = +isEven
+    )
+}
+
+object FlatDocs : TypedTable<SimpleFlatDoc>(JSimpleFlatDoc) {
     override val collectionName: String = "FlatDocs"
 }
 ```
 
-### Reading Documents
+### Querying Documents
 
-To read a document from a collection, use the `find` method provided by the `TypedTable` class:
+To query a document from a collection, use the `find` method provided by the `TypedTable` class:
 
 ```kotlin
-fun reader(index: Int) = mongoOperation {
-    FlatDocs.find(Filters.eq("index", index)).firstOrNull()
-}
+fun docQuery(index: Int): MongoReader<SimpleFlatDoc> =
+    mongoOperation {
+        FlatDocs.find(JSimpleFlatDoc.index eq index)
+            .firstOrNull()
+    }
 ```
+
+MongoDB filters operations are translated in infix operation over the Kondor converter properties.
 
 ### Writing Documents
 
@@ -57,15 +78,28 @@ fun docWriter(doc: SimpleFlatDoc): MongoReader<Unit> =
     }
 ```
 
-### Querying Documents
+### Updating Documents
 
-To query a document based on an attribute, use the `find` method and provide a query string:
+To update a document based on an attribute, use the `updateMany` method and provide a filter and an update method:
 
 ```kotlin
-fun docQuery(index: Int): MongoReader<SimpleFlatDoc?> =
+fun updateMany(indexes: List<Int>): MongoReader<Long> =
     mongoOperation {
-        FlatDocs.find("{ index: $index }").firstOrNull()
-    }
+        FlatDocs.updateMany(
+            JSimpleFlatDoc.index `in` indexes,
+            Updates.set("name", "updated doc")
+        )
+    } //returns the number of doc updated
+```
+
+### Dropping a collection
+
+To delete all elements in a collection, use the `drop` method on the `TypedTable` without any parameter:
+
+```kotlin
+val cleanUp: MongoReader<Unit> = mongoOperation {
+    FlatDocs.drop()
+}
 ```
 
 ### Kleisli Composition
@@ -107,5 +141,4 @@ fun `operate on results`() {
 
 ## ToDo
 
-- query using JConverter fields
 - migration hook (update to latest version in the find)
