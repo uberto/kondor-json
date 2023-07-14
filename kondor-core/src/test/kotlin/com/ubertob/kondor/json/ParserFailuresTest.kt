@@ -269,7 +269,7 @@ class ParserFailuresTest {
 
         val error = JPersonIncomplete.fromJson(JPerson.toJson(randomPerson())).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: kotlin.NotImplementedError: An operation is not implemented: not finished yet!")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> not finished yet!")
     }
 
 
