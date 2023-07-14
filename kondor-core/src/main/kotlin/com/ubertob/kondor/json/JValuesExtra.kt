@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
+import kotlin.reflect.KClass
 
 
 interface StringWrapper {
@@ -34,11 +35,19 @@ object JCurrency : JStringRepresentable<Currency>() {
     override val render: (Currency) -> String = Currency::getCurrencyCode
 }
 
-//todo capture Enum class instead of cons
+
 data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList()) :
     JStringRepresentable<E>() {
     override val render: (E) -> String = { it.name } //see enumValueOf() and enumValues()
     override fun schema(): JsonNodeObject = enumSchema(values)
+}
+
+data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) :
+    JStringRepresentable<E>() {
+    private val valuesMap: Map<String, E> by lazy { clazz.java.enumConstants.associateBy { it.name } }
+    override val cons: (String) -> E = { name -> valuesMap[name] ?: error("not found $name among ${valuesMap.keys}") }
+    override val render: (E) -> String = { it.name }
+    override fun schema(): JsonNodeObject = enumSchema(valuesMap.values.toList())
 }
 
 //for serializing Kotlin object and other single instance types

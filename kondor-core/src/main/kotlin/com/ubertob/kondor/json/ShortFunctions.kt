@@ -59,7 +59,7 @@ fun <PT : Any, T> str(converter: JStringRepresentable<T>, binder: PT.() -> T?) =
 
 @JvmName("bindEnum")
 inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E): JField<E, PT> =
-        JField(binder, JEnum(::enumValueOf, enumValues<E>().toList()))
+        JField(binder, JEnumClass(E::class))
 
 @JvmName("bindEnumNull")
 inline fun <PT : Any, reified E : Enum<E>> str(noinline binder: PT.() -> E?) = JFieldMaybe(binder, JEnum(::enumValueOf, enumValues<E>().toList()))

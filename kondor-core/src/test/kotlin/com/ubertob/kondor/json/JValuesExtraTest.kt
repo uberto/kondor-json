@@ -275,8 +275,6 @@ class JValuesExtraTest {
 
             val jsonStr = JTitleRequest.toJson(value)
 
-//            println( jsonStr)
-
             expectThat(JTitleRequest.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
@@ -294,8 +292,6 @@ class JValuesExtraTest {
             expectThat(actual).isEqualTo(value)
 
             val jsonStr = JGraphNode.toJson(value)
-
-//            println(jsonStr)
 
             expectThat(JGraphNode.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
 

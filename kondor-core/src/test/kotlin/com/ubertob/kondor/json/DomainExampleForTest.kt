@@ -31,7 +31,7 @@ fun randomProduct() = Product(
 fun randomInvoice() = Invoice(
     id = InvoiceId(randomString(digits, 5, 5)),
     vat = Random.nextBoolean(),
-    customer = randomPerson(),
+    customer = randomCustomer(),
     items = randomList(1, 10) { randomProduct() },
     total = BigDecimal(randomPrice(10, 1000)),
     created = LocalDate.now(),
@@ -361,7 +361,7 @@ data class TitleRequest(
 )
 
 enum class TitleType(val label: String) {
-    Movie("movie"), Series("series"), Episoode("episode");
+    Movie("movie"), Series("series"), Episode("episode");
 
     companion object {
         fun fromLabel(label: String) = values().firstOrNull() { it.label == label }

@@ -133,6 +133,26 @@ class JValuesTest {
     }
 
     @Test
+    fun `Json Enum`() {
+
+        val jTaxType = JEnumClass(TaxType::class)
+
+        repeat(10) {
+
+            val value = TaxType.values().random()
+            val json = jTaxType.toJsonNode(value, NodePathRoot)
+
+            val actual = jTaxType.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = jTaxType.toJson(value)
+
+            expectThat(jTaxType.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
     fun `json array for a List of Strings`() {
 
         repeat(10) {
@@ -171,7 +191,7 @@ class JValuesTest {
 
 
     @Test
-    fun `json array for a Set of Customers`() {
+    fun `json array for a Set of Person`() {
 
         repeat(10) {
             val jsonUserArray = JSet(JPerson)
@@ -318,8 +338,7 @@ class JValuesTest {
 }
 
 
-//TODO
-// add test example with Java
+//Possible extensions:
 // add Converters for all java.time, GUUID, URI, etc.
 // add un-typed option JObject<Any>
 // add constant fields (ignoring Json content)
