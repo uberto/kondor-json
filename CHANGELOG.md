@@ -11,6 +11,8 @@ Kondor-core: Made compact the default mode
 
 Kondor-mongo: Added Audit
 
+Kondor-mongo: Added infix functions for filters
+
 Kondor-mongo: Added README
 
 ### v.1.9.5 - 28 June 2023
