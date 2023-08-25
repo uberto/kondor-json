@@ -4,19 +4,25 @@ import com.mongodb.client.model.Filters
 import com.ubertob.kondor.json.JsonProperty
 import org.bson.conversions.Bson
 
-infix fun <T> JsonProperty<T>.eq(value: T): Bson =
+infix fun <T : CharSequence> JsonProperty<T>.eq(value: T): Bson =
     Filters.eq(propName, value)
 
-infix fun <T : Any> JsonProperty<T>.lt(value: T): Bson =
+infix fun <T : Number> JsonProperty<T>.eq(value: T): Bson =
+    Filters.eq(propName, value)
+
+infix fun JsonProperty<Boolean>.eq(value: Boolean): Bson =
+    Filters.eq(propName, value)
+
+infix fun <T : Comparable<T>> JsonProperty<T>.lt(value: T): Bson =
     Filters.lt(propName, value)
 
-infix fun <T : Any> JsonProperty<T>.lte(value: T): Bson =
+infix fun <T : Comparable<T>> JsonProperty<T>.lte(value: T): Bson =
     Filters.lte(propName, value)
 
-infix fun <T : Any> JsonProperty<T>.gt(value: T): Bson =
+infix fun <T : Comparable<T>> JsonProperty<T>.gt(value: T): Bson =
     Filters.gt(propName, value)
 
-infix fun <T : Any> JsonProperty<T>.gte(value: T): Bson =
+infix fun <T : Comparable<T>> JsonProperty<T>.gte(value: T): Bson =
     Filters.gte(propName, value)
 
 

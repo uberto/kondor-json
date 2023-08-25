@@ -242,5 +242,22 @@ class MongoTableTest {
 
     }
 
+    @Test
+    fun `use typed filters`() {
+
+        val query = mongoOperation {
+            val a = complexDocTable.find(JSmallClass.double eq 12.0).firstOrNull()
+            val b = complexDocTable.find(JSmallClass.string eq "SmallClass3").firstOrNull()
+            val c = complexDocTable.find(JSmallClass.int eq 9).firstOrNull()
+            val d = complexDocTable.find(JSmallClass.boolean eq true).firstOrNull()
+
+            "a=${a}, b=${b}, c=${c}, d=${d}"
+        }
+        val res = write100Doc + query exec localMongo
+
+        expectThat(res.expectSuccess()).isEqualTo("a=SmallClass(string=SmallClass12, int=12, double=12.0, boolean=true), b=SmallClass(string=SmallClass3, int=3, double=3.0, boolean=false), c=SmallClass(string=SmallClass9, int=9, double=9.0, boolean=false), d=SmallClass(string=SmallClass6, int=6, double=6.0, boolean=true)")
+    }
+
+
 }
 
