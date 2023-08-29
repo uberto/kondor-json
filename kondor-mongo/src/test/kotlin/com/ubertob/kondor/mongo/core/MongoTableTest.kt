@@ -35,6 +35,10 @@ class MongoTableTest {
         }
     }
 
+    object keyValueStoreTable : TypedTable<KeyValueStore>(JKeyValueStore) {
+        override val collectionName: String = "simpleDocs"
+    }
+
     object testConnectionTable : TypedTable<SmallClass>(JSmallClass) {
         val counter = AtomicInteger(0)
 
@@ -243,7 +247,7 @@ class MongoTableTest {
     }
 
     @Test
-    fun `use typed filters`() {
+    fun `typed filters simplify the queries`() {
 
         val query = mongoOperation {
             val a = complexDocTable.find(JSmallClass.double eq 12.0).firstOrNull()
@@ -258,6 +262,23 @@ class MongoTableTest {
         expectThat(res.expectSuccess()).isEqualTo("a=SmallClass(string=SmallClass12, int=12, double=12.0, boolean=true), b=SmallClass(string=SmallClass3, int=3, double=3.0, boolean=false), c=SmallClass(string=SmallClass9, int=9, double=9.0, boolean=false), d=SmallClass(string=SmallClass6, int=6, double=6.0, boolean=true)")
     }
 
+    @Test
+    fun `use mongo id`() {
+        val storying3KV = mongoOperation {
+            keyValueStoreTable.insertOne(KeyValueStore("0000", "first", 0.0))
+            keyValueStoreTable.insertOne(KeyValueStore("0001", "second", 1.0))
+            keyValueStoreTable.insertOne(KeyValueStore("0002", "third", 2.0))
+            Unit
+        }
 
+        fun queryById(id: String) = mongoOperation {
+            keyValueStoreTable.findById(id)
+        }
+
+        val res = localMongo(storying3KV + queryById("0001"))
+
+
+        expectThat(res.expectSuccess()?.description).isEqualTo("second")
+    }
 }
 

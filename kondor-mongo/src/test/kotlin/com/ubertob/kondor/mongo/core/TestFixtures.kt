@@ -71,3 +71,15 @@ fun buildSealedClass(index: Int): SealedClass =
         else -> ClassWithArray(name = "ClassWithArray$index", (0..(index % 10)).map { it.toString() })
     }
 
+data class KeyValueStore(val id: String, val description: String, val value: Double)
+
+object JKeyValueStore : JAny<KeyValueStore>() {
+    val _id by str(KeyValueStore::id)
+    val description by str(KeyValueStore::description)
+    val value by num(KeyValueStore::value)
+    override fun JsonNodeObject.deserializeOrThrow() = KeyValueStore(
+        id = +_id,
+        description = +description,
+        value = +value
+    )
+}

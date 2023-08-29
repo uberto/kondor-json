@@ -3,7 +3,7 @@ package com.ubertob.kondor.mongo.core
 import com.ubertob.kondor.outcome.Outcome
 
 
-typealias MongoReader<T> = ContextReader<MongoSession, T>
+typealias MongoReader<T> = ContextReader<MongoSession, T> //TODO rename to MongoOperation
 typealias MongoOutcome<T> = Outcome<MongoError, T>
 
 fun <U, T> mongoCalculation(operation: MongoSession.(U) -> T): (U) -> MongoReader<T> = //unit
