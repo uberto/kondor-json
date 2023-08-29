@@ -2,6 +2,7 @@ package com.ubertob.kondor.mongo.core
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
+import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
 import org.junit.jupiter.api.BeforeEach
@@ -171,7 +172,6 @@ class MongoTableTest {
             testConnectionTable.countDocuments()
         }.exec(localMongo).expectSuccess()
 
-
         expectThat(testConnectionTable.counter.get()).isEqualTo(1)
 
     }
@@ -262,23 +262,51 @@ class MongoTableTest {
         expectThat(res.expectSuccess()).isEqualTo("a=SmallClass(string=SmallClass12, int=12, double=12.0, boolean=true), b=SmallClass(string=SmallClass3, int=3, double=3.0, boolean=false), c=SmallClass(string=SmallClass9, int=9, double=9.0, boolean=false), d=SmallClass(string=SmallClass6, int=6, double=6.0, boolean=true)")
     }
 
+    private val storeThreeKV = mongoOperation {
+        keyValueStoreTable.insertOne(KeyValueStore("0000", "first", 0.0))
+        keyValueStoreTable.insertOne(KeyValueStore("0001", "second", 1.0))
+        keyValueStoreTable.insertOne(KeyValueStore("0002", "third", 2.0))
+    }.ignoreValue()
+
+    fun queryByKey(id: String) = mongoOperation {
+        keyValueStoreTable.findById(id)
+    }
+
     @Test
     fun `use mongo id`() {
-        val storying3KV = mongoOperation {
-            keyValueStoreTable.insertOne(KeyValueStore("0000", "first", 0.0))
-            keyValueStoreTable.insertOne(KeyValueStore("0001", "second", 1.0))
-            keyValueStoreTable.insertOne(KeyValueStore("0002", "third", 2.0))
-            Unit
-        }
 
-        fun queryById(id: String) = mongoOperation {
-            keyValueStoreTable.findById(id)
-        }
-
-        val res = localMongo(storying3KV + queryById("0001"))
-
+        val res = localMongo(storeThreeKV + queryByKey("0001"))
 
         expectThat(res.expectSuccess()?.description).isEqualTo("second")
     }
+
+    @Test
+    fun `mongo id must be unique`() {
+
+        val firstTime = mongoOperation {
+            keyValueStoreTable.insertOne(KeyValueStore("0042", "first", 0.0))
+        }
+        val objId = localMongo(firstTime).expectSuccess()
+
+        expectThat(objId?.asString()?.value).isEqualTo("0042")
+
+        val updateAgain = mongoOperation {
+            keyValueStoreTable.insertOne(KeyValueStore("0042", "second", 1.0))
+            keyValueStoreTable.insertOne(KeyValueStore("0042", "third", 2.0))
+        }
+
+        val fail = localMongo(updateAgain).expectFailure()
+        expectThat(fail.msg).contains("duplicate key error")
+
+        val res = localMongo(queryByKey("0042"))
+
+        expectThat(res.expectSuccess()?.description).isEqualTo("first")
+    }
+
+    @Test
+    fun `mongo id using the pk index`() {
+
+    }
+
 }
 
