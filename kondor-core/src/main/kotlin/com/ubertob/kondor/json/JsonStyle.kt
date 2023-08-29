@@ -58,7 +58,7 @@ data class JsonStyle(
             when (node) {
                 is JsonNodeNull -> append("null")
                 is JsonNodeString -> append(node.text.quoted())
-                is JsonNodeBoolean -> append(node.value.toString())
+                is JsonNodeBoolean -> append(node.boolean.toString())
                 is JsonNodeNumber -> append(node.num.toString())
                 is JsonNodeArray -> {
                     append('[')
@@ -120,6 +120,6 @@ data class JsonStyle(
             }
 
         private fun JsonNodeArray.values(includeNulls: Boolean) =
-            if (includeNulls) values else notNullValues
+            if (includeNulls) elements else notNullValues
     }
 }

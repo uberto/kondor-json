@@ -2,7 +2,6 @@ package com.ubertob.kondor.mongo.core
 
 import com.ubertob.kondor.outcome.Outcome
 
-
 typealias MongoOperation<T> = ContextReader<MongoSession, T>
 typealias MongoOutcome<T> = Outcome<MongoError, T>
 
@@ -18,7 +17,7 @@ fun <T, U> MongoOperation<T>.bindCalculation(operation: MongoSession.(T) -> U): 
 infix fun <T, U> MongoOperation<T>.combineWith(operation: (T) -> MongoOperation<U>): MongoOperation<U> =
     bind { input -> operation(input) }
 
-fun <T> MongoOperation<T>.ignoreResult(): MongoOperation<Unit> =
+fun <T> MongoOperation<T>.ignoreValue(): MongoOperation<Unit> =
     transform { }
 
 operator fun <T, U, V> ((T) -> MongoOperation<U>).plus(operation: (U) -> MongoOperation<V>): (T) -> MongoOperation<V> =

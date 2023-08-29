@@ -29,7 +29,7 @@ class JsonParserTest {
 
             val node = tokens.onRoot().parseJsonNodeBoolean().expectSuccess()
 
-            expectThat(node.value).isEqualTo(value)
+            expectThat(node.boolean).isEqualTo(value)
             expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
@@ -206,7 +206,7 @@ class JsonParserTest {
 
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
-        expectThat(nodes.values.count()).isEqualTo(3)
+        expectThat(nodes.elements.count()).isEqualTo(3)
         expectThat(nodes.render()).isEqualTo("""["abc","def"]""")
         expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }

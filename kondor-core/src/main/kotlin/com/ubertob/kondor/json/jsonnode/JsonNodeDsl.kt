@@ -52,7 +52,7 @@ fun nodeObject(vararg nodes: NamedNode): JsonNodeObject = JsonNodeObject(
 
 fun JsonNode?.asStringValue(): String? = (this as? JsonNodeString)?.text
 
-fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.value
+fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.boolean
 
 fun JsonNode?.asNumValue(): BigDecimal? = (this as? JsonNodeNumber)?.num
 

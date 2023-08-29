@@ -8,7 +8,7 @@ import java.math.BigDecimal
 
 object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
 
-    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.value.asSuccess()
+    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.boolean.asSuccess()
     override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
         JsonNodeBoolean(value, path)
 

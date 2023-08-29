@@ -4,6 +4,7 @@ import com.ubertob.kondor.json.JAny
 import com.ubertob.kondor.json.jsonnode.*
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
+import org.bson.types.ObjectId
 
 object KondorBson {
 
@@ -55,25 +56,47 @@ object KondorBson {
         return writer.document
     }
 
+    fun encodeObjectId(writer: BsonDocumentWriter, value: JsonNode) {
+        when (value) {
+            is JsonNodeArray -> error("Wrong Field type for ObjectId $value")
+            is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
+            is JsonNodeNull -> writer.writeObjectId(ObjectId())
+            is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
+            is JsonNodeObject -> writeAsObjectIdIfPossible(value, writer)
+            is JsonNodeString -> writer.writeString(value.text)
+        }
+    }
+
+    private fun writeAsObjectIdIfPossible(value: JsonNodeObject, writer: BsonDocumentWriter) {
+        if (value._fieldMap.keys.contains("objectId"))
+            writer.writeObjectId(ObjectId(value._fieldMap["objectId"].asStringValue()))
+        else
+            error("Wrong Field type for ObjectId $value")
+    }
+
     fun encodeValue(writer: BsonDocumentWriter, value: JsonNode) {
         when (value) {
             is JsonNodeNull -> writer.writeNull()
             is JsonNodeArray -> {
                 writer.writeStartArray()
-                value.values.forEach {
+                value.elements.forEach {
                     encodeValue(writer, it)
                 }
                 writer.writeEndArray()
             }
 
-            is JsonNodeBoolean -> writer.writeBoolean(value.value)
+            is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
             is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
             is JsonNodeObject -> {
                 writer.writeStartDocument()
 
                 value._fieldMap.forEach { (fieldName, node) ->
                     writer.writeName(fieldName)
-                    encodeValue(writer, node)
+                    when (fieldName) {
+                        "_id" -> encodeObjectId(writer, node)
+                        else -> encodeValue(writer, node)
+
+                    }
                 }
 
                 writer.writeEndDocument()

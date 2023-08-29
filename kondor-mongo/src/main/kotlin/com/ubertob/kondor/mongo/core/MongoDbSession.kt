@@ -103,7 +103,7 @@ class MongoDbSession(
     override fun <T : Any> MongoTable<T>.findById(id: Any): T? =
         internalRun { coll ->
             coll.find(Filters.eq("_id", id))
-                .firstOrNull()
+                .singleOrNull()
                 ?.let(::fromBsonDoc)
         }
 

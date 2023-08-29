@@ -24,7 +24,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
     private fun <T : Any> mapFromArray(
         node: JsonNodeArray,
         f: (JsonNode) -> JsonOutcome<T?>
-    ): JsonOutcome<Iterable<T>> = node.values.map(f)
+    ): JsonOutcome<Iterable<T>> = node.elements.map(f)
         .extractList()
         .transform { it.filterNotNull() }
 

@@ -66,7 +66,7 @@ fun sealedSchema(
             .let { it._fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
             .let { mapOf("properties" to it) }
             .let {
-                if (required != null && (required as JsonNodeArray).values.count() > 0 )
+                if (required != null && (required as JsonNodeArray).elements.count() > 0)
                     it + ("required" to required)
                 else
                     it
@@ -87,7 +87,7 @@ private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNod
     (schema()._fieldMap["properties"] as JsonNodeObject)._fieldMap.entries.map { it.key to it.value }
 
 private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
-    (schema()._fieldMap["required"] as JsonNodeArray).values.map { (it as JsonNodeString).text }
+    (schema()._fieldMap["required"] as JsonNodeArray).elements.map { (it as JsonNodeString).text }
 
 internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)
