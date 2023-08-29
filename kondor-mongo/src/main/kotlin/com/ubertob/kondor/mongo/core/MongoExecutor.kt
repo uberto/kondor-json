@@ -16,7 +16,7 @@ interface MongoExecutor : ContextProvider<MongoSession> {
     val databaseName: String
     fun listDatabaseNames(): List<String>
 
-    override operator fun <T> invoke(context: MongoReader<T>): Outcome<MongoError, T>
+    override operator fun <T> invoke(context: MongoOperation<T>): Outcome<MongoError, T>
 }
 
 class MongoExecutorDbClient(override val databaseName: String, clientProvider: () -> MongoClient) :
@@ -26,7 +26,7 @@ class MongoExecutorDbClient(override val databaseName: String, clientProvider: (
 
     private val collectionsCache: CollectionCache = ConcurrentHashMap<String, MongoCollection<BsonDocument>>()
 
-    override operator fun <T> invoke(context: MongoReader<T>): Outcome<MongoError, T> =
+    override operator fun <T> invoke(context: MongoOperation<T>): Outcome<MongoError, T> =
         try {
             val sess = MongoDbSession(mongoClient.getDatabase(databaseName), collectionsCache)
             sess._logger("Connected to ${databaseName}")

@@ -47,7 +47,7 @@ class FlatDocTableTest {
 
     private val doc = createDoc(0)
 
-    private val cleanUp: MongoReader<Unit> = mongoOperation {
+    private val cleanUp: MongoOperation<Unit> = mongoOperation {
         FlatDocs.drop()
     }
 
@@ -60,21 +60,21 @@ class FlatDocTableTest {
         FlatDocs.countDocuments()
     }
 
-    fun docWriter(doc: SimpleFlatDoc): MongoReader<Unit> =
+    fun docWriter(doc: SimpleFlatDoc): MongoOperation<Unit> =
         mongoOperation {
             FlatDocs.insertOne(doc)
         }
 
-    fun docQuery(index: Int): MongoReader<SimpleFlatDoc?> =
+    fun docQuery(index: Int): MongoOperation<SimpleFlatDoc?> =
         mongoOperation {
             FlatDocs.find(JSimpleFlatDoc.index eq index).firstOrNull()
         }
 
-    private val docCounter: MongoReader<Long> = mongoOperation {
+    private val docCounter: MongoOperation<Long> = mongoOperation {
         FlatDocs.countDocuments()
     }
 
-    private val hundredDocWriter: MongoReader<Long> =
+    private val hundredDocWriter: MongoOperation<Long> =
         mongoOperation {
             (1..100).forEach {
                 FlatDocs.insertOne(createDoc(it))
