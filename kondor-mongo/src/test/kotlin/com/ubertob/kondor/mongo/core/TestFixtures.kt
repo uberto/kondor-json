@@ -3,6 +3,8 @@ package com.ubertob.kondor.mongo.core
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.mongo.json.str
+import org.bson.types.ObjectId
 import java.time.Instant
 
 
@@ -71,9 +73,10 @@ fun buildSealedClass(index: Int): SealedClass =
         else -> ClassWithArray(name = "ClassWithArray$index", (0..(index % 10)).map { it.toString() })
     }
 
-data class KeyValueStore(val id: String, val description: String, val value: Double)
+data class KeyValueStore(val id: ObjectId, val description: String, val value: Double)
 
 object JKeyValueStore : JAny<KeyValueStore>() {
+
     val _id by str(KeyValueStore::id)
     val description by str(KeyValueStore::description)
     val value by num(KeyValueStore::value)

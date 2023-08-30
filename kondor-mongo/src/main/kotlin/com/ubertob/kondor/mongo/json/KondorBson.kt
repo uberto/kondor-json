@@ -48,30 +48,11 @@ object KondorBson {
 //    }
 
     fun convertJsonNodeToBson(jn: JsonNodeObject): BsonDocument {
-
         val writer = BsonDocumentWriter(BsonDocument())
 
         encodeValue(writer, jn)
 
         return writer.document
-    }
-
-    fun encodeObjectId(writer: BsonDocumentWriter, value: JsonNode) {
-        when (value) {
-            is JsonNodeArray -> error("Wrong Field type for ObjectId $value")
-            is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
-            is JsonNodeNull -> writer.writeObjectId(ObjectId())
-            is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
-            is JsonNodeObject -> writeAsObjectIdIfPossible(value, writer)
-            is JsonNodeString -> writer.writeString(value.text)
-        }
-    }
-
-    private fun writeAsObjectIdIfPossible(value: JsonNodeObject, writer: BsonDocumentWriter) {
-        if (value._fieldMap.keys.contains("objectId"))
-            writer.writeObjectId(ObjectId(value._fieldMap["objectId"].asStringValue()))
-        else
-            error("Wrong Field type for ObjectId $value")
     }
 
     fun encodeValue(writer: BsonDocumentWriter, value: JsonNode) {
@@ -88,22 +69,23 @@ object KondorBson {
             is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
             is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
             is JsonNodeObject -> {
-                writer.writeStartDocument()
-
-                value._fieldMap.forEach { (fieldName, node) ->
-                    writer.writeName(fieldName)
-                    when (fieldName) {
-                        "_id" -> encodeObjectId(writer, node)
-                        else -> encodeValue(writer, node)
-
-                    }
-                }
-
-                writer.writeEndDocument()
+                if (value._fieldMap.keys.contains("\$oid"))
+                    writer.writeObjectId(ObjectId(value._fieldMap["\$oid"].asStringValue()))
+                else
+                    encodeNormalObject(writer, value)
             }
 
             is JsonNodeString -> writer.writeString(value.text)
         }
+    }
+
+    private fun encodeNormalObject(writer: BsonDocumentWriter, value: JsonNodeObject) {
+        writer.writeStartDocument()
+        value._fieldMap.forEach { (fieldName, node) ->
+            writer.writeName(fieldName)
+            encodeValue(writer, node)
+        }
+        writer.writeEndDocument()
     }
 
 }
