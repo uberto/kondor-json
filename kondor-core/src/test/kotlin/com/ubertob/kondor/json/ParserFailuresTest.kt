@@ -57,7 +57,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' in Json string after 'foo ' - Invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' inside a Json string after 'foo ' - Invalid Json")
     }
 
     @Test
