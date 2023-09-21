@@ -151,11 +151,17 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
 }
 
 
-fun TokensPath.take(separator: KondorSeparator): JsonOutcome<KondorToken> = tokens.next().let { currToken ->
-    if (currToken.sameAs(separator)) currToken.asSuccess()
-    else parsingFailure(separator.name, currToken, path, "invalid Json")
-
-}
+fun TokensPath.take(separator: KondorSeparator): JsonOutcome<KondorToken> =
+    if (tokens.hasNext()) {
+        tokens.next().let { currToken ->
+            if (currToken.sameAs(separator))
+                currToken.asSuccess()
+            else
+                parsingFailure(separator.name, currToken, path, "invalid Json")
+        }
+    } else {
+        parsingFailure(separator.name, "end of file", tokens.last()?.pos ?: 0, path, "invalid Json")
+    }
 
 private fun TokensPath.takeOrNull(separator: KondorSeparator): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
@@ -163,7 +169,6 @@ private fun TokensPath.takeOrNull(separator: KondorSeparator): JsonOutcome<Kondo
         else null
 
     }
-
 
 fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? = when (val t = tokens.peek()) {
     is Value -> when (t.text) {
