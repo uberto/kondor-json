@@ -3,10 +3,14 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.1.1 = 21 September 2023
+
+Kondor-core: Performance improvements
+
 ### v.2.1.0 = 30 August 2023
 
 Kondor-mongo: Handle correctly MongoDb ObjectId type
-Kondor-core: Renamed MongoReader to MongoOperation
+Kondor-mongo: Renamed MongoReader to MongoOperation
 
 ### v.2.0.0 - 14 July 2023
 
