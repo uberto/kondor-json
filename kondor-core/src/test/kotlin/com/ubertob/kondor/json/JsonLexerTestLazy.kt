@@ -6,7 +6,7 @@ import java.io.ByteArrayInputStream
 import java.nio.charset.Charset
 
 class JsonLexerTestLazy : JsonLexerTestAbstract() {
-    override fun tokenize(jsonStr: String): TokensStream =
+    override fun tokenize(jsonStr: String): JsonOutcome<TokensStream> =
         KondorTokenizer.tokenize(
             ByteArrayInputStream(jsonStr.toByteArray(Charset.forName("UTF-8")))
         )

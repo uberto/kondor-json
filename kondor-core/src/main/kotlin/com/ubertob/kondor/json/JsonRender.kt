@@ -4,8 +4,8 @@ import com.ubertob.kondor.json.jsonnode.JsonNode
 
 fun JsonNode.render(style: JsonStyle = JsonStyle.compact): String = style.render(this)
 
-fun JsonNode.render(stringBuilder: StringBuilder, style: JsonStyle = JsonStyle.compact): StringBuilder =
-    stringBuilder.append(style.render(this, stringBuilder))
+fun <SB : Appendable> JsonNode.render(stringBuilder: SB, style: JsonStyle = JsonStyle.compact): SB =
+    style.render(this, stringBuilder).let { stringBuilder }
 
 @Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("render(stringBuilder)"))
 fun JsonNode.compact(stringBuilder: StringBuilder, explicitNull: Boolean = false): StringBuilder =

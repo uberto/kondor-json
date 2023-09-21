@@ -25,7 +25,7 @@ class JsonParserTest {
 
             val jsonString = JsonNodeBoolean(value, NodePathRoot).render()
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeBoolean().expectSuccess()
 
@@ -55,7 +55,7 @@ class JsonParserTest {
 
             val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
@@ -69,7 +69,7 @@ class JsonParserTest {
 
             val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
@@ -85,7 +85,7 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
@@ -101,7 +101,7 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
@@ -119,7 +119,7 @@ class JsonParserTest {
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
@@ -134,7 +134,7 @@ class JsonParserTest {
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
@@ -151,7 +151,7 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
@@ -171,7 +171,7 @@ class JsonParserTest {
 
 //            println("$value -> $jsonString")
 
-            val tokens = tokenize(jsonString)
+            val tokens = tokenize(jsonString).expectSuccess()
 
             val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
@@ -187,7 +187,7 @@ class JsonParserTest {
 
         val jsonString = JsonNodeNull(NodePathRoot).render()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         tokens.onRoot().parseJsonNodeNull().expectSuccess()
 
@@ -202,7 +202,7 @@ class JsonParserTest {
             ["abc", null, "def"]
         """.trimIndent()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
@@ -216,7 +216,7 @@ class JsonParserTest {
 
         val jsonString = "[[],[]]".trimIndent()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
@@ -234,7 +234,7 @@ class JsonParserTest {
           }
         """.trimIndent()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
@@ -248,7 +248,7 @@ class JsonParserTest {
 
         val jsonString = "{}".trimIndent()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
@@ -267,7 +267,7 @@ class JsonParserTest {
           }
         """.trimIndent()
 
-        val tokens = tokenize(jsonString)
+        val tokens = tokenize(jsonString).expectSuccess()
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 

@@ -1,8 +1,10 @@
 package com.ubertob.kondor.json.parser
 
+import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.json.parser.LexerState.*
+import com.ubertob.kondor.outcome.asSuccess
 import java.io.InputStream
 import java.io.InputStreamReader
 import java.nio.charset.Charset
@@ -17,7 +19,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
     private var currPos = 1
 
-    fun tokenize(): TokensStream =
+    fun tokenize(): JsonOutcome<TokensStream> =
         sequence {
             val currToken = StringBuilder()
             var state = OutString
@@ -33,31 +35,38 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(OpeningCurly, currPos))
                                 }
+
                                 '}' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(ClosingCurly, currPos))
                                 }
+
                                 '[' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(OpeningBracket, currPos))
                                 }
+
                                 ']' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(ClosingBracket, currPos))
                                 }
+
                                 ',' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(Comma, currPos))
                                 }
+
                                 ':' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(Colon, currPos))
                                 }
+
                                 '"' -> {
                                     yieldValue(currToken, currPos)
                                     yield(Separator(OpeningQuotes, currPos))
                                     state = InString
                                 }
+
                                 else -> currToken.append(char)
                             }
 
@@ -65,13 +74,16 @@ class JsonLexerLazy(val inputStream: InputStream) {
                             '\\' -> {
                                 state = Escaping
                             }
+
                             '"' -> {
                                 yieldValue(currToken, currPos)
                                 yield(Separator(ClosingQuotes, currPos))
                                 state = OutString
                             }
+
                             else -> currToken += char
                         }
+
                         Escaping -> when (char) {
                             '\\' -> currToken.append('\\')
                             '"' -> currToken.append('\"')
@@ -80,7 +92,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
                             't' -> currToken.append('\t')
                             'r' -> currToken.append('\r')
                             'b' -> currToken.append('\b')
-                            'u' -> currToken.append( "\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
+                            'u' -> currToken.append("\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
                             else -> error("wrongly escaped char '\\$char' in Json string")
                         }.also { state = InString }
                     }
@@ -88,7 +100,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
                 }
             yieldValue(currToken, currPos)
 
-        }.peekingIterator().let { TokensStream(it) }
+        }.peekingIterator().let { TokensStream(it).asSuccess() }
 
     private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: StringBuilder, pos: Int) {
         if (currWord.isNotEmpty()) {
@@ -124,12 +136,12 @@ class JsonLexerEager(val jsonStr: CharSequence) {
         currWord.clear()
     }
 
-    fun tokenize(): TokensStream { //maybe an Outcome?
+    fun tokenize(): JsonOutcome<TokensStream> {
         var pos = 1
         val currToken = StringBuilder()
         var state = OutString
         val tokens = mutableListOf<KondorToken>()
-        try {
+        return try {
             jsonStr.forEach { char ->
                 when (state) {
                     OutString ->
@@ -139,31 +151,38 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(OpeningCurly, pos))
                             }
+
                             '}' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(ClosingCurly, pos))
                             }
+
                             '[' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(OpeningBracket, pos))
                             }
+
                             ']' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(ClosingBracket, pos))
                             }
+
                             ',' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(Comma, pos))
                             }
+
                             ':' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(Colon, pos))
                             }
+
                             '"' -> {
                                 tokens.addValue(currToken, pos)
                                 tokens.add(Separator(OpeningQuotes, pos))
                                 state = InString
                             }
+
                             else -> currToken.append(char)
                         }
 
@@ -171,13 +190,16 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                         '\\' -> {
                             state = Escaping
                         }
+
                         '"' -> {
                             tokens.addValue(currToken, pos)
                             tokens.add(Separator(ClosingQuotes, pos))
                             state = OutString
                         }
+
                         else -> currToken += char
                     }
+
                     Escaping -> when (char) {
                         '\\' -> currToken.append('\\')
                         '"' -> currToken.append('\"')
@@ -186,22 +208,20 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                         't' -> currToken.append('\t')
                         'r' -> currToken.append('\r')
                         'b' -> currToken.append('\b')
-                        'u' -> currToken.append( "\\u")
+                        'u' -> currToken.append("\\u")
                         else -> error("wrongly escaped char '\\$char' in Json string")
                     }.also { state = InString }
                 }
                 pos++
             }
             tokens.addValue(currToken, pos)
-
-        } catch (t: Throwable) {
-            throw parsingException(
-                "a valid Json", "${t.message.orEmpty()} after '${currToken.takeLast(10)}'", pos,
+            TokensStream(PeekingIteratorWrapper(tokens.iterator())).asSuccess()
+        } catch (e: Exception) {
+            parsingFailure(
+                "a valid Json", "${e.message.orEmpty()} after '${currToken.takeLast(10)}'", pos,
                 NodePathRoot, "Invalid Json"
             )
         }
-
-        return TokensStream(PeekingIteratorWrapper(tokens.iterator()))
 
     }
 
@@ -210,10 +230,10 @@ class JsonLexerEager(val jsonStr: CharSequence) {
 object KondorTokenizer {
 
     //faster but putting all in memory
-    fun tokenize(jsonString: CharSequence): TokensStream = JsonLexerEager(jsonString).tokenize()
+    fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStream> = JsonLexerEager(jsonString).tokenize()
 
     //a bit slower but consuming as little memory as possible
-    fun tokenize(jsonStream: InputStream): TokensStream = JsonLexerLazy(jsonStream).tokenize()
+    fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStream> = JsonLexerLazy(jsonStream).tokenize()
 }
 
 

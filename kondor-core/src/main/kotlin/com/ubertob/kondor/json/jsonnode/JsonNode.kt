@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json.jsonnode
 
-//import com.ubertob.kondor.json.parser.JsonLexerLazy
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonParsingException
 import com.ubertob.kondor.json.JsonProperty
@@ -8,6 +7,7 @@ import com.ubertob.kondor.json.parser.JsonLexerEager
 import com.ubertob.kondor.json.parser.parseNewNode
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
@@ -38,7 +38,7 @@ data class JsonNodeObject(val _fieldMap: Map<String, JsonNode>, override val _pa
 
 }
 
-
-fun parseJsonNode(jsonString: CharSequence): Outcome<JsonError, JsonNode> =
-    JsonLexerEager(jsonString).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
-//    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray()))).tokenize().onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess()
+fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
+    JsonLexerEager(jsonString).tokenize()
+//    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray())).tokenize()
+        .bind { it.onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess() }

@@ -35,7 +35,6 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
                 ))
             )
         }
-
 }
 
 

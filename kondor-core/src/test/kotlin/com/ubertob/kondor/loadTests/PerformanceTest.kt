@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.io.ByteArrayInputStream
 
 /*
 On my laptop: 4/5/2023
@@ -53,7 +54,7 @@ class PerformanceTest {
             randomInvoice().copy(id = InvoiceId(it.toString()))
         }.toList()
 
-        println("Json String length ${JInvoices.toJson(invoices).length}")
+        println("Invoices Json String length ${JInvoices.toJson(invoices).length}")
         repeat(100) {
 
             val jsonString = chronoAndLog("serialization") { JInvoices.toJson(invoices) }
@@ -62,9 +63,11 @@ class PerformanceTest {
 
             chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
 
-            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for each for lazy
+            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
+            chronoAndLog("total lazy parsing") { JInvoices.fromJson(jsonStream) }
 
-            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
+            val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes) }
 
@@ -82,7 +85,7 @@ class PerformanceTest {
             randomFileInfo().copy(name = it.toString())
         }.toList()
 
-        println("Json String length ${jFileInfos.toJson(fileInfos).length}")
+        println("FileInfo Json String length ${jFileInfos.toJson(fileInfos).length}")
         repeat(100) {
 
             val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(fileInfos) }
@@ -91,10 +94,15 @@ class PerformanceTest {
 
             chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
 
-            val tokens =
-                chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
+            chronoAndLog("total lazy parsing") { jFileInfos.fromJson(jsonStream) }
 
-            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+            val tokens =
+                chronoAndLog("tokenizing") {
+                    KondorTokenizer.tokenize(jsonString).expectSuccess()
+                } //add for eaJFileInfosch for lazy
+
+            val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { jFileInfos.fromJsonNode(nodes) }
 
@@ -111,20 +119,24 @@ class PerformanceTest {
             "string $it"
         }.toList()
 
-        println("Json String length ${jStrings.toJson(strings).length}")
+        println("Strings Json String length ${jStrings.toJson(strings).length}")
         repeat(100) {
 
             val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
 
             chronoAndLog("serialization compact") { jStrings.toJson(strings, JsonStyle.compact) }
 
-
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
 
-            val tokens =
-                chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) } //add for eaJFileInfosch for lazy
+            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
+            chronoAndLog("total lazy parsing") { jStrings.fromJson(jsonStream) }
 
-            val nodes = chronoAndLog("toJsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+            val tokens =
+                chronoAndLog("tokenizing") {
+                    KondorTokenizer.tokenize(jsonString).expectSuccess()
+                } //add for eaJFileInfosch for lazy
+
+            val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes) }
 

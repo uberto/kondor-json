@@ -2,16 +2,15 @@ package com.ubertob.kondor.json.jsonnode
 
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondor.outcome.bind
 
 sealed class NodeKind<JN : JsonNode>(
     val desc: String,
     val parse: TokensPath.() -> JsonOutcome<JN>
 ) {
-    fun fromJsonString(json: String): JsonOutcome<JN> = parse(
-        TokensPath(
-            KondorTokenizer.tokenize(json), NodePathRoot
-        )
-    )
+    fun fromJsonString(json: String): JsonOutcome<JN> =
+        KondorTokenizer.tokenize(json)
+            .bind { parse(TokensPath(it, NodePathRoot)) }
 }
 
 object ArrayNode : NodeKind<JsonNodeArray>("Array", TokensPath::parseJsonNodeArray)

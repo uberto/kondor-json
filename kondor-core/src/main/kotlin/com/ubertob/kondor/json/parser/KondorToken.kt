@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json.parser
 
-
 enum class KondorSeparator(val sign: Char) {
     Colon(':'), Comma(','), OpeningBracket('['), OpeningCurly('{'), OpeningQuotes('"'), ClosingBracket(']'), ClosingCurly('}'), ClosingQuotes('"')
 }
@@ -25,9 +24,7 @@ data class Value(val text: String, override val pos: Int) : KondorToken() {
 
     override fun sameAs(separator: KondorSeparator): Boolean = false
     override val desc: String = "'$text'"
-
 }
-
 
 data class TokensStream(private val iterator: PeekingIterator<KondorToken>) :
     PeekingIterator<KondorToken> by iterator {

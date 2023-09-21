@@ -4,18 +4,19 @@ import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.json.parser.Separator
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.Value
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 abstract class JsonLexerTestAbstract {
 
-    abstract fun tokenize(jsonStr: String): TokensStream
+    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStream>
 
     @Test
     fun `single word`() {
         val json = "abc"
-        val tokensStream = tokenize(json)
+        val tokensStream = tokenize(json).expectSuccess()
 
         expectThat(tokensStream.toList()).isEqualTo(listOf(Value(json, 1)))
     }
@@ -23,7 +24,7 @@ abstract class JsonLexerTestAbstract {
     @Test
     fun `spaces tab and new lines word`() {
         val json = "  abc   def\ngh\tijk\r lmn \n\n opq"
-        val tokens = tokenize(json)
+        val tokens = tokenize(json).expectSuccess()
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
@@ -40,7 +41,7 @@ abstract class JsonLexerTestAbstract {
     @Test
     fun `json special tokens`() {
         val json = "[]{}:, \"\" [a,b,c]  {d:e}"
-        val tokens = tokenize(json)
+        val tokens = tokenize(json).expectSuccess()
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
@@ -73,7 +74,7 @@ abstract class JsonLexerTestAbstract {
         val json = """
             { "abc": 123}
         """.trimIndent()
-        val tokens = tokenize(json)
+        val tokens = tokenize(json).expectSuccess()
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
@@ -93,7 +94,7 @@ abstract class JsonLexerTestAbstract {
         val json = """
             {"abc":"abc\"\\ \n}"}
         """.trimIndent()
-        val tokens = tokenize(json)
+        val tokens = tokenize(json).expectSuccess()
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
@@ -116,7 +117,7 @@ abstract class JsonLexerTestAbstract {
         val json = """
             "abc \u263A"
         """.trimIndent()
-        val tokens = tokenize(json)
+        val tokens = tokenize(json).expectSuccess()
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(

@@ -61,10 +61,10 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value, NodePathRoot))
 
     override fun fromJson(json: String): JsonOutcome<T> =
-        safeTokenize(json).bind(::parseAndConvert)
+        KondorTokenizer.tokenize(json).bind(::parseAndConvert)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        safeLazyTokenize(jsonStream).bind(::parseAndConvert)
+        KondorTokenizer.tokenize(jsonStream).bind(::parseAndConvert)
 
     fun parseAndConvert(tokens: TokensStream) =
         tokens.parseFromRoot()
@@ -95,19 +95,3 @@ fun <T, JN : JsonNode> JsonConverter<T, JN>.toNullJson(value: T): String =
 @Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, compact)"))
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toCompactJson(value: T): String =
     toJson(value, compact)
-
-
-private fun safeTokenize(jsonString: String): JsonOutcome<TokensStream> =
-    try {
-        KondorTokenizer.tokenize(jsonString).asSuccess()
-    } catch (e: JsonParsingException) {
-        e.error.asFailure()
-    }
-
-private fun safeLazyTokenize(jsonString: InputStream): JsonOutcome<TokensStream> =
-    try {
-        KondorTokenizer.tokenize(jsonString).asSuccess()
-    } catch (e: JsonParsingException) {
-        e.error.asFailure()
-    }
-
