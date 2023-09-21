@@ -234,8 +234,8 @@ object KondorTokenizer {
 
 
 /*
-without StringBuilder, it's faster but it doesn't de-escape string (see String.translateEscapes)
-todo: de-escape only if needed when creating string token
+during string, don't add char by char but all at the closing quotes
+todo: process escaping char correctly (store value so far??)
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 

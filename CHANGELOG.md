@@ -11,13 +11,9 @@ Kondor-core: Renamed MongoReader to MongoOperation
 ### v.2.0.0 - 14 July 2023
 
 Kondor-core: Added Serializer with multiple options (thanks to Fred Nordin)
-
 Kondor-core: Made compact the default mode
-
 Kondor-mongo: Added Audit
-
 Kondor-mongo: Added infix functions for filters
-
 Kondor-mongo: Added README
 
 ### v.1.9.5 - 28 June 2023

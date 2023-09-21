@@ -4,7 +4,9 @@ import com.ubertob.kondor.json.JsonStyle.Companion.compact
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondor.json.parser.KondorTokenizer
+import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
@@ -31,12 +33,14 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
     private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
-        if (node.nodeKind == _nodeType)
-            (node as JN).asSuccess()
-        else if (node.nodeKind == NullNode)
-            null.asSuccess()
-        else
-            ConverterJsonError(node._path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}").asFailure()
+        when (node.nodeKind) {
+            _nodeType -> (node as JN).asSuccess()
+            NullNode -> null.asSuccess()
+            else -> ConverterJsonError(
+                node._path,
+                "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
+            ).asFailure()
+        }
 
     private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
@@ -47,13 +51,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     fun toJsonNode(value: T, path: NodePath): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
-        try {
-            _nodeType.parse(onRoot())
-        } catch (e: EndOfCollection) {
-            parsingFailure("a valid Json", lastToken(), NodePathRoot, "Unexpected end of file - Invalid Json")
-        } catch (t: Throwable) {
-            parsingFailure("a valid Json", lastToken(), NodePathRoot, t.message.orEmpty())
-        }
+        _nodeType.parse(onRoot())
+
 
     val jsonStyle: JsonStyle
         get() = JsonStyle.singleLine
@@ -61,10 +60,12 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value, NodePathRoot))
 
     override fun fromJson(json: String): JsonOutcome<T> =
-        KondorTokenizer.tokenize(json).bind(::parseAndConvert)
+        KondorTokenizer.tokenize(json)
+            .bind(::parseAndConvert)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonStream).bind(::parseAndConvert)
+        KondorTokenizer.tokenize(jsonStream)
+            .bind(::parseAndConvert)
 
     fun parseAndConvert(tokens: TokensStream) =
         tokens.parseFromRoot()

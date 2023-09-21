@@ -40,7 +40,37 @@ tokenizing 31 ms
 toJsonNode 22 ms
 marshalling 3 ms
 
+On my laptop: 21/9/2023
+JInvoices 50k Invoices, 63MB
+serialization 1165 ms
+serialization compact 1319 ms
+total parsing 15143 ms
+total lazy parsing 2140 ms
+tokenizing 3515 ms
+parsing up to JsonNode 11839 ms
+marshalling 2771 ms
+
+FileInfo Json String length 15M
+serialization 207 ms
+serialization compact 213 ms
+total parsing 1629 ms
+total lazy parsing 577 ms
+tokenizing 93 ms
+parsing up to JsonNode 270 ms
+marshalling 38 ms
+lazy parsing 769 ms
+
+Strings Json String length 1.6M
+serialization 8 ms
+serialization compact 8 ms
+total parsing 19 ms
+tokenizing 8 ms
+parsing up to JsonNode 8 ms
+marshalling 3 ms
+lazy parsing 46 ms
+
  */
+
 
 @Disabled
 class PerformanceTest {
@@ -63,13 +93,17 @@ class PerformanceTest {
 
             chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
 
-            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
-            chronoAndLog("total lazy parsing") { JInvoices.fromJson(jsonStream) }
-
             val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
+
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes) }
+
+            chronoAndLog("lazy parsing") {
+                ByteArrayInputStream(jsonString.toByteArray()).use {
+                    JInvoices.fromJson(it).expectSuccess()
+                }
+            }
 
         }
 
@@ -94,17 +128,15 @@ class PerformanceTest {
 
             chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
 
-            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
-            chronoAndLog("total lazy parsing") { jFileInfos.fromJson(jsonStream) }
-
-            val tokens =
-                chronoAndLog("tokenizing") {
-                    KondorTokenizer.tokenize(jsonString).expectSuccess()
-                } //add for eaJFileInfosch for lazy
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { jFileInfos.fromJsonNode(nodes) }
+
+            chronoAndLog("lazy parsing") {
+                jFileInfos.fromJson(ByteArrayInputStream(jsonString.toByteArray())).expectSuccess()
+            }
 
         }
 
@@ -128,17 +160,15 @@ class PerformanceTest {
 
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
 
-            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
-            chronoAndLog("total lazy parsing") { jStrings.fromJson(jsonStream) }
-
-            val tokens =
-                chronoAndLog("tokenizing") {
-                    KondorTokenizer.tokenize(jsonString).expectSuccess()
-                } //add for eaJFileInfosch for lazy
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes) }
+
+            chronoAndLog("lazy parsing") {
+                jStrings.fromJson(ByteArrayInputStream(jsonString.toByteArray())).expectSuccess()
+            }
 
         }
 
