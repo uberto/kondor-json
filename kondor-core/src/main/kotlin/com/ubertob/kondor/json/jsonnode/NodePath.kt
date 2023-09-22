@@ -20,7 +20,7 @@ private val ROOT_NODE = "[root]"
 fun NodePath.getPath(): String =
     when (this) {
         NodePathRoot -> ROOT_NODE
-        is NodePathSegment -> parent.getPath() append nodeName
+        is NodePathSegment -> parent.getPath() appendNode nodeName
     }
 
 
@@ -30,7 +30,7 @@ fun NodePath.parent(): NodePath =
         is NodePathSegment -> parent
     }
 
-private infix fun String.append(next: String): String = if (this == ROOT_NODE) "/$next" else "$this/$next"
+private infix fun String.appendNode(next: String): String = if (this == ROOT_NODE) "/$next" else "$this/$next"
 
 
 fun TokensStream.onRoot(): TokensPath = TokensPath(this, NodePathRoot)

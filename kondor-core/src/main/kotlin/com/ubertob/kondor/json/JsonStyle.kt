@@ -11,7 +11,7 @@ data class JsonStyle(
 ) {
     fun render(node: JsonNode): String = buildString { render(node, this) }
 
-    fun render(node: JsonNode, appendable: Appendable) = appendable.append(node, this)
+    fun render(node: JsonNode, appendable: Appendable) = appendable.appendNode(node, this)
 
     companion object {
         val singleLine = JsonStyle(
@@ -54,54 +54,56 @@ data class JsonStyle(
             includeNulls = true
         )
 
-        private fun Appendable.append(node: JsonNode, style: JsonStyle, offset: Int = 0) {
+        private fun Appendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0) {
             when (node) {
                 is JsonNodeNull -> append("null")
-                is JsonNodeString -> append(node.text.quoted())
+                is JsonNodeString -> appendQuoted(node.text)
                 is JsonNodeBoolean -> append(node.boolean.toString())
                 is JsonNodeNumber -> append(node.num.toString())
                 is JsonNodeArray -> {
                     append('[')
-                    appendIndentationIfNeeded(style.indent, offset + 1)
+                    appendNewlineIfNeeded(style.indent, offset + 1)
                     node.values(style.includeNulls).forEachIndexed { index, each ->
                         if (index > 0) {
                             append(style.fieldSeparator)
-                            appendIndentationIfNeeded(style.indent, offset + 1)
+                            appendNewlineIfNeeded(style.indent, offset + 1)
                         }
-                        append(each, style, offset + 2)
+                        appendNode(each, style, offset + 2)
                     }
-                    appendIndentationIfNeeded(style.indent, offset)
+                    appendNewlineIfNeeded(style.indent, offset)
                     append(']')
                 }
 
                 is JsonNodeObject -> {
                     append('{')
-                    appendIndentationIfNeeded(style.indent, offset + 1)
+                    appendNewlineIfNeeded(style.indent, offset + 1)
                     node.fields(style.includeNulls, style.sortedObjectFields)
                         .forEachIndexed { index, entry ->
                             if (index > 0) {
                                 append(style.fieldSeparator)
-                                appendIndentationIfNeeded(style.indent, offset + 1)
+                                appendNewlineIfNeeded(style.indent, offset + 1)
                             }
-                            append(entry.key.quoted())
+                            appendQuoted(entry.key)
                             append(style.valueSeparator)
-                            append(entry.value, style, offset + 2)
+                            appendNode(entry.value, style, offset + 2)
                         }
-                    appendIndentationIfNeeded(style.indent, offset)
+                    appendNewlineIfNeeded(style.indent, offset)
                     append('}')
                 }
             }
         }
 
-        private fun Appendable.appendIndentationIfNeeded(indent: Int?, offset: Int) =
+        private fun Appendable.appendNewlineIfNeeded(indent: Int?, offset: Int) =
             indent?.also {
                 append('\n')
-                append(" ".repeat(indent * offset))
+                repeat(indent * offset) {
+                    append(" ")
+                }
             }
 
 
         private val regex = """[\\"\n\r\t]""".toRegex()
-        private fun String.quoted(): String =
+        private fun String.escaped(): String =
             replace(regex) { m ->
                 when (m.value) {
                     "\\" -> "\\\\"
@@ -112,7 +114,13 @@ data class JsonStyle(
                     "\t" -> "\\t"
                     else -> ""
                 }
-            }.let { "\"${it}\"" }
+            }
+
+        private fun Appendable.appendQuoted(string: String) {
+            append("\"")
+            append(string.escaped())
+            append("\"")
+        }
 
         private fun JsonNodeObject.fields(includeNulls: Boolean, sorted: Boolean) =
             (if (includeNulls) _fieldMap.entries else notNullFields).let {

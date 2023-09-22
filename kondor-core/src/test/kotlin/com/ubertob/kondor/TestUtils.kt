@@ -14,6 +14,7 @@ const val latin1 = "°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍ
 const val japanese = "こんにちは　世界"
 
 const val text = uppercase + lowercase + digits + spacesigns
+const val all = text + latin1 + japanese
 
 fun stringsGenerator(charSet: String, minLen: Int, maxLen: Int): Sequence<String> = generateSequence {
     randomString(charSet, minLen, maxLen)

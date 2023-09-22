@@ -1,10 +1,12 @@
 package com.ubertob.kondor.loadTests
 
+import com.ubertob.kondor.all
 import com.ubertob.kondor.chronoAndLog
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.ArrayNode
 import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.KondorTokenizer
+import com.ubertob.kondor.randomString
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
@@ -148,7 +150,7 @@ class PerformanceTest {
         val jStrings = JList(JString)
 
         val strings = generateSequence(0) { it + 1 }.take(100_000).map {
-            "string $it"
+            "string $it " + randomString(all, 1000, 1000)
         }.toList()
 
         println("Strings Json String length ${jStrings.toJson(strings).length}")
