@@ -47,8 +47,6 @@ class JsonBsonCompatibilityTests {
         ABsonTable.insertOne(
             doc
         )
-
-
     }
 
     private fun readDoc(index: Int) = mongoOperation {
@@ -63,7 +61,7 @@ class JsonBsonCompatibilityTests {
 
         onMongo(readDoc(id)).expectSuccess() //printIt()
 
-        //todo make sure we can read oid and date fields with Kondor
+        //todo read oid and date fields with Kondor
 
 //{"_id": {"$oid": "64630bdf1874ed7632114f11"}, "index": -28859791, "name": "myname -28859791", "localDate": {"$date": "1970-01-20T11:50:45.103Z"}, "isEven": false}
 

@@ -1,8 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.NodePathSegment
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.enumSchema
 import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
@@ -61,21 +59,10 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     open val defaultConverter: ObjectNodeConverterWriters<out T>? = null
 
-    fun typeWriter(jno: JsonNodeObject, obj: T): JsonNodeObject =
-        jno.copy(
-            _fieldMap = mutableMapOf(
-                discriminatorFieldNode(obj, jno)
-            ).apply { putAll(jno._fieldMap) }
-        )
-
-    private fun discriminatorFieldNode(
-        obj: T,
-        jno: JsonNodeObject
-    ): NamedNode = discriminatorFieldName to
-            JsonNodeString(extractTypeName(obj), NodePathSegment(discriminatorFieldName, jno._path))
+    private fun discriminatorFieldNode(obj: T, path: NodePath) =
+        JsonNodeString(extractTypeName(obj), NodePathSegment(discriminatorFieldName, path))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-
 
         val discriminatorNode = _fieldMap[discriminatorFieldName]
             ?: defaultConverter?.let { return it.fromJsonNode(this).orThrow() }
@@ -86,32 +73,14 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         return converter.fromJsonNode(this).orThrow()
     }
 
-    override fun getWriters(value: T): List<NodeWriter<T>> =
-        extractTypeName(value).let { typeName ->
+    override fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode> =
+        extractTypeName(valueObject).let { typeName ->
             findSubTypeConverter(typeName)
-                ?.getWriters(value)
-                ?.plus(::typeWriter)
+                ?.convertFields(valueObject, path)
+                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject, path) }
                 ?: error("subtype not known $typeName")
         }
 
     override fun schema() = sealedSchema(discriminatorFieldName, subConverters)
 
 }
-
-//to map polimorphic object with xml->json standard convention
-abstract class NestedPolyConverter<T : Any> : PolymorphicConverter<T>() {
-
-    override fun JsonNodeObject.deserializeOrThrow(): T {
-        val typeName = _fieldMap.keys.first()
-        val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-        return converter.fromJsonNode(this).orThrow()
-    }
-
-    override fun getWriters(value: T): List<NodeWriter<T>> =
-        extractTypeName(value).let { typeName ->
-            findSubTypeConverter(typeName)
-                ?.getWriters(value)
-                ?: error("subtype not known $typeName")
-        }
-}
-

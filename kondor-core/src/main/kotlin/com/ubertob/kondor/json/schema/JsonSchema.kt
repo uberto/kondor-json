@@ -57,7 +57,7 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
 
 fun sealedSchema(
     discriminatorFieldName: String,
-    subConverters: Map<String, ObjectNodeConverterWriters<*>>
+    subConverters: Map<String, ObjectNodeConverter<*>>
 ): JsonNodeObject {
     val subMaps: List<JsonNode> = subConverters.map { (name, conv) ->
         val required = conv.schema()._fieldMap["required"]
@@ -92,7 +92,7 @@ private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
 internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)
 internal fun List<JsonNode>.asNodes() = JsonNodeArray(this, NodePathRoot)
-internal fun Map<String, JsonNode>.asNode() = JsonNodeObject(this, NodePathRoot)
+internal fun FieldMap.asNode() = JsonNodeObject(this, NodePathRoot)
 internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
     map { it.first to it.second.asNode() }.toMap()
 , NodePathRoot)

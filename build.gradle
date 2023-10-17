@@ -24,6 +24,7 @@ subprojects {
         junitLauncherVersion = "1.9.3"
         striktVersion = "0.34.0"
         testContainerVersion = "1.16.0"
+        jmhVersion = "1.36"
     }
 
 }

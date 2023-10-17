@@ -9,6 +9,13 @@ kotlin {
     jvmToolchain(8)
 }
 
+//testing K2 compiler
+//compileKotlin{
+//    compilerOptions{
+//        freeCompilerArgs = ["-language-version=2.0"] // See https://kotlinlang.org/docs/whatsnew1820.html#how-to-enable-the-kotlin-k2-compiler.
+//    }
+//}
+
 tasks.withType(GenerateModuleMetadata) {
     enabled = false
 }

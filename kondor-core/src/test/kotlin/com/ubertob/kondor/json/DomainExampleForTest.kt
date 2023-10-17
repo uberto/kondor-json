@@ -82,7 +82,7 @@ fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
     )
 )
 
-fun randomNodeFields(): Map<String, JsonNode> =
+fun randomNodeFields(): FieldMap =
     mapOf(
         "bool_f" to JsonNodeBoolean(Random.nextBoolean(), NodePathRoot + "bool_f"),
         "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal(), NodePathRoot + "double_f"),

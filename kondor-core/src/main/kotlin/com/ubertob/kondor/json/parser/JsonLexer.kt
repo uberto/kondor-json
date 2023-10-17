@@ -140,7 +140,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
         val currToken = StringBuilder()
         var state = OutString
         val tokens = mutableListOf<KondorToken>()
-        jsonStr.forEach { char ->
+        for (char in jsonStr) {
             when (state) {
                 OutString ->
                     when (char) {
@@ -235,12 +235,12 @@ object KondorTokenizer {
 
 /*
 during string, don't add char by char but all at the closing quotes
-todo: process escaping char correctly (store value so far??)
+and process escaping char correctly (store value so far??)
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 
 
-    //todo extract the logic of tokenization
+    // extract the logic of tokenization
     fun tokenize(): TokensStream {
 
         var currTokenStart = 0

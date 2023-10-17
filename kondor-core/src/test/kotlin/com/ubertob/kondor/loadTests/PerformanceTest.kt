@@ -71,11 +71,39 @@ parsing up to JsonNode 8 ms
 marshalling 3 ms
 lazy parsing 46 ms
 
+On my laptop: 17/10/2023
+JFileInfo 100k 15MB
+serialization 174 ms
+serialization compact 168 ms
+total parsing 417 ms
+tokenizing 170 ms
+parsing up to JsonNode 237 ms
+marshalling 102 ms
+lazy parsing 625 ms
+
+JInvoices 50k Invoices, 63MB
+tokenizing 906 ms
+parsing up to JsonNode 13796 ms
+marshalling 2788 ms
+serialization 1015 ms
+serialization compact 1192 ms
+total parsing 16595 ms
+
+Strings Json String length 1.6M
+serialization 672 ms
+serialization compact 635 ms
+total parsing 377 ms
+tokenizing 367 ms
+parsing up to JsonNode 13 ms
+marshalling 3 ms
+lazy parsing 2947 ms
  */
 
 
 @Disabled
 class PerformanceTest {
+
+    val times = 20
 
     @Test
     fun `serialize and parse invoices`() {
@@ -87,7 +115,7 @@ class PerformanceTest {
         }.toList()
 
         println("Invoices Json String length ${JInvoices.toJson(invoices).length}")
-        repeat(100) {
+        repeat(times) {
 
             val jsonString = chronoAndLog("serialization") { JInvoices.toJson(invoices) }
 
@@ -101,11 +129,11 @@ class PerformanceTest {
 
             chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes) }
 
-            chronoAndLog("lazy parsing") {
-                ByteArrayInputStream(jsonString.toByteArray()).use {
-                    JInvoices.fromJson(it).expectSuccess()
-                }
-            }
+//            chronoAndLog("lazy parsing") {
+//                ByteArrayInputStream(jsonString.toByteArray()).use {
+//                    JInvoices.fromJson(it).expectSuccess()
+//                }
+//            }
 
         }
 
@@ -122,7 +150,7 @@ class PerformanceTest {
         }.toList()
 
         println("FileInfo Json String length ${jFileInfos.toJson(fileInfos).length}")
-        repeat(100) {
+        repeat(times) {
 
             val jsonString = chronoAndLog("serialization") { jFileInfos.toJson(fileInfos) }
 
@@ -154,7 +182,7 @@ class PerformanceTest {
         }.toList()
 
         println("Strings Json String length ${jStrings.toJson(strings).length}")
-        repeat(100) {
+        repeat(times) {
 
             val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
 

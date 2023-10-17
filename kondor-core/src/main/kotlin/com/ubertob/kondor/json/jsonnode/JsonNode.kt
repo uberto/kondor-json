@@ -12,6 +12,7 @@ import com.ubertob.kondor.outcome.onFailure
 import java.math.BigDecimal
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
+typealias FieldMap = Map<String, JsonNode>
 
 sealed class JsonNode(val nodeKind: NodeKind<*>) {
     abstract val _path: NodePath
@@ -26,7 +27,7 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>, override val _path: N
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val _fieldMap: Map<String, JsonNode>, override val _path: NodePath) : JsonNode(ObjectNode) {
+data class JsonNodeObject(val _fieldMap: FieldMap, override val _path: NodePath) : JsonNode(ObjectNode) {
 
     val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
 

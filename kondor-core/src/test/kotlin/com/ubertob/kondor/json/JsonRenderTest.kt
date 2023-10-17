@@ -236,7 +236,7 @@ class JsonRenderTest {
     }
 
     @Test
-    fun `using converter with default style`() {
+    fun `using converter with different default style`() {
         val addr = OptionalAddress("Jack", null, "London")
         val jsonPretty = JOptionalAddressPretty.toJson(addr)
 

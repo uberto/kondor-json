@@ -6,7 +6,7 @@ import java.math.BigDecimal
 infix fun String.toNode(fieldValuesMap: Map<String, String?>): NamedNode =
     this to JsonNodeObject(fieldValuesMap.toNodes(NodePathRoot + this), NodePathRoot + this)
 
-fun Map<String, String?>.toNodes(basePath: NodePath): Map<String, JsonNode> =
+fun Map<String, String?>.toNodes(basePath: NodePath): FieldMap =
     mapValues { (_, str) -> str?.let { JsonNodeString(str, basePath) } ?: JsonNodeNull(basePath) }
 
 infix fun String.toNode(fieldValue: String): NamedNode =
@@ -56,6 +56,6 @@ fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.boolean
 
 fun JsonNode?.asNumValue(): BigDecimal? = (this as? JsonNodeNumber)?.num
 
-fun JsonNode?.asObjFieldMap(): Map<String, JsonNode>? = (this as? JsonNodeObject)?._fieldMap
+fun JsonNode?.asObjFieldMap(): FieldMap? = (this as? JsonNodeObject)?._fieldMap
 
 
