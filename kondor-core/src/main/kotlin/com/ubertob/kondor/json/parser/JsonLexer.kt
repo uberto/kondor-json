@@ -201,6 +201,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                 Escaping -> when (char) {
                     '\\' -> currToken.append('\\')
                     '"' -> currToken.append('\"')
+                    '/' -> currToken.append('/')
                     'n' -> currToken.append('\n')
                     'f' -> currToken.append('\t')
                     't' -> currToken.append('\t')

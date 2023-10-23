@@ -61,6 +61,17 @@ class ParserFailuresTest {
     }
 
     @Test
+    fun `correctly parse escaped String`() {
+        val optionalEscape = """
+            "foo \/ bar"
+            """.trim()
+
+        val text = JString.fromJson(optionalEscape).expectSuccess()
+
+        expectThat(text).isEqualTo("""foo / bar""")
+    }
+
+    @Test
     fun `parsing illegal Long returns an error`() {
         val illegalJson = "123-234"
 
