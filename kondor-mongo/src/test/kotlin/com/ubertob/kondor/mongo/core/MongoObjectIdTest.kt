@@ -50,7 +50,7 @@ class MongoObjectIdTest {
         val firstTime = mongoOperation {
             keyValueStoreTable.insertOne(KeyValueStore(uniqueId, "first", 0.0))
         }
-        val objId = localMongo(firstTime).expectSuccess()
+        localMongo(firstTime).expectSuccess()
 
         val updateAgain = mongoOperation {
             keyValueStoreTable.insertOne(KeyValueStore(uniqueId, "second", 1.0))
