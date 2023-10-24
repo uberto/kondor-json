@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.x.x
+
+Kondor-core: added short functions for array of Strings
+
 ### v.2.1.2 - 23 October 2023
 
 Kondor-core: Allow for optional escaping of forward slash (thanks D.McGregor)

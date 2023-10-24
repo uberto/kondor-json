@@ -95,6 +95,22 @@ inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline 
 inline fun <PT : Any, reified E : Any> array(converter: JConverter<E>, noinline binder: PT.() -> List<E>?) =
         JFieldMaybe(binder, JList(converter))
 
+@JvmName("bindSetOfStrings")
+inline fun <PT : Any> array(noinline binder: PT.() -> Set<String>) =
+    JField(binder, JSet(JString))
+
+@JvmName("bindSetOfStringsNull")
+inline fun <PT : Any> array(noinline binder: PT.() -> Set<String>?) =
+    JFieldMaybe(binder, JSet(JString))
+
+@JvmName("bindListOfStrings")
+inline fun <PT : Any> array(noinline binder: PT.() -> List<String>) =
+    JField(binder, JList(JString))
+
+@JvmName("bindListOfStringsNull")
+inline fun <PT : Any> array(noinline binder: PT.() -> List<String>?) =
+    JFieldMaybe(binder, JList(JString))
+
 @JvmName("bindObject")
 inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline binder: PT.() -> T) =
         JField(binder, converter)
