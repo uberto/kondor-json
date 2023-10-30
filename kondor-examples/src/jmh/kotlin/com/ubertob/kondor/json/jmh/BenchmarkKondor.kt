@@ -25,3 +25,30 @@ open class BenchmarkKondor {
         }
 
 }
+
+/*
+
+30/10/2023 on my laptop
+
+
+jacksonDslSerializationOfDemoClass
+17151.220 ops/s
+
+jacksonDslDeserializationOfDemoClass
+11024.520 ops/s
+
+jacksonReflectionDeserializationOfDemoClass
+ 6530.603 ops/s
+
+jacksonReflectionSerializationOfDemoClass
+25545.446 ops/s
+
+
+
+kondorDeserializationOfDemoClass
+2528.502 ops/s
+
+kondorSerializationOfDemoClass
+4226.918 ops/s
+
+ */
