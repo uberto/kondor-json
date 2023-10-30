@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
@@ -21,7 +20,7 @@ class JValuesExtraTest {
         repeat(5) {
 
             val value = randomCompany()
-            val json = JCompany.toJsonNode(value, NodePathRoot)
+            val json = JCompany.toJsonNode(value)
 
             val actual = JCompany.fromJsonNode(json).expectSuccess()
 
@@ -39,7 +38,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomCustomer()
-            val json = JCustomer.toJsonNode(value, NodePathRoot)
+            val json = JCustomer.toJsonNode(value)
 
             val actual = JCustomer.fromJsonNode(json).expectSuccess()
 
@@ -57,7 +56,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomExpenseReport()
-            val json = JExpenseReport.toJsonNode(value, NodePathRoot)
+            val json = JExpenseReport.toJsonNode(value)
 
             val actual = JExpenseReport.fromJsonNode(json).expectSuccess()
 
@@ -77,7 +76,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomNotes()
-            val json = JNotes.toJsonNode(value, NodePathRoot)
+            val json = JNotes.toJsonNode(value)
 
             val actual = JNotes.fromJsonNode(json).expectSuccess()
 
@@ -96,7 +95,7 @@ class JValuesExtraTest {
         repeat(10) {
             val value = randomTasks()
 
-            val json = JTasks.toJsonNode(value, NodePathRoot)
+            val json = JTasks.toJsonNode(value)
 
             val actual = JTasks.fromJsonNode(json).expectSuccess()
 
@@ -140,7 +139,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = Products.fromIterable(randomList(0, 10) { randomProduct() })
-            val json = JProducts.toJsonNode(value, NodePathRoot)
+            val json = JProducts.toJsonNode(value)
 
             val actual = JProducts.fromJsonNode(json).expectSuccess()
 
@@ -210,7 +209,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
-            val json = JSelectedFile.toJsonNode(value, NodePathRoot)
+            val json = JSelectedFile.toJsonNode(value)
 
             val actual = JSelectedFile.fromJsonNode(json).expectSuccess()
 
@@ -228,7 +227,7 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = MetadataFile(randomString(lowercase, 3, 20), randomMetadata())
-            val json = JMetadataFile.toJsonNode(value, NodePathRoot)
+            val json = JMetadataFile.toJsonNode(value)
 
             val actual = JMetadataFile.fromJsonNode(json).expectSuccess()
 
@@ -247,7 +246,7 @@ class JValuesExtraTest {
         repeat(5) {
 
             val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
-            val json = JTitleRequest.toJsonNode(value, NodePathRoot)
+            val json = JTitleRequest.toJsonNode(value)
 
             val actual = JTitleRequest.fromJsonNode(json).expectSuccess()
 
@@ -267,7 +266,7 @@ class JValuesExtraTest {
         repeat(5) {
 
             val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
-            val json = JTitleRequest.toJsonNode(value, NodePathRoot)
+            val json = JTitleRequest.toJsonNode(value)
 
             val actual = JTitleRequest.fromJsonNode(json).expectSuccess()
 
@@ -284,8 +283,8 @@ class JValuesExtraTest {
 
         repeat(5) {
             val value =
-                GraphNode(randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5),)
-            val json = JGraphNode.toJsonNode(value, NodePathRoot)
+                GraphNode(randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5))
+            val json = JGraphNode.toJsonNode(value)
 
             val actual = JGraphNode.fromJsonNode(json).expectSuccess()
 
@@ -305,7 +304,7 @@ class JValuesExtraTest {
         repeat(10) {
             val objWithDynamicAttr = randomObjectWithDynamicAttr()
 
-            val json = JDynamicAttr.toJsonNode(objWithDynamicAttr, NodePathRoot)
+            val json = JDynamicAttr.toJsonNode(objWithDynamicAttr)
 
             val actual = JDynamicAttr.fromJsonNode(json).expectSuccess()
 

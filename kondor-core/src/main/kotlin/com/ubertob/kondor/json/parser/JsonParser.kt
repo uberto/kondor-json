@@ -84,13 +84,13 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
     }
 
     else -> parsingFailure("a Boolean", token, path, "valid values: false, true")
-}.transform { JsonNodeBoolean(it, path) }
+}.transform { JsonNodeBoolean(it) }
 
 
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = when (val token = tokens.next()) {
     is Value -> stringToBigDecimal(token, path)
     else -> parsingFailure("a Number", token, path, "not a valid number")
-}.transform { JsonNodeNumber(it, path) }
+}.transform { JsonNodeNumber(it) }
 
 private fun stringToBigDecimal(token: Value, nodePath: NodePath): Outcome<JsonError, BigDecimal> = try {
     BigDecimal(string(token)).asSuccess()
@@ -102,17 +102,17 @@ private fun stringToBigDecimal(token: Value, nodePath: NodePath): Outcome<JsonEr
 fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> = when (val token = tokens.peek()) {
     is Value -> token.text.asSuccess().also { tokens.next() }
     else -> if (allowEmpty) "".asSuccess() else parsingFailure("a non empty String", token, path, "invalid Json")
-}.transform { JsonNodeString(it, path) }
+}.transform { JsonNodeString(it) }
 
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
-    commaSepared { parseNewNode() }.transform { JsonNodeArray(it, path) }
+    commaSepared { parseNewNode() }.transform { JsonNodeArray(it) }
 
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSepared(withParentNode {
     keyValue {
         parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.last()?.pos ?: 0, path, "invalid Json")
     }
-}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap(), path) }
+}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap()) }
 
 private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
     pairs.sortedBy { it.first }
@@ -146,7 +146,7 @@ fun <T> TokensPath.commaSepared(contentParser: TokensPath.() -> JsonOutcome<T>?)
     }
 
 private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next().let { currToken ->
-    if (currToken.sameValueAs("null")) JsonNodeNull(path).asSuccess()
+    if (currToken.sameValueAs("null")) JsonNodeNull.asSuccess()
     else parsingFailure("a Null", currToken, path, "valid values: null")
 }
 

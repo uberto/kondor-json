@@ -14,25 +14,23 @@ import java.math.BigDecimal
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 typealias FieldMap = Map<String, JsonNode>
 
-sealed class JsonNode(val nodeKind: NodeKind<*>) {
-    abstract val _path: NodePath
-}
+sealed class JsonNode(val nodeKind: NodeKind<*>)
 
-data class JsonNodeNull(override val _path: NodePath) : JsonNode(NullNode)
+object JsonNodeNull : JsonNode(NullNode)
 
-data class JsonNodeBoolean(val boolean: Boolean, override val _path: NodePath) : JsonNode(BooleanNode)
-data class JsonNodeNumber(val num: BigDecimal, override val _path: NodePath) : JsonNode(NumberNode)
-data class JsonNodeString(val text: String, override val _path: NodePath) : JsonNode(StringNode)
-data class JsonNodeArray(val elements: Iterable<JsonNode>, override val _path: NodePath) : JsonNode(ArrayNode) {
+data class JsonNodeBoolean(val boolean: Boolean) : JsonNode(BooleanNode)
+data class JsonNodeNumber(val num: BigDecimal) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String) : JsonNode(StringNode)
+data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode) {
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val _fieldMap: FieldMap, override val _path: NodePath) : JsonNode(ObjectNode) {
+data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
     val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
-        getter(this@JsonNodeObject)
+        getter(this@JsonNodeObject, path = NodePathRoot) //!!!
             .onFailure { throw JsonParsingException(it) }
 
 }
@@ -40,4 +38,4 @@ data class JsonNodeObject(val _fieldMap: FieldMap, override val _path: NodePath)
 fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
     JsonLexerEager(jsonString).tokenize()
 //    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray())).tokenize()
-        .bind { it.onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess() }
+        .bind { it.onRoot().parseNewNode() ?: JsonNodeNull.asSuccess() }

@@ -2,8 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.NodePathSegment
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
@@ -26,17 +25,18 @@ class JMap<K : Any, V : Any>(
 
     override fun JsonNodeObject.deserializeOrThrow() =
         _fieldMap.entries.associate { (key, value) ->
+            val path = NodePathRoot //!!!
             keyConverter.cons(key) to
-                    valueConverter.fromJsonNodeBase(value)
-                        .failIfNull { ConverterJsonError(_path, "Found null node in map!") }
+                    valueConverter.fromJsonNodeBase(value, path)
+                        .failIfNull { ConverterJsonError(path, "Found null node in map!") }
                         .orThrow()
         }
 
-    override fun convertFields(valueObject: Map<K, V>, path: NodePath): Map<String, JsonNode> =
+    override fun convertFields(valueObject: Map<K, V>): Map<String, JsonNode> =
         valueObject
             .map { (key, value) ->
                 val keyString = keyConverter.render(key)
-                keyString to valueConverter.toJsonNode(value, NodePathSegment(keyString, path))
+                keyString to valueConverter.toJsonNode(value)
             }
             .sortedBy { it.first }
             .toMap()

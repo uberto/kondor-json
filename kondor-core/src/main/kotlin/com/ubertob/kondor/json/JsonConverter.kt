@@ -32,23 +32,23 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     val _nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
+    private fun safeCast(node: JsonNode, path: NodePath): JsonOutcome<JN?> =
         when (node.nodeKind) {
             _nodeType -> (node as JN).asSuccess()
             NullNode -> null.asSuccess()
             else -> ConverterJsonError(
-                node._path,
-                "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
+                path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
     private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
-    fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
+    fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
+        safeCast(node, path).bind(::fromJsonNodeNull)
 
-    fun fromJsonNode(node: JN): JsonOutcome<T>
+    fun fromJsonNode(node: JN, path: NodePath = NodePathRoot): JsonOutcome<T>
 
-    fun toJsonNode(value: T, path: NodePath): JN
+    fun toJsonNode(value: T): JN
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
@@ -57,7 +57,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     val jsonStyle: JsonStyle
         get() = JsonStyle.singleLine
 
-    override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value, NodePathRoot))
+    override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value))
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)
@@ -81,7 +81,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
-    renderer.render(toJsonNode(value, NodePathRoot))
+    renderer.render(toJsonNode(value))
 
 
 //deprecated methods

@@ -4,7 +4,6 @@ import com.ubertob.kondor.json.datetime.JLocalDateTime
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -27,8 +26,8 @@ class JLocalDateTimeTest {
         val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a").withLocale(Locale.ENGLISH)
         val jLocalDateTime = JLocalDateTime.withFormatter(format)
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
-        expectThat(jLocalDateTime.toJsonNode(date, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm")
+        expectThat(jLocalDateTime.toJsonNode(date)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(date)
 
         val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""
@@ -41,8 +40,8 @@ class JLocalDateTimeTest {
         val dateTime = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
         val jLocalDateTime = JLocalDateTime.withPattern("dd/MM/yyyy hh:mm:ss a")
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
-        expectThat(jLocalDateTime.toJsonNode(dateTime, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm")
+        expectThat(jLocalDateTime.toJsonNode(dateTime)).isEqualTo(dateTimeAsJsonNode)
         expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(dateTime)
 
         val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""

@@ -30,25 +30,11 @@ open class BenchmarkKondor {
 
 30/10/2023 on my laptop
 
-
-jacksonDslSerializationOfDemoClass
-17151.220 ops/s
-
-jacksonDslDeserializationOfDemoClass
-11024.520 ops/s
-
-jacksonReflectionDeserializationOfDemoClass
- 6530.603 ops/s
-
-jacksonReflectionSerializationOfDemoClass
-25545.446 ops/s
-
-
-
-kondorDeserializationOfDemoClass
-2528.502 ops/s
-
-kondorSerializationOfDemoClass
-4226.918 ops/s
+BenchmarkJackson.jacksonDslDeserializationOfDemoClass         thrpt   20  11023.454 ± 206.814  ops/s
+BenchmarkJackson.jacksonDslSerializationOfDemoClass           thrpt   20  18026.272 ± 167.600  ops/s
+BenchmarkJackson.jacksonReflectionDeserializationOfDemoClass  thrpt   20   6259.493 ±  87.607  ops/s
+BenchmarkJackson.jacksonReflectionSerializationOfDemoClass    thrpt   20  24324.008 ± 523.996  ops/s
+BenchmarkKondor.kondorDeserializationOfDemoClass              thrpt   20   2605.131 ±   6.513  ops/s
+BenchmarkKondor.kondorSerializationOfDemoClass                thrpt   20   4546.243 ±  95.795  ops/s
 
  */

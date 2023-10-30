@@ -8,10 +8,10 @@ import com.ubertob.kondor.outcome.asSuccess
 object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override val _nodeType = ObjectNode
 
-    override fun toJsonNode(value: JsonNodeObject, path: NodePath): JsonNodeObject =
+    override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
 }

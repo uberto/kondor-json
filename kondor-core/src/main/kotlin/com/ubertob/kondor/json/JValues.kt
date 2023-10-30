@@ -8,9 +8,9 @@ import java.math.BigDecimal
 
 object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
 
-    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.boolean.asSuccess()
-    override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
-        JsonNodeBoolean(value, path)
+    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<Boolean> = node.boolean.asSuccess()
+    override fun toJsonNode(value: Boolean): JsonNodeBoolean =
+        JsonNodeBoolean(value)
 
     override val _nodeType = BooleanNode
 
@@ -38,13 +38,13 @@ object JLong : JNumRepresentable<Long>() {
     override val render: (Long) -> BigDecimal = Long::toBigDecimal
 }
 
-fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
+fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val throwable = throwableError.throwable) {
-                is JsonParsingException -> throwable.error // keep path info
-                is IllegalStateException -> ConverterJsonError(node._path, throwableError.msg)
-                else -> ConverterJsonError(node._path, "Caught exception: $throwable")
+                is JsonParsingException -> throwable.error // add!!! path info
+                is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
+                else -> ConverterJsonError(path, "Caught exception: $throwable")
             }
         }
 
@@ -52,9 +52,11 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (BigDecimal) -> T
     abstract val render: (T) -> BigDecimal
 
-    override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> = tryFromNode(node) { cons(node.num) }
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =
-        JsonNodeNumber(render(value), path)
+    override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { cons(node.num) }
+
+    override fun toJsonNode(value: T): JsonNodeNumber =
+        JsonNodeNumber(render(value))
 
     override val _nodeType = NumberNode
 }
@@ -63,9 +65,11 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
 
-    override fun fromJsonNode(node: JsonNodeString): JsonOutcome<T> = tryFromNode(node) { cons(node.text) }
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeString =
-        JsonNodeString(render(value), path)
+    override fun fromJsonNode(node: JsonNodeString, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { cons(node.text) }
+
+    override fun toJsonNode(value: T): JsonNodeString =
+        JsonNodeString(render(value))
 
     override val _nodeType = StringNode
 }

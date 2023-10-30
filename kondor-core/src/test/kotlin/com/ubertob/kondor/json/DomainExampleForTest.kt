@@ -78,15 +78,15 @@ fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
     id = Random.nextInt(1, 1000),
     name = randomString(lowercase, 1, 10),
     attributes = JsonNodeObject(
-        randomNodeFields(), NodePathRoot
+        randomNodeFields()
     )
 )
 
 fun randomNodeFields(): FieldMap =
     mapOf(
-        "bool_f" to JsonNodeBoolean(Random.nextBoolean(), NodePathRoot + "bool_f"),
-        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal(), NodePathRoot + "double_f"),
-        "string_f" to JsonNodeString(randomString(uppercase, 1, 10), NodePathRoot + "string_f")
+        "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
+        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
+        "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
     )
 
 //------------

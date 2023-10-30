@@ -4,27 +4,27 @@ import com.ubertob.kondor.json.NamedNode
 import java.math.BigDecimal
 
 infix fun String.toNode(fieldValuesMap: Map<String, String?>): NamedNode =
-    this to JsonNodeObject(fieldValuesMap.toNodes(NodePathRoot + this), NodePathRoot + this)
+    this to JsonNodeObject(fieldValuesMap.toNodes())
 
-fun Map<String, String?>.toNodes(basePath: NodePath): FieldMap =
-    mapValues { (_, str) -> str?.let { JsonNodeString(str, basePath) } ?: JsonNodeNull(basePath) }
+fun Map<String, String?>.toNodes(): FieldMap =
+    mapValues { (_, str) -> str?.let { JsonNodeString(str) } ?: JsonNodeNull }
 
 infix fun String.toNode(fieldValue: String): NamedNode =
-    this to JsonNodeString(fieldValue, NodePathRoot + this)
+    this to JsonNodeString(fieldValue)
 
 infix fun String.toNode(fieldValue: Long): NamedNode =
-    this to JsonNodeNumber(fieldValue.toBigDecimal(), NodePathRoot + this)
+    this to JsonNodeNumber(fieldValue.toBigDecimal())
 
 infix fun String.toNode(fieldValue: Int): NamedNode =
-    this to JsonNodeNumber(fieldValue.toBigDecimal(), NodePathRoot + this)
+    this to JsonNodeNumber(fieldValue.toBigDecimal())
 
 infix fun String.toNode(fieldValue: Double): NamedNode =
-    this to JsonNodeNumber(fieldValue.toBigDecimal(), NodePathRoot + this)
+    this to JsonNodeNumber(fieldValue.toBigDecimal())
 
 infix fun String.toNode(fieldValue: Boolean): NamedNode =
-    this to JsonNodeBoolean(fieldValue, NodePathRoot + this)
+    this to JsonNodeBoolean(fieldValue)
 
-private fun String.nullNode() = this to JsonNodeNull(NodePathRoot + this)
+private fun String.nullNode() = this to JsonNodeNull
 
 @JvmName("toNodeNullable")
 infix fun String.toNode(fieldValue: String?): NamedNode =
@@ -47,7 +47,7 @@ infix fun String.toNode(fieldValue: Boolean?): NamedNode =
     fieldValue?.let(::toNode) ?: nullNode()
 
 fun nodeObject(vararg nodes: NamedNode): JsonNodeObject = JsonNodeObject(
-    _fieldMap = nodes.toMap(), NodePathRoot
+    _fieldMap = nodes.toMap()
 )
 
 fun JsonNode?.asStringValue(): String? = (this as? JsonNodeString)?.text

@@ -11,15 +11,15 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
     fun convertToCollection(from: Iterable<T>): CT
 
-    override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, CT> =
-        mapFromArray(node, converter::fromJsonNodeBase)
+    override fun fromJsonNode(node: JsonNodeArray, path: NodePath): Outcome<JsonError, CT> =
+        mapFromArray(node) { converter.fromJsonNodeBase(it, path) }
             .transform { convertToCollection(it) }
 
-    override fun toJsonNode(value: CT, path: NodePath): JsonNodeArray =
-        mapToJson(value, converter::toJsonNode, path)
+    override fun toJsonNode(value: CT): JsonNodeArray =
+        mapToJson(value, converter::toJsonNode)
 
-    private fun <T : Any> mapToJson(objs: Iterable<T>, f: (T, NodePath) -> JsonNode, path: NodePath): JsonNodeArray =
-        JsonNodeArray(objs.map { f(it, path) }, path)
+    private fun <T : Any> mapToJson(objs: Iterable<T>, f: (T) -> JsonNode): JsonNodeArray =
+        JsonNodeArray(objs.map { f(it) })
 
     private fun <T : Any> mapFromArray(
         node: JsonNodeArray,

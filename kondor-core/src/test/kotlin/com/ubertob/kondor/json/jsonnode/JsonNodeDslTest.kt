@@ -125,7 +125,7 @@ class JsonNodeDslTest {
 
     @Test
     fun `test asStringValue with non-null value`() {
-        val node = JsonNodeString("value", NodePathRoot + "test")
+        val node = JsonNodeString("value")
         expectThat(node.asStringValue()).isEqualTo("value")
     }
 
@@ -137,7 +137,7 @@ class JsonNodeDslTest {
 
     @Test
     fun `test asBooleanValue with non-null value`() {
-        val node = JsonNodeBoolean(true, NodePathRoot + "test")
+        val node = JsonNodeBoolean(true)
         expectThat(node.asBooleanValue()).isEqualTo(true)
     }
 
@@ -149,7 +149,7 @@ class JsonNodeDslTest {
 
     @Test
     fun `test asNumValue with non-null value`() {
-        val node = JsonNodeNumber(BigDecimal(123), NodePathRoot + "test")
+        val node = JsonNodeNumber(BigDecimal(123))
         expectThat(node.asNumValue()).isEqualTo(BigDecimal(123))
     }
 

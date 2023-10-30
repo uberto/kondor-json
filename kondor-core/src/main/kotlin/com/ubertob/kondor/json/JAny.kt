@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
 
-typealias NodeWriter<T> = (MutableFieldMap, T, NodePath) -> MutableFieldMap
+typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap
 
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
@@ -17,17 +17,17 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
-    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
-        tryFromNode(node) {
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) {
             node.deserializeOrThrow() ?: throw JsonParsingException(
-                ConverterJsonError(node._path, "deserializeOrThrow returned null!")
+                ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
 
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
-        JsonNodeObject(convertFields(value, path), path)
+    override fun toJsonNode(value: T): JsonNodeObject =
+        JsonNodeObject(convertFields(value))
 
-    abstract fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode>
+    abstract fun convertFields(valueObject: T): Map<String, JsonNode>
 
 }
 
@@ -35,9 +35,9 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
 
     abstract val writers: List<NodeWriter<T>>
-    override fun convertFields(valueObject: T, path: NodePath): FieldMap =
+    override fun convertFields(valueObject: T): FieldMap =
         writers.fold(mutableMapOf()) { acc, writer ->
-            writer(acc, valueObject, path)
+            writer(acc, valueObject)
         }
 
 }
@@ -56,15 +56,15 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
-        registerWriter { mfm, obj, path -> jsonProperty.setter(binder(obj))(mfm, path) }
+        registerWriter { mfm, obj -> jsonProperty.setter(binder(obj))(mfm) }
     }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 }
 
-private fun <T> ((MutableFieldMap, NodePath, T) -> MutableFieldMap).toWriter(): NodeWriter<T> =
-    { fm: MutableFieldMap, obj: T, path: NodePath ->
-        fm.also { it.putAll(this(fm, path, obj)) }
+private fun <T> ((MutableFieldMap, T) -> MutableFieldMap).toWriter(): NodeWriter<T> =
+    { fm: MutableFieldMap, obj: T ->
+        fm.also { it.putAll(this(fm, obj)) }
     }
 
 

@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 object KondorBson {
 
     fun <T : Any> toBsonDoc(conv: JAny<T>, value: T): BsonDocument {
-        val jn: JsonNodeObject = conv.toJsonNode(value, NodePathRoot)
+        val jn: JsonNodeObject = conv.toJsonNode(value)
 
         return convertJsonNodeToBson(jn)
     }
