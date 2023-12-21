@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json.jmh
 
+import com.ubertob.kondortools.chronoAndLog
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
@@ -41,4 +42,17 @@ open class BenchmarkJackson {
             blackHole.consume(list)
         }
 
+}
+
+fun main(){
+    val testFix = DemoClassFixtures()
+
+    repeat(1_000){
+        chronoAndLog("iter $it") {
+            repeat(1_000) {
+                val json = JacksonDsl.toJson(testFix.objList)
+                val list = JacksonDsl.fromJson(testFix.jsonString)
+            }
+        }
+    }
 }
