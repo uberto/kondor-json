@@ -35,7 +35,7 @@ fun main(){
         chronoAndLog("iter $it") {
             repeat(1_000) {
                 val json = jDemoClasses.toJson(testFix.objList)
-//                val list = jDemoClasses.fromJson(testFix.jsonString)
+                val list = jDemoClasses.fromJson(testFix.jsonString)
             }
         }
     }
