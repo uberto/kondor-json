@@ -340,7 +340,7 @@ internal class OutcomeTest {
     fun `castOrFail allow for subcasting`() {
         val person: BaseOutcome<Person> = getUser(12)
 
-        val user = person.castOrFail<User> { value -> Err("Cannot cast $value to User") }.orThrow()
+        val user = person.castOrFail { value -> Err("Cannot cast $value to User") }.orThrow()
 
         expectThat(user).isA<User>()
     }
@@ -349,9 +349,10 @@ internal class OutcomeTest {
     fun `castOrFail return failure for wrong subcasting`() {
         val person: BaseOutcome<Person> = getUser(12)
 
-        val notAUser = person.castOrFail<Interested> { value -> Err("Cannot cast $value to Interested") }.expectFailure()
+        val interested: Outcome<OutcomeError, Interested> = person.castOrFail { value -> Err("Cannot cast $value to Interested") }
 
-        expectThat(notAUser.msg).isEqualTo("Cannot cast User(name=user12, email=12@example.com) to Interested")
+        val failure = interested.expectFailure()
+        expectThat(failure.msg).isEqualTo("Cannot cast User(name=user12, email=12@example.com) to Interested")
     }
 
 

@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.JsonPropertyError
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.render
+import com.ubertob.kondor.outcome.failIfNull
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -33,9 +34,8 @@ class NodeKindTest {
     object ExtractId : FromJson<Long> {
         override fun fromJson(json: String): JsonOutcome<Long> =
             ObjectNode.fromJsonString(json)
-                .transform { it._fieldMap["id"] }
-                .castOrFail<JsonNodeNumber> { JsonPropertyError(NodePathRoot, "id", "expected Number, found $it") }
-                .transform { it.num.longValueExact() }
+                .transform { it._fieldMap["id"].asNumValue()?.longValueExact() }
+                .failIfNull { JsonPropertyError(NodePathRoot, "id", "expected Number!") }
     }
 
     @Test
