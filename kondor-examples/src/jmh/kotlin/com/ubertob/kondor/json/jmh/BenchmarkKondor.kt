@@ -3,7 +3,7 @@ package com.ubertob.kondor.json.jmh
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
-//Jackson, Moshi, Gson, KotlinX comparison
+//add Moshi, Gson, KotlinX comparison
 
 
 open class BenchmarkKondor {

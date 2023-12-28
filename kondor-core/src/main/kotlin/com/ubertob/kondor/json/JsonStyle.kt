@@ -13,7 +13,7 @@ data class JsonStyle(
 
     val writer = ChunkedStringWriter()
     fun render(node: JsonNode): String = render(node, writer.reset())
-    fun render(node: JsonNode, writer: Appendable): String =
+    fun render(node: JsonNode, writer: StrAppendable): String =
         writer.appendNode(node, this).toString()
 
     companion object {
@@ -57,7 +57,7 @@ data class JsonStyle(
             includeNulls = true
         )
 
-        fun Appendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): Appendable {
+        fun StrAppendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): StrAppendable {
             when (node) {
                 is JsonNodeNull -> append("null")
                 is JsonNodeString -> appendQuoted(node.text)
@@ -97,9 +97,9 @@ data class JsonStyle(
             return this
         }
 
-        private fun Appendable.appendNewlineIfNeeded(indent: Int?, offset: Int) =
+        private fun StrAppendable.appendNewlineIfNeeded(indent: Int?, offset: Int) =
             indent?.also {
-                appendLine()
+                append('\n')
                 repeat(indent * offset) {
                     append(" ")
                 }
@@ -120,7 +120,7 @@ data class JsonStyle(
                 }
             }
 
-        private fun Appendable.appendQuoted(string: String) {
+        private fun StrAppendable.appendQuoted(string: String) {
             append("\"")
             append(string.escaped())
             append("\"")

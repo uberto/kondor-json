@@ -1,44 +1,49 @@
 package com.ubertob.kondor.json
 
-class ChunkedStringWriter(val bufferSize: Int = 88192) : Appendable {
+
+interface StrAppendable {
+    fun append(str: String): StrAppendable
+    fun append(cbuf: CharArray, len: Int): StrAppendable
+    fun append(c: Char): StrAppendable
+}
+
+
+class ChunkedStringWriter(val bufferSize: Int = 65536) : StrAppendable {
 
     private val out = StringBuilder()
-    private val cb = CharArray(bufferSize)
+    private val charArray = CharArray(bufferSize)
     private var nextChar: Int = 0
 
     fun flushBuffer() {
         if (nextChar == 0) return
-        out.appendRange(cb, 0, nextChar)
+        out.appendRange(charArray, 0, nextChar)
         nextChar = 0
     }
 
-    private fun write(c: Char) {
-        if (nextChar >= bufferSize) flushBuffer()
-        cb[nextChar++] = c
-    }
 
     private inline fun min(a: Int, b: Int): Int = if (a < b) a else b
 
-    private fun write(cbuf: CharArray, len: Int) {
+    override fun append(cbuf: CharArray, len: Int): StrAppendable {
         if (len == 0) {
-            return
+            return this
         }
 
         if (len >= bufferSize) {
             flushBuffer()
             out.append(cbuf)
-            return
+            return this
         }
 
         var b = 0
-        val t =  len
+        val t = len
         while (b < t) {
             val d = min(bufferSize - nextChar, t - b)
-            System.arraycopy(cbuf, b, cb, nextChar, d)
+            System.arraycopy(cbuf, b, charArray, nextChar, d)
             b += d
             nextChar += d
             if (nextChar >= bufferSize) flushBuffer()
         }
+        return this
     }
 
     fun reset(): ChunkedStringWriter {
@@ -47,17 +52,23 @@ class ChunkedStringWriter(val bufferSize: Int = 88192) : Appendable {
         return this
     }
 
-    override fun append(csq: CharSequence?): Appendable {
-        val s = csq?.toString() ?: "null"
-        write(s.toCharArray(), s.length)
+    override fun append(str: String): StrAppendable {
+        val len = str.length
+        if (len == 0) {
+            return this
+        }
+        if (len < bufferSize - nextChar) {
+            str.toCharArray(charArray, nextChar, startIndex = 0, endIndex = len)
+            nextChar += len
+        } else {
+            append(str.toCharArray(), len)
+        }
         return this
     }
 
-    override fun append(csq: CharSequence?, start: Int, end: Int): Appendable =
-        append(csq?.subSequence(start, end) ?: "null")
-
-    override fun append(c: Char): Appendable {
-        write(c)
+    override fun append(c: Char): StrAppendable {
+        if (nextChar >= bufferSize) flushBuffer()
+        charArray[nextChar++] = c
         return this
     }
 
