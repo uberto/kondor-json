@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json.jmh
 
-import com.ubertob.kondortools.chronoAndLog
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
@@ -28,16 +27,13 @@ open class BenchmarkKondor {
 }
 
 fun main(){
-
-    val testFix = DemoClassFixtures()
-
-    repeat(1_000){
-        chronoAndLog("iter $it") {
-            repeat(1_000) {
-                val json = jDemoClasses.toJson(testFix.objList)
-                val list = jDemoClasses.fromJson(testFix.jsonString)
-            }
-        }
-    }
-
+    benchLoop(jDemoClasses::toJson){ jDemoClasses.fromJson(it).orThrow()}
 }
+
+/*
+Serialization Improvements:
+improve numbers rendering skipping bigdecimal
+improve string using a buffer and a custom writer
+skip node intermediate step and generate directly string from object
+
+ */

@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
+import java.io.*
 
 data class JsonStyle(
     val fieldSeparator: String,
@@ -9,9 +10,11 @@ data class JsonStyle(
     val sortedObjectFields: Boolean,
     val includeNulls: Boolean
 ) {
-    fun render(node: JsonNode): String = buildString { render(node, this) }
 
-    fun render(node: JsonNode, appendable: Appendable) = appendable.appendNode(node, this)
+    val writer = ChunkedStringWriter()
+    fun render(node: JsonNode): String = render(node, writer.reset())
+    fun render(node: JsonNode, writer: Appendable): String =
+        writer.appendNode(node, this).toString()
 
     companion object {
         val singleLine = JsonStyle(
@@ -54,7 +57,7 @@ data class JsonStyle(
             includeNulls = true
         )
 
-        private fun Appendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0) {
+        fun Appendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): Appendable {
             when (node) {
                 is JsonNodeNull -> append("null")
                 is JsonNodeString -> appendQuoted(node.text)
@@ -91,11 +94,12 @@ data class JsonStyle(
                     append('}')
                 }
             }
+            return this
         }
 
         private fun Appendable.appendNewlineIfNeeded(indent: Int?, offset: Int) =
             indent?.also {
-                append('\n')
+                appendLine()
                 repeat(indent * offset) {
                     append(" ")
                 }
@@ -131,3 +135,5 @@ data class JsonStyle(
             if (includeNulls) elements else notNullValues
     }
 }
+
+

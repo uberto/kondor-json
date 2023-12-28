@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json.jmh
 
-import com.ubertob.kondortools.chronoAndLog
-import org.openjdk.jmh.annotations.Benchmark
+ import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
 //Jackson, Moshi, Gson, KotlinX comparison
@@ -44,15 +43,6 @@ open class BenchmarkJackson {
 
 }
 
-fun main(){
-    val testFix = DemoClassFixtures()
-
-    repeat(1_000){
-        chronoAndLog("iter $it") {
-            repeat(1_000) {
-                val json = JacksonDsl.toJson(testFix.objList)
-                val list = JacksonDsl.fromJson(testFix.jsonString)
-            }
-        }
-    }
+fun main() {
+    benchLoop(JacksonReflection::toJson, JacksonReflection::fromJson)
 }
