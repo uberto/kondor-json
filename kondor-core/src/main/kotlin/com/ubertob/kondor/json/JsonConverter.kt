@@ -53,7 +53,6 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
 
-
     val jsonStyle: JsonStyle
         get() = JsonStyle.singleLine
 
@@ -77,6 +76,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                     it.asSuccess()
             }
 
+    fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
 }
 

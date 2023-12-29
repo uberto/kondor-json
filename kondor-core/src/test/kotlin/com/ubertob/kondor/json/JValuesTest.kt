@@ -5,6 +5,7 @@ import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import com.ubertob.kondortools.expectSuccess
+import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -222,7 +223,7 @@ class JValuesTest {
 
             expectThat(actual).isEqualTo(product)
 
-            val jsonStr = JProduct.toJson(product)
+            val jsonStr = JProduct.toJson(product).printIt()
 
             expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(product)
 

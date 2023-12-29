@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
 import java.util.concurrent.atomic.AtomicReference
@@ -11,6 +12,9 @@ typealias NodeWriter<T> = (MutableFieldMap, T, NodePath) -> MutableFieldMap
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
+
+    override fun toJson(value: T): String =
+        appendValue(jsonStyle.writer.reset(), jsonStyle, 0, value).toString()
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -29,6 +33,11 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode>
 
+    abstract fun fieldAppenders(valueObject: T): Map<String, PropertyAppender>
+
+    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+        app.appendObjectValue(jsonStyle, 0, fieldAppenders(value))
+
 }
 
 
@@ -42,12 +51,16 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
 }
 
+typealias ObjectAppender<T> = (T) -> PropertyAppender
+
 abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
     private val properties: AtomicReference<List<JsonProperty<*>>> = AtomicReference(emptyList())
 
     override val writers: List<NodeWriter<T>> by lazy { nodeWriters.get() }
+
+    private val appenders: MutableMap<String, ObjectAppender<T>> = mutableMapOf()
     fun getProperties(): List<JsonProperty<*>> = properties.get()
 
     private fun registerWriter(writer: NodeWriter<T>) {
@@ -57,15 +70,14 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
         registerWriter { mfm, obj, path -> jsonProperty.setter(binder(obj))(mfm, path) }
+        appenders[jsonProperty.propName] = { obj -> jsonProperty.appender(binder(obj)) }
     }
+
+    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender> =
+        appenders.mapValues { it.value(valueObject) }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 }
-
-private fun <T> ((MutableFieldMap, NodePath, T) -> MutableFieldMap).toWriter(): NodeWriter<T> =
-    { fm: MutableFieldMap, obj: T, path: NodePath ->
-        fm.also { it.putAll(this(fm, path, obj)) }
-    }
 
 
 abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {

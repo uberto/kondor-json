@@ -81,6 +81,11 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
                 ?: error("subtype not known $typeName")
         }
 
+
+    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender> {
+        TODO("JSealed Not yet implemented!!!")
+    }
+
     override fun schema() = sealedSchema(discriminatorFieldName, subConverters)
 
 }

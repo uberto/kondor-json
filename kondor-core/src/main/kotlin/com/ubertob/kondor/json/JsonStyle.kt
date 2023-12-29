@@ -59,10 +59,10 @@ data class JsonStyle(
 
         fun StrAppendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): StrAppendable {
             when (node) {
-                is JsonNodeNull -> append("null")
-                is JsonNodeString -> appendQuoted(node.text)
-                is JsonNodeBoolean -> append(node.boolean.toString())
-                is JsonNodeNumber -> append(node.num.toString())
+                is JsonNodeNull -> appendNull()
+                is JsonNodeString -> appendText(node.text)
+                is JsonNodeBoolean -> appendBoolean(node.boolean)
+                is JsonNodeNumber -> appendNumber(node.num)
                 is JsonNodeArray -> {
                     append('[')
                     appendNewlineIfNeeded(style.indent, offset + 1)
@@ -97,11 +97,14 @@ data class JsonStyle(
             return this
         }
 
-        private fun StrAppendable.appendNewlineIfNeeded(indent: Int?, offset: Int) =
-            indent?.also {
-                append('\n')
-                repeat(indent * offset) {
-                    append(" ")
+
+        private fun StrAppendable.appendNewlineIfNeeded(indent: Int?, offset: Int): StrAppendable =
+            also {
+                if (indent != null ) {
+                    append('\n')
+                    repeat(indent * offset) {
+                        append(" ")
+                    }
                 }
             }
 
@@ -120,11 +123,10 @@ data class JsonStyle(
                 }
             }
 
-        private fun StrAppendable.appendQuoted(string: String) {
-            append("\"")
-            append(string.escaped())
-            append("\"")
-        }
+        private fun StrAppendable.appendQuoted(string: String) = append("\"")
+            .append(string.escaped())
+            .append("\"")
+
 
         private fun JsonNodeObject.fields(includeNulls: Boolean, sorted: Boolean) =
             (if (includeNulls) _fieldMap.entries else notNullFields).let {
@@ -133,7 +135,76 @@ data class JsonStyle(
 
         private fun JsonNodeArray.values(includeNulls: Boolean) =
             if (includeNulls) elements else notNullValues
+
+
+        fun <T> StrAppendable.appendArrayValues(
+            style: JsonStyle,
+            offset: Int,
+            values: Iterable<T>,
+            appender: StrAppendable.(JsonStyle, Int, T) -> StrAppendable //TODO remove T and make a list of appenders
+        ): StrAppendable {
+            append('[')
+                .appendNewlineIfNeeded(style.indent, offset + 1)
+            values.nullFilter(style.includeNulls).forEachIndexed { index, each ->
+                if (index > 0) {
+                    append(style.fieldSeparator)
+                        .appendNewlineIfNeeded(style.indent, offset + 1)
+                }
+                appender(style, offset + 2, each)
+            }
+            appendNewlineIfNeeded(style.indent, offset)
+                .append(']')
+            return this
+        }
+
+        fun StrAppendable.appendObjectValue(
+            style: JsonStyle,
+            offset: Int,
+            fields: Map<String, StrAppendable.(JsonStyle, Int) -> Boolean>
+        ): StrAppendable {
+            var first = true //TODO better way?
+            append('{')
+            appendNewlineIfNeeded(style.indent, offset + 1)
+            fields.entries.sort(style.sortedObjectFields)
+                .forEach {  entry ->
+                    if (!first) {
+                        append(style.fieldSeparator)
+                        appendNewlineIfNeeded(style.indent, offset + 1)
+                    }
+                   if( entry.value(this, style, offset + 2) && first)
+                       first = false
+                }
+            appendNewlineIfNeeded(style.indent, offset)
+            append('}')
+
+            return this
+        }
+
+
+        fun StrAppendable.appendNull() =
+            append("null")
+
+
+        fun StrAppendable.appendNumber(num: Number) = append(num.toString())
+
+
+        fun StrAppendable.appendBoolean(bool: Boolean) = append(bool.toString())
+
+
+        fun StrAppendable.appendText(text: String) = appendQuoted(text)
+
     }
 }
+
+private fun <V> Set<Map.Entry<String, V>>.sort(
+    sortedObjectFields: Boolean
+): Collection<Map.Entry<String, V>> =
+    if (sortedObjectFields) sortedBy { it.key } else this
+
+private fun <V> Collection<Map.Entry<String, V>>.filterNulls(includeNulls: Boolean) =
+    if (includeNulls) this else filter { it.value != null }
+
+private fun <T> Iterable<T>.nullFilter(includeNulls: Boolean): Iterable<T> =
+    if (includeNulls) this else filterNotNull()
 
 

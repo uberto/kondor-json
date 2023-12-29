@@ -21,7 +21,7 @@ class ChunkedStringWriter(val bufferSize: Int = 65536) : StrAppendable {
     }
 
 
-    private inline fun min(a: Int, b: Int): Int = if (a < b) a else b
+    private fun min(a: Int, b: Int): Int = if (a < b) a else b
 
     override fun append(cbuf: CharArray, len: Int): StrAppendable {
         if (len == 0) {

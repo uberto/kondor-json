@@ -1,5 +1,7 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.appendNull
+import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
@@ -8,10 +10,12 @@ import com.ubertob.kondor.outcome.failIfNull
 
 typealias MutableFieldMap = MutableMap<String, JsonNode>
 typealias PropertySetter = (MutableFieldMap, NodePath) -> MutableFieldMap
+typealias PropertyAppender = StrAppendable.(JsonStyle, Int) -> Boolean
 
 sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
+    abstract fun appender(value: T): PropertyAppender
     abstract fun getter(wrapped: JsonNodeObject): JsonOutcome<T>
 }
 
@@ -33,10 +37,17 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
             ).asFailure()
 
 
-    override fun setter(value: T): PropertySetter = { fm, path ->
-        fm.apply {
+    override fun setter(value: T): PropertySetter = { fieldMap, path ->
+        fieldMap.apply {
             put(propName, converter.toJsonNode(value, NodePathSegment(propName, path)))
         }
+    }
+
+    override fun appender(value: T): PropertyAppender = { js, off ->
+        appendText(propName)
+            .append(js.valueSeparator)
+        converter.appendValue(this, js, off, value)
+        true
     }
 }
 
@@ -61,6 +72,20 @@ data class JsonPropOptional<T, JN : JsonNode>(
         }
     }
 
+    override fun appender(value: T?): PropertyAppender = { js, off ->
+        if (value != null) {
+            appendText(propName)
+                .append(js.valueSeparator)
+            converter.appendValue(this, js, off, value)
+            true
+        } else if (js.includeNulls) {
+            appendText(propName)
+                .append(js.valueSeparator)
+                .appendNull()
+            true
+        } else
+            false
+    }
 }
 
 data class JsonPropMandatoryFlatten<T : Any>(
@@ -70,6 +95,9 @@ data class JsonPropMandatoryFlatten<T : Any>(
 ) : JsonProperty<T>() {
 
     private val parentProperties = parent.getProperties().map { it.propName }
+    override fun appender(value: T): PropertyAppender {
+        TODO("JPropertyFlatten Not yet implemented!!!")
+    }
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
         wrapped.removeFieldsFromParent()

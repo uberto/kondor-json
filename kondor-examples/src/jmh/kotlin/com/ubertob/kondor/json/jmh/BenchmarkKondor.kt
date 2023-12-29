@@ -32,8 +32,6 @@ fun main(){
 
 /*
 Serialization Improvements:
-improve numbers rendering skipping bigdecimal
-improve string using a buffer and a custom writer
-skip node intermediate step and generate directly string from object
+remove regex for escaping
 
  */

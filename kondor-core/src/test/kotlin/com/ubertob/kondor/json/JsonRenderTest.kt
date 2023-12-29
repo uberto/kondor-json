@@ -131,6 +131,7 @@ class JsonRenderTest {
     fun `render object with nulls`() {
         val jsonString = JsonNodeObject(
             mapOf(
+                "firstnullable" to JsonNodeNull(NodePathRoot),
                 "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
                 "nullable" to JsonNodeNull(NodePathRoot)

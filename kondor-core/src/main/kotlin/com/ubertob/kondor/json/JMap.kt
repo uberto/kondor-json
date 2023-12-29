@@ -32,6 +32,10 @@ class JMap<K : Any, V : Any>(
                         .orThrow()
         }
 
+    override fun fieldAppenders(valueObject: Map<K, V>): Map<String, PropertyAppender> {
+        TODO("JMap Not yet implemented!!!")
+    }
+
     override fun convertFields(valueObject: Map<K, V>, path: NodePath): Map<String, JsonNode> =
         valueObject
             .map { (key, value) ->

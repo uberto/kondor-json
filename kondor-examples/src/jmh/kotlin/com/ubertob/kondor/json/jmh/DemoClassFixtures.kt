@@ -22,7 +22,7 @@ fun benchLoop(ser: (List<DemoClass>) -> String, deser: (String) -> List<DemoClas
         chronoAndLog("iter $it") {
             repeat(10_000) {
                 val json = ser(testFix.objList)
-                val list = deser(testFix.jsonString)
+//                val list = deser(testFix.jsonString)
             }
         }
     }

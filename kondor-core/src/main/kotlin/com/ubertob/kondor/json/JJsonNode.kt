@@ -14,4 +14,8 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
+    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: JsonNodeObject): StrAppendable {
+        TODO("JJsonNode Not yet implemented!!!")
+    }
+
 }
