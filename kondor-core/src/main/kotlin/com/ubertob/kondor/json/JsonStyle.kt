@@ -103,14 +103,14 @@ data class JsonStyle(
                 if (indent != null) {
                     append('\n')
                     repeat(indent * offset) {
-                        append(" ")
+                        append(' ')
                     }
                 }
             }
 
         private fun StrAppendable.appendQuoted(string: String) = append('\"')
             .appendEscaped(string)
-            .append('\"')
+            .append('"')
 
         private fun StrAppendable.appendEscaped(string: String): StrAppendable =
             apply {
@@ -166,13 +166,15 @@ data class JsonStyle(
             append('{')
             appendNewlineIfNeeded(style.indent, offset + 1)
             fields.entries.sort(style.sortedObjectFields)
-                .forEach { entry ->
-                    if (!first) {
+                .forEach { (_, appender) ->
+                    if (!first){
                         append(style.fieldSeparator)
-                        appendNewlineIfNeeded(style.indent, offset + 1)
+                        appendNewlineIfNeeded(style.indent, offset + 1) //!!! there is still a prob if last field is skipped
                     }
-                    if (entry.value(this, style, offset + 2) && first)
+                    val written = appender(this, style, offset + 2)
+                    if (written) {
                         first = false
+                    }
                 }
             appendNewlineIfNeeded(style.indent, offset)
             append('}')
