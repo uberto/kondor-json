@@ -21,14 +21,11 @@ fun <T : PrimitiveWrap<String>> registeredStringCons(kClass: KClass<out Primitiv
 
 inline fun <reified T : PrimitiveWrap<String>> createTinyTypeString(x: String): T {
 
-//    return registeredStringCons(T::class, x)
-
-    val methods = T::class.java.declaredClasses.firstOrNull { it.name.endsWith("Companion") }!!.methods
-
-//    methods.map { println("!!!! ${it.name}") }
-    val xx = methods
-        .firstOrNull { it.name == "fromPrimitive" }
-        ?: error("Not found method by reflection! ${T::class.java.name} ")
+//    val methods = T::class.java.declaredClasses.firstOrNull { it.name.endsWith("Companion") }!!.methods
+//    methods.map { println(" ${it.name}") }
+//    val xx = methods
+//        .firstOrNull { it.name == "fromPrimitive" }
+//        ?: error("Not found method by reflection! ${T::class.java.name} ")
 
 //    return xx.invoke(x)  as T
 
