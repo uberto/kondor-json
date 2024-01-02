@@ -320,4 +320,21 @@ class JsonParserTest {
             }
     }
 
+    @Test
+    fun `parse huge object`() {
+        repeat(10) {
+            val bigMetadata = (1..100).associate {
+                it.toString() to randomString(all, it * 1000, it * 1000)
+            }
+            val expected = MetadataFile(
+                filename = randomText(100),
+                metadata = bigMetadata
+            )
+
+            val json = JMetadataFile.toJson(expected)
+            val actual = JMetadataFile.fromJson(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(expected)
+        }
+    }
 }

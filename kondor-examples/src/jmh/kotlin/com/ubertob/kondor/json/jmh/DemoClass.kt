@@ -14,7 +14,7 @@ data class DemoClass(
             text = randomString(),
             boolean = Random.nextBoolean(),
             double = Random.nextDouble(),
-            nullableInt =  Random.nextInt(), //TODO!!!! if (Random.nextBoolean()) else null,
+            nullableInt = if (Random.nextBoolean()) Random.nextInt() else null,
             array = (1..Random.nextInt(5, 20)).map { randomString() }.toList()
         )
     }
