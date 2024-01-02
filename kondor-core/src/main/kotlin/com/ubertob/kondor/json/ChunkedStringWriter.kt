@@ -8,7 +8,7 @@ interface StrAppendable {
 }
 
 
-class ChunkedStringWriter(val bufferSize: Int = 65536) : StrAppendable {
+class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
 
     private val out = StringBuilder()
     private val charArray = CharArray(bufferSize)
