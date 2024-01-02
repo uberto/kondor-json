@@ -46,8 +46,9 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo("2147483647")
     }
 
+
     @Test
-    fun `render escaped String`() {
+    fun `render String field honoring Json escaping rules`() {
         val value = "abc {} \\ , : [] \" \n \t \r 123"
 
         val jsonString = JsonNodeString(value, NodePathRoot).render()
@@ -112,8 +113,9 @@ class JsonRenderTest {
 
     }
 
+
     @Test
-    fun `render object`() {
+    fun `render object from node`() {
         val jsonString = JsonNodeObject(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
@@ -125,6 +127,7 @@ class JsonRenderTest {
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(jsonString).isEqualTo(expected)
     }
+
 
 
     @Test

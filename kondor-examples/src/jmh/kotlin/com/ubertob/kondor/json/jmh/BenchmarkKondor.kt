@@ -29,9 +29,3 @@ open class BenchmarkKondor {
 fun main(){
     benchLoop(jDemoClasses::toJson){ jDemoClasses.fromJson(it).orThrow()}
 }
-
-/*
-Serialization Improvements:
-remove regex for escaping
-
- */

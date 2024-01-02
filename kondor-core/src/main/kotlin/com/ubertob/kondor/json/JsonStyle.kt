@@ -100,7 +100,7 @@ data class JsonStyle(
 
         private fun StrAppendable.appendNewlineIfNeeded(indent: Int?, offset: Int): StrAppendable =
             also {
-                if (indent != null ) {
+                if (indent != null) {
                     append('\n')
                     repeat(indent * offset) {
                         append(" ")
@@ -108,25 +108,25 @@ data class JsonStyle(
                 }
             }
 
+        private fun StrAppendable.appendQuoted(string: String) = append('\"')
+            .appendEscaped(string)
+            .append('\"')
 
-        private val regex = """[\\"\n\r\t]""".toRegex()
-        private fun String.escaped(): String =
-            replace(regex) { m ->
-                when (m.value) {
-                    "\\" -> "\\\\"
-                    "\"" -> "\\\""
-                    "\n" -> "\\n"
-                    "\b" -> "\\b"
-                    "\r" -> "\\r"
-                    "\t" -> "\\t"
-                    else -> ""
+        private fun StrAppendable.appendEscaped(string: String): StrAppendable =
+            apply {
+                string.onEach { char ->
+                    when (char) {
+                        '\"' -> append("\\\"")
+                        '\\' -> append("\\\\")
+                        '\b' -> append("\\b") //backspace
+                        '\u000C' -> append("\\f") // Form feed
+                        '\n' -> append("\\n")
+                        '\r' -> append("\\r")
+                        '\t' -> append("\\t")
+                        else -> append(char)
+                    }
                 }
             }
-
-        private fun StrAppendable.appendQuoted(string: String) = append("\"")
-            .append(string.escaped())
-            .append("\"")
-
 
         private fun JsonNodeObject.fields(includeNulls: Boolean, sorted: Boolean) =
             (if (includeNulls) _fieldMap.entries else notNullFields).let {
@@ -166,13 +166,13 @@ data class JsonStyle(
             append('{')
             appendNewlineIfNeeded(style.indent, offset + 1)
             fields.entries.sort(style.sortedObjectFields)
-                .forEach {  entry ->
+                .forEach { entry ->
                     if (!first) {
                         append(style.fieldSeparator)
                         appendNewlineIfNeeded(style.indent, offset + 1)
                     }
-                   if( entry.value(this, style, offset + 2) && first)
-                       first = false
+                    if (entry.value(this, style, offset + 2) && first)
+                        first = false
                 }
             appendNewlineIfNeeded(style.indent, offset)
             append('}')
