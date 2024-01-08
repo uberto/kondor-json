@@ -56,7 +56,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     val jsonStyle: JsonStyle
         get() = JsonStyle.singleLine
 
-    override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value, NodePathRoot)) //fallback solution, but implementors can have faster direct render
+    override fun toJson(value: T): String =
+        appendValue(jsonStyle.writer.reset(), jsonStyle, 0, value).toString()
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)

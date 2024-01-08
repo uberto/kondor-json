@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNull
+import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectFields
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
@@ -17,6 +18,8 @@ sealed class JsonProperty<T> {
     abstract fun setter(value: T): PropertySetter
     abstract fun appender(value: T): PropertyAppender
     abstract fun getter(wrapped: JsonNodeObject): JsonOutcome<T>
+
+
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -46,9 +49,15 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     override fun appender(value: T): PropertyAppender = { js, off ->
         appendText(propName)
             .append(js.valueSeparator)
-        converter.appendValue(this, js, off, value)
+            .appendValue(js, off, value)
         true
     }
+
+    fun StrAppendable.appendValue(
+        style: JsonStyle,
+        offset: Int,
+        value: T
+    ): StrAppendable = converter.appendValue(this, style, offset, value)
 }
 
 
@@ -76,7 +85,7 @@ data class JsonPropOptional<T, JN : JsonNode>(
         if (value != null) {
             appendText(propName)
                 .append(js.valueSeparator)
-            converter.appendValue(this, js, off, value)
+                .appendValue(js, off, value)
             true
         } else if (js.includeNulls) {
             appendText(propName)
@@ -86,6 +95,12 @@ data class JsonPropOptional<T, JN : JsonNode>(
         } else
             false
     }
+
+    fun StrAppendable.appendValue(
+        style: JsonStyle,
+        offset: Int,
+        value: T
+    ): StrAppendable = converter.appendValue(this, style, offset, value)
 }
 
 data class JsonPropMandatoryFlatten<T : Any>(
@@ -95,8 +110,10 @@ data class JsonPropMandatoryFlatten<T : Any>(
 ) : JsonProperty<T>() {
 
     private val parentProperties = parent.getProperties().map { it.propName }
-    override fun appender(value: T): PropertyAppender {
-        TODO("JPropertyFlatten Not yet implemented!!!")
+
+    override fun appender(value: T): PropertyAppender = {  js, off ->
+        appendObjectFields(js,  off, converter.fieldAppenders(value)) //!!!remove brackets
+        true
     }
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =

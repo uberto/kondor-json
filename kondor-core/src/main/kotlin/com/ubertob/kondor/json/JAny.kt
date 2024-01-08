@@ -13,8 +13,7 @@ typealias NodeWriter<T> = (MutableFieldMap, T, NodePath) -> MutableFieldMap
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
 
-    override fun toJson(value: T): String =
-        appendValue(jsonStyle.writer.reset(), jsonStyle, 0, value).toString()
+    fun fieldAppenders(valueObject: T): Map<String, PropertyAppender>
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -33,7 +32,6 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode>
 
-    abstract fun fieldAppenders(valueObject: T): Map<String, PropertyAppender>
 
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
         app.appendObjectValue(jsonStyle, 0, fieldAppenders(value))

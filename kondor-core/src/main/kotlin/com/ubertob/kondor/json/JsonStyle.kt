@@ -161,25 +161,35 @@ data class JsonStyle(
             style: JsonStyle,
             offset: Int,
             fields: Map<String, StrAppendable.(JsonStyle, Int) -> Boolean>
+        ): StrAppendable =
+            append('{')
+                .appendObjectFields(style, offset + 1, fields)
+                .appendNewlineIfNeeded(style.indent, offset)
+                .append('}')
+
+
+        fun StrAppendable.appendObjectFields(
+            style: JsonStyle,
+            offset: Int,
+            fields: Map<String, StrAppendable.(JsonStyle, Int) -> Boolean>
         ): StrAppendable {
             var first = true //TODO better way?
-            append('{')
-            appendNewlineIfNeeded(style.indent, offset + 1)
+            appendNewlineIfNeeded(style.indent, offset)
             fields.entries.sort(style.sortedObjectFields)
                 .forEach { (_, appender) ->
-                    if (!first){
+                    if (!first) {
                         append(style.fieldSeparator)
-                        appendNewlineIfNeeded(style.indent, offset + 1) //!!! there is still a prob if last field is skipped
+                        appendNewlineIfNeeded(
+                            style.indent,
+                            offset
+                        ) //!!! there is still a prob if last field is skipped,   appenders shuld be filtered directly
                     }
-                    val written = appender(this, style, offset + 2)
+                    val written = appender(this, style, offset + 1)
                     if (written) {
                         first = false
                     }
                 }
-            appendNewlineIfNeeded(style.indent, offset)
-            append('}')
-
-            return this
+          return this
         }
 
 
