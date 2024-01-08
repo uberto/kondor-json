@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -46,6 +47,22 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo("2147483647")
     }
 
+    @Disabled  //"Fix with plymorphic JsonNodeNumber that takes double !!!
+    @Test
+    fun `render Nan Num`() {
+        val value = Double.NaN
+
+        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
+
+        expectThat(jsonString).isEqualTo("4.9E-324")
+    }
+
+    @Test
+    fun `render directly non numeric values`() {
+        expectThat(JDouble.toJson(Double.NaN)).isEqualTo(""""NaN"""")
+        expectThat(JDouble.toJson(Double.NEGATIVE_INFINITY)).isEqualTo(""""-Infinity"""")
+        expectThat(JDouble.toJson(Double.POSITIVE_INFINITY)).isEqualTo(""""+Infinity"""")
+    }
 
     @Test
     fun `render String field honoring Json escaping rules`() {

@@ -33,7 +33,10 @@ object JDouble : JNumRepresentable<Double>() {
     override val cons: (BigDecimal) -> Double = BigDecimal::toDouble
     override val render: (Double) -> BigDecimal = Double::toBigDecimal
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Double): StrAppendable =
-        app.appendNumber(value)
+        if (value.isFinite())
+            app.appendNumber(value)
+        else
+            app.appendText(value.toString())
 }
 
 
