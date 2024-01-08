@@ -14,6 +14,9 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
 
     fun fieldAppenders(valueObject: T): Map<String, PropertyAppender>
+
+    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+        app.appendObjectValue(jsonStyle, 0, fieldAppenders(value))
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -31,10 +34,6 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
         JsonNodeObject(convertFields(value, path), path)
 
     abstract fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode>
-
-
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
-        app.appendObjectValue(jsonStyle, 0, fieldAppenders(value))
 
 }
 

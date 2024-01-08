@@ -3,7 +3,11 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.2.x.x
+### v.2.2.x
+Kondor-core: added direct render to Json for better performance
+Kondor-core: handling NaN and Infinity serialization of Double
+
+### v.2.1.3
 
 Kondor-core: added short functions for array of Strings
 
