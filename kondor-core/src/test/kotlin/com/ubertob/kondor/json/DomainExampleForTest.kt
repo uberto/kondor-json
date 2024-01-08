@@ -436,7 +436,6 @@ object JVariant : JSealed<Variant>() {
     override val discriminatorFieldName = "type"
     override val defaultConverter = JVariantString
 
-
     override fun extractTypeName(obj: Variant) =
         when (obj) {
             is VariantInt -> INT

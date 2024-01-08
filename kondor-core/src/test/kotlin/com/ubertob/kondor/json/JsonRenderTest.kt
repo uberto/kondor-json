@@ -61,7 +61,7 @@ class JsonRenderTest {
     fun `render directly non numeric values`() {
         expectThat(JDouble.toJson(Double.NaN)).isEqualTo(""""NaN"""")
         expectThat(JDouble.toJson(Double.NEGATIVE_INFINITY)).isEqualTo(""""-Infinity"""")
-        expectThat(JDouble.toJson(Double.POSITIVE_INFINITY)).isEqualTo(""""+Infinity"""")
+        expectThat(JDouble.toJson(Double.POSITIVE_INFINITY)).isEqualTo(""""Infinity"""")
     }
 
     @Test

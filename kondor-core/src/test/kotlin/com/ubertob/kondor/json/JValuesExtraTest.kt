@@ -34,7 +34,7 @@ class JValuesExtraTest {
     }
 
     @Test
-    fun `Json Customer`() {
+    fun `JSealed Customer`() {
 
         repeat(10) {
 

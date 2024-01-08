@@ -57,7 +57,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     override val writers: List<NodeWriter<T>> by lazy { nodeWriters.get() }
 
-    private val appenders: MutableMap<String, ObjectAppender<T>> = mutableMapOf()
+    private val appenders: Map<String, ObjectAppender<T>> = mutableMapOf()
     fun getProperties(): List<JsonProperty<*>> = properties.get()
 
     private fun registerWriter(writer: NodeWriter<T>) {
@@ -67,7 +67,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
         registerWriter { mfm, obj, path -> jsonProperty.setter(binder(obj))(mfm, path) }
-        appenders[jsonProperty.propName] = { obj -> jsonProperty.appender(binder(obj)) }
+        (appenders as MutableMap)[jsonProperty.propName] = { obj -> jsonProperty.appender(binder(obj)) }
     }
 
     override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender> =
@@ -77,14 +77,6 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 }
 
 
-abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {
-    abstract fun extractTypeName(obj: T): String
-    abstract val subConverters: Map<String, ObjectNodeConverterBase<out T>>
 
-    @Suppress("UNCHECKED_CAST")
-    fun findSubTypeConverter(typeName: String): ObjectNodeConverterBase<T>? =
-        subConverters[typeName] as? ObjectNodeConverterBase<T>
-
-}
 
 

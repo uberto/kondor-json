@@ -35,18 +35,18 @@ class JValuesTest {
     @Test
     fun `JsonNode String with Unicode`() {
 
-            val value = "Pre \u263A Post"
+        val value = "Pre \u263A Post"
 
-            val json = JString.toJsonNode(value, NodePathRoot)
+        val json = JString.toJsonNode(value, NodePathRoot)
 
-            val actual = JString.fromJsonNode(json).expectSuccess()
+        val actual = JString.fromJsonNode(json).expectSuccess()
 
-            expectThat(actual).isEqualTo(value)
+        expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JString.toJson(value)
-            expectThat(jsonStr).isEqualTo(""""Pre ☺ Post"""")
+        val jsonStr = JString.toJson(value)
+        expectThat(jsonStr).isEqualTo(""""Pre ☺ Post"""")
 
-            expectThat(JString.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        expectThat(JString.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
     }
 
     @Test
@@ -249,7 +249,6 @@ class JValuesTest {
 
             val jsonStr = JInvoice.toJson(invoice)
 
-
             expectThat(JInvoice.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
     }
@@ -302,7 +301,7 @@ class JValuesTest {
     }
 
     @Test
-    fun `JSealed with default field`(){
+    fun `JSealed with default field`() {
         val json = """
             [{
               "name": "1",
@@ -335,6 +334,11 @@ class JValuesTest {
             VariantString("3!!", "3"),
             VariantInt("4", 4),
         )
+
+        val producedJson = JVariants.toJson(values)
+        val valuesFromProducedJson = JVariants.fromJson(producedJson).expectSuccess()
+
+        expectThat(valuesFromProducedJson).isEqualTo(values)
     }
 }
 

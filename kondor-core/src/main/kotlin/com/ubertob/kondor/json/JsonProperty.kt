@@ -111,8 +111,8 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     private val parentProperties = parent.getProperties().map { it.propName }
 
-    override fun appender(value: T): PropertyAppender = {  js, off ->
-        appendObjectFields(js,  off, converter.fieldAppenders(value)) //!!!remove brackets
+    override fun appender(value: T): PropertyAppender = { js, off ->
+        appendObjectFields(js, off, converter.fieldAppenders(value))
         true
     }
 
