@@ -17,13 +17,13 @@ data class JStringWrapper<T : StringWrapper>(override val cons: (String) -> T) :
 }
 
 object JBigDecimal : JNumRepresentable<BigDecimal>() {
-    override val cons: (BigDecimal) -> BigDecimal = { it }
-    override val render: (BigDecimal) -> BigDecimal = { it }
+    override val cons: (Number) -> BigDecimal = { BigDecimal (it.toString()) }
+    override val render: (BigDecimal) -> Number = { it }
 }
 
 object JBigInteger : JNumRepresentable<BigInteger>() {
-    override val cons: (BigDecimal) -> BigInteger = BigDecimal::toBigInteger
-    override val render: (BigInteger) -> BigDecimal = BigInteger::toBigDecimal
+    override val cons: (Number) -> BigInteger = { BigInteger (it.toString()) }
+    override val render: (BigInteger) -> Number = BigInteger::toBigDecimal
 }
 
 

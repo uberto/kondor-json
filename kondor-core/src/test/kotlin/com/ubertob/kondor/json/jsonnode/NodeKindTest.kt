@@ -34,7 +34,7 @@ class NodeKindTest {
     object ExtractId : FromJson<Long> {
         override fun fromJson(json: String): JsonOutcome<Long> =
             ObjectNode.fromJsonString(json)
-                .transform { it._fieldMap["id"].asNumValue()?.longValueExact() }
+                .transform { it._fieldMap["id"].asNumValue()?.toLong() }
                 .failIfNull { JsonPropertyError(NodePathRoot, "id", "expected Number!") }
     }
 

@@ -6,7 +6,7 @@ import java.io.*
 data class JsonStyle(
     val appendFieldSeparator: (StrAppendable) -> StrAppendable,
     val appendValueSeparator: (StrAppendable) -> StrAppendable,
-    val appendNewlineIfNeeded: (StrAppendable, Int) -> StrAppendable,
+    val appendNewline: (StrAppendable, Int) -> StrAppendable,
     val sortedObjectFields: Boolean,
     val explicitNulls: Boolean
 ) {
@@ -21,7 +21,7 @@ data class JsonStyle(
         val singleLine = JsonStyle(
             appendFieldSeparator = ::commaSpace,
             appendValueSeparator = ::colonSpace,
-            appendNewlineIfNeeded = JsonStyle::noNewLine,
+            appendNewline = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = false
         )
@@ -29,7 +29,7 @@ data class JsonStyle(
         val compact = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colon,
-            appendNewlineIfNeeded = JsonStyle::noNewLine,
+            appendNewline = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = false
         )
@@ -37,7 +37,7 @@ data class JsonStyle(
         val compactWithNulls = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colon,
-            appendNewlineIfNeeded = JsonStyle::noNewLine,
+            appendNewline = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = true
         )
@@ -46,7 +46,7 @@ data class JsonStyle(
         val pretty = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colonSpace,
-            appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
+            appendNewline = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
             explicitNulls = false
         )
@@ -54,7 +54,7 @@ data class JsonStyle(
         val prettyWithNulls: JsonStyle = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colonSpace,
-            appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
+            appendNewline = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
             explicitNulls = true
         )
@@ -91,32 +91,32 @@ data class JsonStyle(
                 is JsonNodeNumber -> appendNumber(node.num)
                 is JsonNodeArray -> {
                     append('[')
-                    style.appendNewlineIfNeeded(this, offset + 1)
+                    style.appendNewline(this, offset + 1)
                     node.values(style.explicitNulls).forEachIndexed { index, each ->
                         if (index > 0) {
                             style.appendFieldSeparator(this)
-                            style.appendNewlineIfNeeded(this, offset + 1)
+                            style.appendNewline(this, offset + 1)
                         }
                         appendNode(each, style, offset + 2)
                     }
-                    style.appendNewlineIfNeeded(this, offset)
+                    style.appendNewline(this, offset)
                     append(']')
                 }
 
                 is JsonNodeObject -> {
                     append('{')
-                    style.appendNewlineIfNeeded(this, offset + 1)
+                    style.appendNewline(this, offset + 1)
                     node.fields(style.explicitNulls, style.sortedObjectFields)
                         .forEachIndexed { index, entry ->
                             if (index > 0) {
                                 style.appendFieldSeparator(this)
-                                style.appendNewlineIfNeeded(this, offset + 1)
+                                style.appendNewline(this, offset + 1)
                             }
                             appendQuoted(entry.key)
                             style.appendValueSeparator(this)
                             appendNode(entry.value, style, offset + 2)
                         }
-                    style.appendNewlineIfNeeded(this, offset)
+                    style.appendNewline(this, offset)
                     append('}')
                 }
             }
@@ -161,15 +161,15 @@ data class JsonStyle(
         ): StrAppendable {
             append('[')
 
-            style.appendNewlineIfNeeded(this, offset + 1)
+            style.appendNewline(this, offset + 1)
             values.nullFilter(style.explicitNulls).forEachIndexed { index, each ->
                 if (index > 0) {
                     style.appendFieldSeparator(this)
-                    style.appendNewlineIfNeeded(this, offset + 1)
+                    style.appendNewline(this, offset + 1)
                 }
                 appender(style, offset + 2, each)
             }
-            style.appendNewlineIfNeeded(this, offset)
+            style.appendNewline(this, offset)
                 .append(']')
             return this
         }
@@ -181,9 +181,9 @@ data class JsonStyle(
         ): StrAppendable =
             apply {
                 append('{')
-                style.appendNewlineIfNeeded(this, offset + 1)
+                style.appendNewline(this, offset + 1)
                     .appendObjectFields(style, offset + 1, fields)
-                style.appendNewlineIfNeeded(this, offset)
+                style.appendNewline(this, offset)
                     .append('}')
             }
 
@@ -198,7 +198,7 @@ data class JsonStyle(
                 .forEachIndexed { i, (fieldName, appender) ->
                     if (i > 0) {
                         style.appendFieldSeparator(this)
-                        style.appendNewlineIfNeeded(this, offset)
+                        style.appendNewline(this, offset)
                     }
                     if (appender != null)
                         appender(this, style, offset + 1)

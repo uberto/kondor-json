@@ -30,8 +30,8 @@ object JString : JStringRepresentable<String>() {
 
 object JDouble : JNumRepresentable<Double>() {
 
-    override val cons: (BigDecimal) -> Double = BigDecimal::toDouble
-    override val render: (Double) -> BigDecimal = Double::toBigDecimal
+    override val cons: (Number) -> Double = Number::toDouble
+    override val render: (Double) -> Number = Double::toBigDecimal
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Double): StrAppendable =
         if (value.isFinite())
             app.appendNumber(value)
@@ -41,15 +41,25 @@ object JDouble : JNumRepresentable<Double>() {
 
 
 object JInt : JNumRepresentable<Int>() {
-    override val cons: (BigDecimal) -> Int = BigDecimal::intValueExact
-    override val render: (Int) -> BigDecimal = Int::toBigDecimal
+    override val cons: (Number) -> Int = { num ->
+        when (num) {
+            is BigDecimal -> num.intValueExact()
+            else -> num.toInt()
+        }
+    }
+    override val render: (Int) -> Number = { it }
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Int): StrAppendable =
         app.appendNumber(value)
 }
 
 object JLong : JNumRepresentable<Long>() {
-    override val cons: (BigDecimal) -> Long = BigDecimal::longValueExact
-    override val render: (Long) -> BigDecimal = Long::toBigDecimal
+    override val cons: (Number) -> Long = { num ->
+        when (num) {
+            is BigDecimal -> num.longValueExact()
+            else -> num.toLong()
+        }
+    }
+    override val render: (Long) -> Number = { it }
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Long): StrAppendable =
         app.appendNumber(value)
 }
@@ -66,8 +76,8 @@ fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
 
 //TODO replace with Long/Int/Double represntables
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
-    abstract val cons: (BigDecimal) -> T
-    abstract val render: (T) -> BigDecimal
+    abstract val cons: (Number) -> T
+    abstract val render: (T) -> Number
 
     override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> = tryFromNode(node) { cons(node.num) }
     override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =

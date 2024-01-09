@@ -92,7 +92,7 @@ class ParserFailuresTest {
     @Test
     fun `Json Long overflow`() {
 
-        val error = JLong.fromJson("9223372036854775808").expectFailure()
+        val error = JLong.fromJson("9223372036854775808000000000000").expectFailure()
 
         expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
     }

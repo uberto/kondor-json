@@ -32,16 +32,16 @@ class JsonRenderTest {
     fun `render exp Num`() {
         val value = Double.MIN_VALUE
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("4.9E-324")
     }
 
     @Test
     fun `render integer Num`() {
-        val value = Int.MAX_VALUE.toDouble()
+        val value = Int.MAX_VALUE
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("2147483647")
     }
@@ -50,9 +50,9 @@ class JsonRenderTest {
     fun `render Nan Num`() {
         val value = Double.NaN
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal(), NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
-        expectThat(jsonString).isEqualTo("4.9E-324")
+        expectThat(jsonString).isEqualTo("NaN")
     }
 
     @Test
@@ -133,7 +133,7 @@ class JsonRenderTest {
     fun `render object from node`() {
         val jsonString = JsonNodeObject(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "id" to JsonNodeNumber(123, NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot)
             ),
             NodePathRoot
@@ -167,7 +167,7 @@ class JsonRenderTest {
         val jsonString = JsonNodeObject(
             mapOf(
                 "firstNullable" to JsonNodeNull(NodePathRoot),
-                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "id" to JsonNodeNumber(123, NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
                 "lastNullable" to JsonNodeNull(NodePathRoot)
             ),
@@ -188,14 +188,14 @@ class JsonRenderTest {
                 app.apply {
                     app.append('\n')
                     repeat(offset * indent) {
-         cu               app.append(' ')
+                        app.append(' ')
                     }
                 }
 
             val style = pretty.copy(appendNewline = ::customNewLine )
             val jsonString = JsonNodeObject(
                 mapOf(
-                    "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                    "id" to JsonNodeNumber(123, NodePathRoot),
                     "name" to JsonNodeString("Ann", NodePathRoot)
                 ),
                 NodePathRoot
@@ -215,7 +215,7 @@ class JsonRenderTest {
         val path = NodePathRoot
         val nodeObject = JsonNodeObject(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal(), path),
+                "id" to JsonNodeNumber(123, path),
                 "name" to JsonNodeString("Ann", path),
                 "somethingelse" to JsonNodeNull(path)
             ),
@@ -243,7 +243,7 @@ class JsonRenderTest {
     fun `compact render object`() {
         val jsonString = JsonNodeObject(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "id" to JsonNodeNumber(123, NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
                 "nullable" to JsonNodeNull(NodePathRoot)
             ),
@@ -257,7 +257,7 @@ class JsonRenderTest {
     fun `compact render object with null explicit`() {
         val jsonString = JsonNodeObject(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
+                "id" to JsonNodeNumber(123, NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
                 "nullable" to JsonNodeNull(NodePathRoot),
                 "arrayNullable" to JsonNodeArray(
