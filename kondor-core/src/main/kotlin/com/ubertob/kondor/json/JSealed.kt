@@ -42,21 +42,22 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         }
 
 
-    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender?> =
+    override fun fieldAppenders(valueObject: T): List<NamedAppender> =
         extractTypeName(valueObject).let { typeName ->
-            mutableMapOf(appendTypeName(discriminatorFieldName, typeName)).apply {
-                putAll(
-                    converterFromTypename(typeName, valueObject)
-                        ?: error("subtype not known $typeName")
-                )
-            }
+            mutableListOf(appendTypeName(discriminatorFieldName, typeName))
+                .apply {
+                    addAll(
+                        converterFromTypename(typeName, valueObject)
+                            ?: error("subtype not known $typeName")
+                    )
+                }
         }
 
     private fun converterFromTypename(typeName: String, valueObject: T) =
         findSubTypeConverter(typeName)?.fieldAppenders(valueObject)
 
-    private fun appendTypeName(discriminatorFieldName: String, typeName: String): Pair<String, PropertyAppender?> =
-        discriminatorFieldName to { app: StrAppendable, style: JsonStyle, off: Int ->
+    private fun appendTypeName(discriminatorFieldName: String, typeName: String): NamedAppender =
+        discriminatorFieldName to { app: StrAppendable, style: JsonStyle, _: Int ->
             app.appendText(discriminatorFieldName)
                 .append(style.valueSeparator)
                 .appendText(typeName)

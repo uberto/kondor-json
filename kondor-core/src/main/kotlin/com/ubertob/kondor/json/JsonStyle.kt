@@ -160,7 +160,7 @@ data class JsonStyle(
         fun StrAppendable.appendObjectValue(
             style: JsonStyle,
             offset: Int,
-            fields: Map<String, PropertyAppender?>
+            fields: List<NamedAppender>
         ): StrAppendable =
             append('{')
                 .appendNewlineIfNeeded(style.indent, offset + 1)
@@ -172,11 +172,11 @@ data class JsonStyle(
         fun StrAppendable.appendObjectFields(
             style: JsonStyle,
             offset: Int,
-            fields: Map<String, PropertyAppender?> //!!! better a list of NamedAppender
+            fields: List<NamedAppender>
         ): StrAppendable = apply {
-            fields.entries
-                .sort(style.sortedObjectFields)
+            fields
                 .filterNulls(style.explicitNulls)
+                .sort(style.sortedObjectFields)
                 .forEachIndexed { i, (fieldName, appender) ->
                     if (i > 0) {
                         append(style.fieldSeparator)
@@ -212,13 +212,13 @@ data class JsonStyle(
     }
 }
 
-private fun <V> Set<Map.Entry<String, V>>.sort(
+private fun <V> List<Pair<String, V>>.sort(
     sortedObjectFields: Boolean
-): Collection<Map.Entry<String, V>> =
-    if (sortedObjectFields) sortedBy { it.key } else this
+): List<Pair<String, V>> =
+    if (sortedObjectFields) sortedBy { it.first } else this
 
-private fun <V> Collection<Map.Entry<String, V>>.filterNulls(includeNulls: Boolean) =
-    if (includeNulls) this else filter { it.value != null }
+private fun <V> List<Pair<String, V>>.filterNulls(includeNulls: Boolean) =
+    if (includeNulls) this else filter { it.second != null }
 
 private fun <T> Iterable<T>.nullFilter(includeNulls: Boolean): Iterable<T> =
     if (includeNulls) this else filterNotNull()

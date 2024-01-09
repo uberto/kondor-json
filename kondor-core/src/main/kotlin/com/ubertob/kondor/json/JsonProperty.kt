@@ -11,6 +11,7 @@ import com.ubertob.kondor.outcome.failIfNull
 typealias MutableFieldMap = MutableMap<String, JsonNode>
 typealias PropertySetter = (MutableFieldMap, NodePath) -> MutableFieldMap
 typealias PropertyAppender = StrAppendable.(JsonStyle, Int) -> StrAppendable
+typealias NamedAppender = Pair<String, PropertyAppender?>
 
 sealed class JsonProperty<T> {
     abstract val propName: String

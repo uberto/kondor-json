@@ -42,14 +42,13 @@ class JMap<K : Any, V : Any>(
             valueConverter.appendValue(this, js, off, value)
         }
 
-    override fun fieldAppenders(valueObject: Map<K, V>): Map<String, PropertyAppender?> =
+    override fun fieldAppenders(valueObject: Map<K, V>): List<NamedAppender> =
         valueObject
             .map { (key, value) ->
                 val propName = keyConverter.render(key)
                 propName to valueAppender(propName, value)
             }
             .sortedBy { it.first }
-            .toMap()
 
     override fun convertFields(valueObject: Map<K, V>, path: NodePath): Map<String, JsonNode> =
         valueObject

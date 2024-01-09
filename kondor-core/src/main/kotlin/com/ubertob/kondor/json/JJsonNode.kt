@@ -13,13 +13,12 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
-    override fun fieldAppenders(valueObject: JsonNodeObject): Map<String, PropertyAppender?> =
+    override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap
             .map { (key, value) ->
                 key to valueAppender(key, value)
             }
             .sortedBy { it.first }
-            .toMap()
 
     private fun valueAppender(propName: String, node: JsonNode): PropertyAppender? =
         if (node is JsonNodeNull) null
