@@ -5,7 +5,6 @@ import org.openjdk.jmh.infra.Blackhole
 
 //add Moshi, Gson, KotlinX comparison
 
-
 open class BenchmarkKondor {
 
     @Benchmark

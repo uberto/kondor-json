@@ -57,7 +57,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         get() = JsonStyle.singleLine
 
     override fun toJson(value: T): String =
-        appendValue(jsonStyle.writer.reset(), jsonStyle, 0, value).toString()
+        toJson(value, jsonStyle)
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)
@@ -82,7 +82,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
-    appendValue(renderer.writer.reset(), renderer, 0, value).toString()
+    appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
 
 
 //deprecated methods
