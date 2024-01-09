@@ -11,7 +11,7 @@ data class JsonStyle(
     val explicitNulls: Boolean
 ) {
 
-    val writer = ChunkedStringWriter()
+    val writer = ChunkedStringWriter(ByteArrayOutputStream(65536))
     fun render(node: JsonNode): String = render(node, writer.reset())
     fun render(node: JsonNode, writer: StrAppendable): String =
         writer.appendNode(node, this).toString()

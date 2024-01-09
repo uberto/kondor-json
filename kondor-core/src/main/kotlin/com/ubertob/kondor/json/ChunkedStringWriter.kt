@@ -1,5 +1,9 @@
 package com.ubertob.kondor.json
 
+import java.io.ByteArrayOutputStream
+import java.io.OutputStream
+import java.io.OutputStreamWriter
+
 
 interface StrAppendable {
     fun append(str: String): StrAppendable
@@ -8,15 +12,17 @@ interface StrAppendable {
 }
 
 
-class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
+class ChunkedStringWriter(val outputStream: OutputStream, val bufferSize: Int = 8192) : StrAppendable {
 
-    private val out = StringBuilder()
+    private val stream = ByteArrayOutputStream(bufferSize)
+
+    private val out = OutputStreamWriter(outputStream) //StringBuilder()
     private val charArray = CharArray(bufferSize)
     private var nextChar: Int = 0
 
     fun flushBuffer() {
         if (nextChar == 0) return
-        out.appendRange(charArray, 0, nextChar)
+        out.write(charArray, 0, nextChar)
         nextChar = 0
     }
 
@@ -30,7 +36,7 @@ class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
 
         if (len >= bufferSize) {
             flushBuffer()
-            out.append(cbuf)
+            out.write(cbuf)
             return this
         }
 
@@ -48,7 +54,9 @@ class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
 
     fun reset(): ChunkedStringWriter {
         nextChar = 0
-        out.clear()
+        out.flush()
+        stream.reset()
+
         return this
     }
 
