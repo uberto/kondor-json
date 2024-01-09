@@ -163,6 +163,7 @@ data class JsonStyle(
             fields: Map<String, PropertyAppender?>
         ): StrAppendable =
             append('{')
+                .appendNewlineIfNeeded(style.indent, offset + 1)
                 .appendObjectFields(style, offset + 1, fields)
                 .appendNewlineIfNeeded(style.indent, offset)
                 .append('}')
@@ -173,7 +174,6 @@ data class JsonStyle(
             offset: Int,
             fields: Map<String, PropertyAppender?> //!!! better a list of NamedAppender
         ): StrAppendable {
-            appendNewlineIfNeeded(style.indent, offset)
             fields.entries
                 .sort(style.sortedObjectFields)
                 .filterNulls(style.explicitNulls)

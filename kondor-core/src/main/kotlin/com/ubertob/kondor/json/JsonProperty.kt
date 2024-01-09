@@ -102,7 +102,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
     private val parentProperties = parent.getProperties().map { it.propName }
 
     override fun appender(value: T): PropertyAppender = { js, off ->
-        appendObjectFields(js, off, converter.fieldAppenders(value))
+        appendObjectFields(js, off-1, converter.fieldAppenders(value))
     }
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
