@@ -4,9 +4,9 @@ import com.ubertob.kondor.json.jsonnode.*
 import java.io.*
 
 data class JsonStyle(
-    val fieldSeparator: String,
-    val valueSeparator: String,
-    val indent: Int?,
+    val appendFieldSeparator: (StrAppendable) -> StrAppendable,
+    val appendValueSeparator: (StrAppendable) -> StrAppendable,
+    val appendNewlineIfNeeded: (StrAppendable, Int) -> StrAppendable,
     val sortedObjectFields: Boolean,
     val explicitNulls: Boolean
 ) {
@@ -16,46 +16,72 @@ data class JsonStyle(
     fun render(node: JsonNode, writer: StrAppendable): String =
         writer.appendNode(node, this).toString()
 
+
     companion object {
         val singleLine = JsonStyle(
-            fieldSeparator = ", ",
-            valueSeparator = ": ",
-            indent = null,
+            appendFieldSeparator = ::commaSpace,
+            appendValueSeparator = ::colonSpace,
+            appendNewlineIfNeeded = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = false
         )
 
         val compact = JsonStyle(
-            fieldSeparator = ",",
-            valueSeparator = ":",
-            indent = null,
+            appendFieldSeparator = ::commaSpace,
+            appendValueSeparator = ::colon,
+            appendNewlineIfNeeded = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = false
         )
 
         val compactWithNulls = JsonStyle(
-            fieldSeparator = ",",
-            valueSeparator = ":",
-            indent = null,
+            appendFieldSeparator = ::comma,
+            appendValueSeparator = ::colon,
+            appendNewlineIfNeeded = JsonStyle::noNewLine,
             sortedObjectFields = false,
             explicitNulls = true
         )
 
+
         val pretty = JsonStyle(
-            fieldSeparator = ",",
-            valueSeparator = ": ",
-            indent = 2,
+            appendFieldSeparator = ::commaSpace,
+            appendValueSeparator = ::colonSpace,
+            appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
             explicitNulls = false
         )
 
         val prettyWithNulls: JsonStyle = JsonStyle(
-            fieldSeparator = ",",
-            valueSeparator = ": ",
-            indent = 2,
+            appendFieldSeparator = ::commaSpace,
+            appendValueSeparator = ::colonSpace,
+            appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
             explicitNulls = true
         )
+
+
+        fun comma(app: StrAppendable): StrAppendable =
+            app.append(',')
+
+        fun colon(app: StrAppendable): StrAppendable =
+            app.append(':')
+
+        fun commaSpace(app: StrAppendable): StrAppendable =
+            app.append(',').append(' ')
+
+        fun colonSpace(app: StrAppendable): StrAppendable =
+            app.append(':').append(' ')
+
+        fun appendNewLineOffset(app: StrAppendable, offset: Int): StrAppendable =
+            app.apply {
+                app.append('\n')
+                repeat(offset) {
+                    app.append(' ').append(' ')
+                }
+            }
+
+        fun noNewLine(app: StrAppendable, offset: Int): StrAppendable = app
+
 
         fun StrAppendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): StrAppendable {
             when (node) {
@@ -65,48 +91,38 @@ data class JsonStyle(
                 is JsonNodeNumber -> appendNumber(node.num)
                 is JsonNodeArray -> {
                     append('[')
-                    appendNewlineIfNeeded(style.indent, offset + 1)
+                    style.appendNewlineIfNeeded(this, offset + 1)
                     node.values(style.explicitNulls).forEachIndexed { index, each ->
                         if (index > 0) {
-                            append(style.fieldSeparator)
-                            appendNewlineIfNeeded(style.indent, offset + 1)
+                            style.appendFieldSeparator(this)
+                            style.appendNewlineIfNeeded(this, offset + 1)
                         }
                         appendNode(each, style, offset + 2)
                     }
-                    appendNewlineIfNeeded(style.indent, offset)
+                    style.appendNewlineIfNeeded(this, offset)
                     append(']')
                 }
 
                 is JsonNodeObject -> {
                     append('{')
-                    appendNewlineIfNeeded(style.indent, offset + 1)
+                    style.appendNewlineIfNeeded(this, offset + 1)
                     node.fields(style.explicitNulls, style.sortedObjectFields)
                         .forEachIndexed { index, entry ->
                             if (index > 0) {
-                                append(style.fieldSeparator)
-                                appendNewlineIfNeeded(style.indent, offset + 1)
+                                style.appendFieldSeparator(this)
+                                style.appendNewlineIfNeeded(this, offset + 1)
                             }
                             appendQuoted(entry.key)
-                            append(style.valueSeparator)
+                            style.appendValueSeparator(this)
                             appendNode(entry.value, style, offset + 2)
                         }
-                    appendNewlineIfNeeded(style.indent, offset)
+                    style.appendNewlineIfNeeded(this, offset)
                     append('}')
                 }
             }
             return this
         }
 
-
-        private fun StrAppendable.appendNewlineIfNeeded(indent: Int?, offset: Int): StrAppendable =
-            also {
-                if (indent != null) {
-                    append('\n')
-                    repeat(indent * offset) {
-                        append(' ')
-                    }
-                }
-            }
 
         private fun StrAppendable.appendQuoted(string: String) = append('\"')
             .appendEscaped(string)
@@ -141,18 +157,19 @@ data class JsonStyle(
             style: JsonStyle,
             offset: Int,
             values: Iterable<T>,
-            appender: StrAppendable.(JsonStyle, Int, T) -> StrAppendable //TODO remove T and make a list of appenders
+            appender: StrAppendable.(JsonStyle, Int, T) -> StrAppendable
         ): StrAppendable {
             append('[')
-                .appendNewlineIfNeeded(style.indent, offset + 1)
+
+            style.appendNewlineIfNeeded(this, offset + 1)
             values.nullFilter(style.explicitNulls).forEachIndexed { index, each ->
                 if (index > 0) {
-                    append(style.fieldSeparator)
-                        .appendNewlineIfNeeded(style.indent, offset + 1)
+                    style.appendFieldSeparator(this)
+                    style.appendNewlineIfNeeded(this, offset + 1)
                 }
                 appender(style, offset + 2, each)
             }
-            appendNewlineIfNeeded(style.indent, offset)
+            style.appendNewlineIfNeeded(this, offset)
                 .append(']')
             return this
         }
@@ -162,12 +179,13 @@ data class JsonStyle(
             offset: Int,
             fields: List<NamedAppender>
         ): StrAppendable =
-            append('{')
-                .appendNewlineIfNeeded(style.indent, offset + 1)
-                .appendObjectFields(style, offset + 1, fields)
-                .appendNewlineIfNeeded(style.indent, offset)
-                .append('}')
-
+            apply {
+                append('{')
+                style.appendNewlineIfNeeded(this, offset + 1)
+                    .appendObjectFields(style, offset + 1, fields)
+                style.appendNewlineIfNeeded(this, offset)
+                    .append('}')
+            }
 
         fun StrAppendable.appendObjectFields(
             style: JsonStyle,
@@ -179,11 +197,8 @@ data class JsonStyle(
                 .sort(style.sortedObjectFields)
                 .forEachIndexed { i, (fieldName, appender) ->
                     if (i > 0) {
-                        append(style.fieldSeparator)
-                        appendNewlineIfNeeded(
-                            style.indent,
-                            offset
-                        )
+                        style.appendFieldSeparator(this)
+                        style.appendNewlineIfNeeded(this, offset)
                     }
                     if (appender != null)
                         appender(this, style, offset + 1)
@@ -193,9 +208,10 @@ data class JsonStyle(
         }
 
         fun StrAppendable.appendNullField(fieldName: String, style: JsonStyle): StrAppendable =
-            appendText(fieldName)
-                .append(style.valueSeparator)
-                .appendNull()
+            appendText(fieldName).apply {
+                style.appendValueSeparator(this)
+                    .appendNull()
+            }
 
         fun StrAppendable.appendNull() =
             append("null")

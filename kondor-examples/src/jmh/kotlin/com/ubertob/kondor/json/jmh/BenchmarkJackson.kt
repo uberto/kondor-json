@@ -44,5 +44,6 @@ open class BenchmarkJackson {
 }
 
 fun main() {
-    benchLoop(JacksonReflection::toJson, JacksonReflection::fromJson)
+    benchLoop(JacksonDsl::toJson, JacksonReflection::fromJson)
+//    benchLoop(JacksonReflection::toJson, JacksonReflection::fromJson)
 }

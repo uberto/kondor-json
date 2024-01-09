@@ -32,8 +32,6 @@ fun main(){
 
 //serialization:
 // add direct support for OutputStream instead of StringBuilder
-// finish missing cases, fix issue nullable
-// better code
 
 //deser:
 // direct deser: taking adventage of number type and removing regex

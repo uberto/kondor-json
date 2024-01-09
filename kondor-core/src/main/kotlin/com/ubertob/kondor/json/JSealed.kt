@@ -59,7 +59,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
     private fun appendTypeName(discriminatorFieldName: String, typeName: String): NamedAppender =
         discriminatorFieldName to { app: StrAppendable, style: JsonStyle, _: Int ->
             app.appendText(discriminatorFieldName)
-                .append(style.valueSeparator)
+            style.appendValueSeparator(app)
                 .appendText(typeName)
         }
 

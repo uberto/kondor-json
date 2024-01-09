@@ -36,10 +36,10 @@ class JMap<K : Any, V : Any>(
 
     private fun valueAppender(propName: String, value: V?): PropertyAppender? =
         if (value == null) null
-        else { js, off ->
+        else { style, off ->
             appendText(propName)
-                .append(js.valueSeparator)
-            valueConverter.appendValue(this, js, off, value)
+            style.appendValueSeparator(this)
+            valueConverter.appendValue(this, style, off, value)
         }
 
     override fun fieldAppenders(valueObject: Map<K, V>): List<NamedAppender> =

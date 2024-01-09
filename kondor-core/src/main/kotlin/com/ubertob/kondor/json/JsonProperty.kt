@@ -44,10 +44,10 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
         }
     }
 
-    override fun appender(value: T): PropertyAppender = { js, off ->
+    override fun appender(value: T): PropertyAppender = { style, off ->
         appendText(propName)
-            .append(js.valueSeparator)
-            .appendValue(js, off, value)
+        style.appendValueSeparator(this)
+            .appendValue(style, off, value)
     }
 
     fun StrAppendable.appendValue(
@@ -81,10 +81,10 @@ data class JsonPropOptional<T, JN : JsonNode>(
     override fun appender(value: T?): PropertyAppender? =
         if (value == null)
             null
-        else { js, off ->
+        else { style, off ->
             appendText(propName)
-                .append(js.valueSeparator)
-                .appendValue(js, off, value)
+            style.appendValueSeparator(this)
+                .appendValue(style, off, value)
         }
 
     fun StrAppendable.appendValue(
@@ -103,7 +103,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
     private val parentProperties = parent.getProperties().map { it.propName }
 
     override fun appender(value: T): PropertyAppender = { js, off ->
-        appendObjectFields(js, off-1, converter.fieldAppenders(value))
+        appendObjectFields(js, off - 1, converter.fieldAppenders(value))
     }
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =

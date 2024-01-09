@@ -22,9 +22,9 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
 
     private fun valueAppender(propName: String, node: JsonNode): PropertyAppender? =
         if (node is JsonNodeNull) null
-        else { js, off ->
+        else { style, off ->
             appendText(propName)
-                .append(js.valueSeparator)
-                .appendNode(node, js, off)
+            style.appendValueSeparator(this)
+                .appendNode(node, style, off)
         }
 }
