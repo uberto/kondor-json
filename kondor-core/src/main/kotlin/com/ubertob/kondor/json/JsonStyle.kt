@@ -27,7 +27,7 @@ data class JsonStyle(
         )
 
         val compact = JsonStyle(
-            appendFieldSeparator = ::commaSpace,
+            appendFieldSeparator = ::comma,
             appendValueSeparator = ::colon,
             appendNewlineIfNeeded = JsonStyle::noNewLine,
             sortedObjectFields = false,
@@ -44,7 +44,7 @@ data class JsonStyle(
 
 
         val pretty = JsonStyle(
-            appendFieldSeparator = ::commaSpace,
+            appendFieldSeparator = ::comma,
             appendValueSeparator = ::colonSpace,
             appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
@@ -52,7 +52,7 @@ data class JsonStyle(
         )
 
         val prettyWithNulls: JsonStyle = JsonStyle(
-            appendFieldSeparator = ::commaSpace,
+            appendFieldSeparator = ::comma,
             appendValueSeparator = ::colonSpace,
             appendNewlineIfNeeded = JsonStyle::appendNewLineOffset,
             sortedObjectFields = true,
