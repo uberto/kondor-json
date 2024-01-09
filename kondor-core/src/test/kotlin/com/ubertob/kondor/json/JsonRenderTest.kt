@@ -145,16 +145,33 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo(expected)
     }
 
-
-
     @Test
     fun `render object with nulls`() {
+
+        val nullOnlyObj =OptionalAddress(null, null, null)
+
+        expectThat(JOptionalAddress.toJson(nullOnlyObj, compact))
+            .isEqualTo("""{}""")
+
+        val streetOnlyObj =OptionalAddress(null, "42 Adams Road", null)
+
+        expectThat(JOptionalAddress.toJson(streetOnlyObj, compact))
+            .isEqualTo("""{"street":"42 Adams Road"}""")
+
+        val nameAndstreetObj =OptionalAddress("Marvin", "42 Adams Road", null)
+
+        expectThat(JOptionalAddress.toJson(nameAndstreetObj, compact))
+            .isEqualTo("""{"name":"Marvin","street":"42 Adams Road"}""")
+    }
+
+    @Test
+    fun `render object with nulls from node`() {
         val jsonString = JsonNodeObject(
             mapOf(
-                "firstnullable" to JsonNodeNull(NodePathRoot),
+                "firstNullable" to JsonNodeNull(NodePathRoot),
                 "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
                 "name" to JsonNodeString("Ann", NodePathRoot),
-                "nullable" to JsonNodeNull(NodePathRoot)
+                "lastNullable" to JsonNodeNull(NodePathRoot)
             ),
             NodePathRoot
         ).render()
@@ -162,6 +179,7 @@ class JsonRenderTest {
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(jsonString).isEqualTo(expected)
     }
+
 
     @Test
     fun `pretty render object`() {
@@ -259,7 +277,7 @@ class JsonRenderTest {
     @Test
     fun `using converter with different default style`() {
         val addr = OptionalAddress("Jack", null, "London")
-        val jsonPretty = JOptionalAddressPretty.toJson(addr)
+        val jsonPretty = JOptionalAddress.toJson(addr)
 
         expectThat(jsonPretty).isEqualTo(
             """{

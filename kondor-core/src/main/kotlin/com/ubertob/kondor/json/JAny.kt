@@ -13,10 +13,10 @@ typealias NodeWriter<T> = (MutableFieldMap, T, NodePath) -> MutableFieldMap
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
 
-    fun fieldAppenders(valueObject: T): Map<String, PropertyAppender>
+    fun fieldAppenders(valueObject: T): Map<String, PropertyAppender?>
 
     override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
-        app.appendObjectValue(jsonStyle, 0, fieldAppenders(value))
+        app.appendObjectValue(style, offset, fieldAppenders(value))
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -48,7 +48,7 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
 }
 
-typealias ObjectAppender<T> = (T) -> PropertyAppender
+typealias ObjectAppender<T> = (T) -> PropertyAppender? //null appender if the prop is null
 
 abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
@@ -67,10 +67,16 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
         registerWriter { mfm, obj, path -> jsonProperty.setter(binder(obj))(mfm, path) }
-        (appenders as MutableMap)[jsonProperty.propName] = { obj -> jsonProperty.appender(binder(obj)) }
+        (appenders as MutableMap)[jsonProperty.propName] = { obj ->
+            val field = binder(obj)
+            if (field == null)
+                null
+            else
+                jsonProperty.appender(field)
+        }
     }
 
-    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender> =
+    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender?> =
         appenders.mapValues { it.value(valueObject) }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())

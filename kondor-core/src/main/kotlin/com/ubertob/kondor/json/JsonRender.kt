@@ -9,4 +9,4 @@ fun <APP : StrAppendable> JsonNode.render(appendable: APP, style: JsonStyle = Js
 
 @Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith(".render(pretty)"))
 fun JsonNode.pretty(explicitNull: Boolean = false, indent: Int = 2): String =
-    JsonStyle.pretty.copy(indent = indent, includeNulls = explicitNull).render(this)
+    JsonStyle.pretty.copy(indent = indent, explicitNulls = explicitNull).render(this)

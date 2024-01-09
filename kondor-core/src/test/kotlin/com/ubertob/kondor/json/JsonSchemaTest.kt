@@ -2,6 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.validateJsonAgainstSchema
+import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
 import strikt.api.expectThat
@@ -394,7 +395,7 @@ class JsonSchemaTest {
     @Test
     fun `validate an Json against its Schema`() {
 
-        val schema = JInvoice.schema().render()
+        val schema = JInvoice.schema().render().printIt("!!!!!!")
         repeat(100) {
             val json = JInvoice.toJson(randomInvoice())
 

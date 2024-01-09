@@ -82,7 +82,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
-    renderer.render(toJsonNode(value, NodePathRoot))
+    appendValue(renderer.writer.reset(), renderer, 0, value).toString()
 
 
 //deprecated methods

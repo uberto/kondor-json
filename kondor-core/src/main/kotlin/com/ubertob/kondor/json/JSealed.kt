@@ -42,7 +42,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         }
 
 
-    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender> =
+    override fun fieldAppenders(valueObject: T): Map<String, PropertyAppender?> =
         extractTypeName(valueObject).let { typeName ->
             mutableMapOf(appendTypeName(discriminatorFieldName, typeName)).apply {
                 putAll(
@@ -53,14 +53,13 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         }
 
     private fun converterFromTypename(typeName: String, valueObject: T) =
-        findSubTypeConverter(typeName) ?.fieldAppenders(valueObject)
+        findSubTypeConverter(typeName)?.fieldAppenders(valueObject)
 
-            private fun appendTypeName(discriminatorFieldName: String, typeName: String): Pair<String, PropertyAppender> =
+    private fun appendTypeName(discriminatorFieldName: String, typeName: String): Pair<String, PropertyAppender?> =
         discriminatorFieldName to { app: StrAppendable, style: JsonStyle, off: Int ->
             app.appendText(discriminatorFieldName)
                 .append(style.valueSeparator)
                 .appendText(typeName)
-            true
         }
 
     override fun schema() = sealedSchema(discriminatorFieldName, subConverters)

@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.JsonStyle.Companion.appendNull
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectFields
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
@@ -11,15 +10,13 @@ import com.ubertob.kondor.outcome.failIfNull
 
 typealias MutableFieldMap = MutableMap<String, JsonNode>
 typealias PropertySetter = (MutableFieldMap, NodePath) -> MutableFieldMap
-typealias PropertyAppender = StrAppendable.(JsonStyle, Int) -> Boolean
+typealias PropertyAppender = StrAppendable.(JsonStyle, Int) -> StrAppendable
 
 sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
-    abstract fun appender(value: T): PropertyAppender
+    abstract fun appender(value: T): PropertyAppender?
     abstract fun getter(wrapped: JsonNodeObject): JsonOutcome<T>
-
-
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -50,7 +47,6 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
         appendText(propName)
             .append(js.valueSeparator)
             .appendValue(js, off, value)
-        true
     }
 
     fun StrAppendable.appendValue(
@@ -81,20 +77,14 @@ data class JsonPropOptional<T, JN : JsonNode>(
         }
     }
 
-    override fun appender(value: T?): PropertyAppender = { js, off ->
-        if (value != null) {
+    override fun appender(value: T?): PropertyAppender? =
+        if (value == null)
+            null
+        else { js, off ->
             appendText(propName)
                 .append(js.valueSeparator)
                 .appendValue(js, off, value)
-            true
-        } else if (js.includeNulls) {
-            appendText(propName)
-                .append(js.valueSeparator)
-                .appendNull()
-            true
-        } else
-            false
-    }
+        }
 
     fun StrAppendable.appendValue(
         style: JsonStyle,
@@ -113,7 +103,6 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     override fun appender(value: T): PropertyAppender = { js, off ->
         appendObjectFields(js, off, converter.fieldAppenders(value))
-        true
     }
 
     override fun getter(wrapped: JsonNodeObject): Outcome<JsonError, T> =
