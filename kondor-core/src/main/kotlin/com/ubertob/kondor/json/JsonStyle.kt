@@ -173,7 +173,7 @@ data class JsonStyle(
             style: JsonStyle,
             offset: Int,
             fields: Map<String, PropertyAppender?> //!!! better a list of NamedAppender
-        ): StrAppendable {
+        ): StrAppendable = apply {
             fields.entries
                 .sort(style.sortedObjectFields)
                 .filterNulls(style.explicitNulls)
@@ -190,7 +190,6 @@ data class JsonStyle(
                     else
                         appendNullField(fieldName, style)
                 }
-            return this
         }
 
         fun StrAppendable.appendNullField(fieldName: String, style: JsonStyle): StrAppendable =

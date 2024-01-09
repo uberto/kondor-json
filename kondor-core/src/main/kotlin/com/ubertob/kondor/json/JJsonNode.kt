@@ -1,8 +1,8 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.ObjectNode
+import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
+import com.ubertob.kondor.json.JsonStyle.Companion.appendText
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.asSuccess
 
 object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
@@ -13,8 +13,19 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
-    override fun fieldAppenders(valueObject: JsonNodeObject): Map<String, PropertyAppender> {
-        TODO("!!! JJSon Not yet implemented")
-    }
+    override fun fieldAppenders(valueObject: JsonNodeObject): Map<String, PropertyAppender?> =
+        valueObject._fieldMap
+            .map { (key, value) ->
+                key to valueAppender(key, value)
+            }
+            .sortedBy { it.first }
+            .toMap()
 
+    private fun valueAppender(propName: String, node: JsonNode): PropertyAppender? =
+        if (node is JsonNodeNull) null
+        else { js, off ->
+            appendText(propName)
+                .append(js.valueSeparator)
+                .appendNode(node, js, off)
+        }
 }

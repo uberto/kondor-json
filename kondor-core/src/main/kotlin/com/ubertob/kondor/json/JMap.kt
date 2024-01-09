@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
@@ -32,9 +33,23 @@ class JMap<K : Any, V : Any>(
                         .orThrow()
         }
 
-    override fun fieldAppenders(valueObject: Map<K, V>): Map<String, PropertyAppender> {
-        TODO("JMap Not yet implemented!!!")
-    }
+
+    private fun valueAppender(propName: String, value: V?): PropertyAppender? =
+        if (value == null) null
+        else { js, off ->
+            appendText(propName)
+                .append(js.valueSeparator)
+            valueConverter.appendValue(this, js, off, value)
+        }
+
+    override fun fieldAppenders(valueObject: Map<K, V>): Map<String, PropertyAppender?> =
+        valueObject
+            .map { (key, value) ->
+                val propName = keyConverter.render(key)
+                propName to valueAppender(propName, value)
+            }
+            .sortedBy { it.first }
+            .toMap()
 
     override fun convertFields(valueObject: Map<K, V>, path: NodePath): Map<String, JsonNode> =
         valueObject
