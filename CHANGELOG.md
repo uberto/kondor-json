@@ -3,12 +3,14 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.2.2.x
+### v.2.2.0 - 9 January 2024
+
 Kondor-core: added direct render to Json for better performance
 Kondor-core: handling NaN and Infinity serialization of Double
 
-### v.2.1.3
+### v.2.1.3 - 29 December 2023
 
+Kondor-core: serialization performance improvements
 Kondor-core: added short functions for array of Strings
 
 ### v.2.1.2 - 23 October 2023
