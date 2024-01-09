@@ -1,5 +1,7 @@
 package com.ubertob.kondor.json.jmh
 
+import com.ubertob.kondor.json.JsonStyle
+import com.ubertob.kondor.json.toJson
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
@@ -25,9 +27,14 @@ open class BenchmarkKondor {
 
 }
 
-fun main(){
-    benchLoop(jDemoClasses::toJson){ jDemoClasses.fromJson(it).orThrow()}
+fun main() {
+    benchLoop(::toJson, ::fromJson)
 }
+
+private fun fromJson(it: String) = jDemoClasses.fromJson(it).orThrow()
+
+private fun toJson(it: List<DemoClass>) =
+    jDemoClasses.toJson(it, JsonStyle.compact)
 
 //serialization:
 // add direct support for OutputStream instead of StringBuilder
