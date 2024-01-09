@@ -5,7 +5,6 @@ import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -47,8 +46,7 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo("2147483647")
     }
 
-    @Disabled  //"Fix with plymorphic JsonNodeNumber that takes double !!!
-    @Test
+     @Test
     fun `render Nan Num`() {
         val value = Double.NaN
 
@@ -181,13 +179,20 @@ class JsonRenderTest {
     }
 
 
-    @Disabled //todo make it work with custom indentation
-    @Test
-    fun `pretty render object`() {
-
+     @Test
+    fun `custom pretty render object`() {
         repeat(5) {
             val indent = Random.nextInt(8)
-            val style = pretty //.copy(indent = indent)
+
+            fun customNewLine(app: StrAppendable, offset: Int): StrAppendable =
+                app.apply {
+                    app.append('\n')
+                    repeat(offset * indent) {
+         cu               app.append(' ')
+                    }
+                }
+
+            val style = pretty.copy(appendNewline = ::customNewLine )
             val jsonString = JsonNodeObject(
                 mapOf(
                     "id" to JsonNodeNumber(123.toBigDecimal(), NodePathRoot),
