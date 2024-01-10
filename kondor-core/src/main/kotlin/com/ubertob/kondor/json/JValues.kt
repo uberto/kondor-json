@@ -5,20 +5,25 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.asSuccess
 import java.math.BigDecimal
 
 
-object JBoolean : JsonConverter<Boolean, JsonNodeBoolean> {
+abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoolean> {
+    abstract val cons: (Boolean) -> T
+    abstract val render: (T) -> Boolean
 
-    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<Boolean> = node.boolean.asSuccess()
-    override fun toJsonNode(value: Boolean, path: NodePath): JsonNodeBoolean =
-        JsonNodeBoolean(value, path)
+    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<T> = tryFromNode(node) { cons(node.boolean) }
+    override fun toJsonNode(value: T, path: NodePath): JsonNodeBoolean =
+        JsonNodeBoolean(render(value), path)
 
     override val _nodeType = BooleanNode
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Boolean): StrAppendable =
-        app.appendBoolean(value)
+    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+        app.appendBoolean(render(value))
+}
 
+object JBoolean : JBooleanRepresentable<Boolean>() {
+    override val cons: (Boolean) -> Boolean = { it }
+    override val render: (Boolean) -> Boolean = { it }
 }
 
 object JString : JStringRepresentable<String>() {
@@ -74,7 +79,7 @@ fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
             }
         }
 
-//TODO replace with Long/Int/Double represntables
+
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
