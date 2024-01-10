@@ -204,6 +204,14 @@ class ParserFailuresTest {
     }
 
     @Test
+    fun `parsing invalid json`() {
+        val invalidJson = "BOOM"
+        val error = JPerson.fromJson(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected OpeningCurly but found 'BOOM' - invalid Json")
+    }
+
+    @Test
     fun `parsing sealed class json without the discriminator field returns an error`() {
         val jsonWithDifferentField =
             """
