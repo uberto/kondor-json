@@ -17,7 +17,7 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
         JsonNodeBoolean(render(value), path)
 
     override val _nodeType = BooleanNode
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendBoolean(render(value))
 }
 
@@ -29,7 +29,7 @@ object JBoolean : JBooleanRepresentable<Boolean>() {
 object JString : JStringRepresentable<String>() {
     override val cons: (String) -> String = { it }
     override val render: (String) -> String = { it }
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: String): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: String): CharWriter =
         app.appendText(value)
 }
 
@@ -37,7 +37,7 @@ object JDouble : JNumRepresentable<Double>() {
 
     override val cons: (Number) -> Double = Number::toDouble
     override val render: (Double) -> Number = Double::toBigDecimal
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Double): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Double): CharWriter =
         if (value.isFinite())
             app.appendNumber(value)
         else
@@ -53,7 +53,7 @@ object JInt : JNumRepresentable<Int>() {
         }
     }
     override val render: (Int) -> Number = { it }
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Int): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Int): CharWriter =
         app.appendNumber(value)
 }
 
@@ -65,7 +65,7 @@ object JLong : JNumRepresentable<Long>() {
         }
     }
     override val render: (Long) -> Number = { it }
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: Long): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Long): CharWriter =
         app.appendNumber(value)
 }
 
@@ -89,7 +89,7 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
         JsonNodeNumber(render(value), path)
 
     override val _nodeType = NumberNode
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendNumber(render(value))
 }
 
@@ -103,7 +103,7 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
 
     override val _nodeType = StringNode
 
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendText(render(value))
 }
 

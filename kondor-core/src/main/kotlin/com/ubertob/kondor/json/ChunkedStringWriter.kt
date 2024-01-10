@@ -1,14 +1,14 @@
 package com.ubertob.kondor.json
 
 
-interface StrAppendable {
-    fun append(str: String): StrAppendable
-    fun append(cbuf: CharArray, len: Int): StrAppendable
-    fun append(c: Char): StrAppendable
+interface CharWriter {
+    fun write(str: String): CharWriter
+    fun write(cbuf: CharArray, len: Int): CharWriter
+    fun write(c: Char): CharWriter
 }
 
 
-class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
+class ChunkedStringWriter(val bufferSize: Int = 8192): CharWriter {
 
     private val out = StringBuilder()
     private val charArray = CharArray(bufferSize)
@@ -22,7 +22,7 @@ class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
 
     private fun min(a: Int, b: Int): Int = if (a < b) a else b
 
-    override fun append(cbuf: CharArray, len: Int): StrAppendable {
+    override fun write(cbuf: CharArray, len: Int): CharWriter {
         if (len == 0) {
             return this
         }
@@ -45,13 +45,13 @@ class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
         return this
     }
 
-    fun reset(): ChunkedStringWriter {
+    fun reset(): CharWriter {
         nextChar = 0
         out.clear()
         return this
     }
 
-    override fun append(str: String): StrAppendable {
+    override fun write(str: String): CharWriter {
         val len = str.length
         if (len == 0) {
             return this
@@ -60,12 +60,12 @@ class ChunkedStringWriter(val bufferSize: Int = 8192) : StrAppendable {
             str.toCharArray(charArray, nextChar, startIndex = 0, endIndex = len)
             nextChar += len
         } else {
-            append(str.toCharArray(), len)
+            write(str.toCharArray(), len)
         }
         return this
     }
 
-    override fun append(c: Char): StrAppendable {
+    override fun write(c: Char): CharWriter {
         if (nextChar >= bufferSize) flushBuffer()
         charArray[nextChar++] = c
         return this

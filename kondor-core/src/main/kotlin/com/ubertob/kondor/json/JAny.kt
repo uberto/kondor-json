@@ -15,7 +15,7 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     fun fieldAppenders(valueObject: T): List<NamedAppender>
 
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 }
 
@@ -37,10 +37,10 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
 }
 
-
 sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
 
     abstract val writers: List<NodeWriter<T>>
+
     override fun convertFields(valueObject: T, path: NodePath): FieldMap =
         writers.fold(mutableMapOf()) { acc, writer ->
             writer(acc, valueObject, path)

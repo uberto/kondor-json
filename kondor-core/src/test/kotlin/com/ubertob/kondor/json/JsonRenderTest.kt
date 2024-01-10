@@ -184,11 +184,11 @@ class JsonRenderTest {
         repeat(5) {
             val indent = Random.nextInt(8)
 
-            fun customNewLine(app: StrAppendable, offset: Int): StrAppendable =
+            fun customNewLine(app: CharWriter, offset: Int): CharWriter =
                 app.apply {
-                    app.append('\n')
+                    app.write('\n')
                     repeat(offset * indent) {
-                        app.append(' ')
+                        app.write(' ')
                     }
                 }
 

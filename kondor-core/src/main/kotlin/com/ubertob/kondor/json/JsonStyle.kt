@@ -4,16 +4,15 @@ import com.ubertob.kondor.json.jsonnode.*
 import java.io.*
 
 data class JsonStyle(
-    val appendFieldSeparator: (StrAppendable) -> StrAppendable,
-    val appendValueSeparator: (StrAppendable) -> StrAppendable,
-    val appendNewline: (StrAppendable, Int) -> StrAppendable,
+    val appendFieldSeparator: (CharWriter) -> CharWriter,
+    val appendValueSeparator: (CharWriter) -> CharWriter,
+    val appendNewline: (CharWriter, Int) -> CharWriter,
     val sortedObjectFields: Boolean,
     val explicitNulls: Boolean
 ) {
 
-    val writer = ChunkedStringWriter()
-    fun render(node: JsonNode): String = render(node, writer.reset())
-    fun render(node: JsonNode, writer: StrAppendable): String =
+    fun render(node: JsonNode): String = render(node, ChunkedStringWriter())
+    fun render(node: JsonNode, writer: CharWriter): String =
         writer.appendNode(node, this).toString()
 
 
@@ -60,51 +59,52 @@ data class JsonStyle(
         )
 
 
-        fun comma(app: StrAppendable): StrAppendable =
-            app.append(',')
+        fun comma(app: CharWriter): CharWriter =
+            app.write(',')
 
-        fun colon(app: StrAppendable): StrAppendable =
-            app.append(':')
+        fun colon(app: CharWriter): CharWriter =
+            app.write(':')
 
-        fun commaSpace(app: StrAppendable): StrAppendable =
-            app.append(',').append(' ')
+        fun commaSpace(app: CharWriter): CharWriter =
+            app.write(',').write(' ')
 
-        fun colonSpace(app: StrAppendable): StrAppendable =
-            app.append(':').append(' ')
+        fun colonSpace(app: CharWriter): CharWriter =
+            app.write(':').write(' ')
 
-        fun appendNewLineOffset(app: StrAppendable, offset: Int): StrAppendable =
+        fun appendNewLineOffset(app: CharWriter, offset: Int): CharWriter =
             app.apply {
-                app.append('\n')
+                app.write('\n')
                 repeat(offset) {
-                    app.append(' ').append(' ')
+                    app.write(' ').write(' ')
                 }
             }
 
-        fun noNewLine(app: StrAppendable, offset: Int): StrAppendable = app
+        @Suppress("UNUSED_PARAMETER")
+        fun noNewLine(app: CharWriter, offset: Int): CharWriter = app
 
-
-        fun StrAppendable.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): StrAppendable {
+        fun CharWriter.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): CharWriter {
             when (node) {
                 is JsonNodeNull -> appendNull()
                 is JsonNodeString -> appendText(node.text)
                 is JsonNodeBoolean -> appendBoolean(node.boolean)
                 is JsonNodeNumber -> appendNumber(node.num)
                 is JsonNodeArray -> {
-                    append('[')
+                    write('[')
                     style.appendNewline(this, offset + 1)
-                    node.values(style.explicitNulls).forEachIndexed { index, each ->
-                        if (index > 0) {
-                            style.appendFieldSeparator(this)
-                            style.appendNewline(this, offset + 1)
+                    node.values(style.explicitNulls)
+                        .forEachIndexed { index, each ->
+                            if (index > 0) {
+                                style.appendFieldSeparator(this)
+                                style.appendNewline(this, offset + 1)
+                            }
+                            appendNode(each, style, offset + 2)
                         }
-                        appendNode(each, style, offset + 2)
-                    }
                     style.appendNewline(this, offset)
-                    append(']')
+                    write(']')
                 }
 
                 is JsonNodeObject -> {
-                    append('{')
+                    write('{')
                     style.appendNewline(this, offset + 1)
                     node.fields(style.explicitNulls, style.sortedObjectFields)
                         .forEachIndexed { index, entry ->
@@ -117,29 +117,29 @@ data class JsonStyle(
                             appendNode(entry.value, style, offset + 2)
                         }
                     style.appendNewline(this, offset)
-                    append('}')
+                    write('}')
                 }
             }
             return this
         }
 
 
-        private fun StrAppendable.appendQuoted(string: String) = append('\"')
+        private fun CharWriter.appendQuoted(string: String) = write('\"')
             .appendEscaped(string)
-            .append('"')
+            .write('"')
 
-        private fun StrAppendable.appendEscaped(string: String): StrAppendable =
+        private fun CharWriter.appendEscaped(string: String): CharWriter =
             apply {
                 string.onEach { char ->
                     when (char) {
-                        '\"' -> append("\\\"")
-                        '\\' -> append("\\\\")
-                        '\b' -> append("\\b") //backspace
-                        '\u000C' -> append("\\f") // Form feed
-                        '\n' -> append("\\n")
-                        '\r' -> append("\\r")
-                        '\t' -> append("\\t")
-                        else -> append(char)
+                        '\"' -> write("\\\"")
+                        '\\' -> write("\\\\")
+                        '\b' -> write("\\b") //backspace
+                        '\u000C' -> write("\\f") // Form feed
+                        '\n' -> write("\\n")
+                        '\r' -> write("\\r")
+                        '\t' -> write("\\t")
+                        else -> write(char)
                     }
                 }
             }
@@ -153,13 +153,13 @@ data class JsonStyle(
             if (includeNulls) elements else notNullValues
 
 
-        fun <T> StrAppendable.appendArrayValues(
+        fun <T> CharWriter.appendArrayValues(
             style: JsonStyle,
             offset: Int,
             values: Iterable<T>,
-            appender: StrAppendable.(JsonStyle, Int, T) -> StrAppendable
-        ): StrAppendable {
-            append('[')
+            appender: CharWriter.(JsonStyle, Int, T) -> CharWriter
+        ): CharWriter {
+            write('[')
 
             style.appendNewline(this, offset + 1)
             values.nullFilter(style.explicitNulls).forEachIndexed { index, each ->
@@ -170,28 +170,28 @@ data class JsonStyle(
                 appender(style, offset + 2, each)
             }
             style.appendNewline(this, offset)
-                .append(']')
+                .write(']')
             return this
         }
 
-        fun StrAppendable.appendObjectValue(
+        fun CharWriter.appendObjectValue(
             style: JsonStyle,
             offset: Int,
             fields: List<NamedAppender>
-        ): StrAppendable =
+        ): CharWriter =
             apply {
-                append('{')
+                write('{')
                 style.appendNewline(this, offset + 1)
                     .appendObjectFields(style, offset + 1, fields)
                 style.appendNewline(this, offset)
-                    .append('}')
+                    .write('}')
             }
 
-        fun StrAppendable.appendObjectFields(
+        fun CharWriter.appendObjectFields(
             style: JsonStyle,
             offset: Int,
             fields: List<NamedAppender>
-        ): StrAppendable = apply {
+        ): CharWriter = apply {
             fields
                 .filterNulls(style.explicitNulls)
                 .sort(style.sortedObjectFields)
@@ -207,23 +207,23 @@ data class JsonStyle(
                 }
         }
 
-        fun StrAppendable.appendNullField(fieldName: String, style: JsonStyle): StrAppendable =
+        fun CharWriter.appendNullField(fieldName: String, style: JsonStyle): CharWriter =
             appendText(fieldName).apply {
                 style.appendValueSeparator(this)
                     .appendNull()
             }
 
-        fun StrAppendable.appendNull() =
-            append("null")
+        fun CharWriter.appendNull() =
+            write("null")
 
 
-        fun StrAppendable.appendNumber(num: Number) = append(num.toString())
+        fun CharWriter.appendNumber(num: Number) = write(num.toString())
 
 
-        fun StrAppendable.appendBoolean(bool: Boolean) = append(bool.toString())
+        fun CharWriter.appendBoolean(bool: Boolean) = write(bool.toString())
 
 
-        fun StrAppendable.appendText(text: String) = appendQuoted(text)
+        fun CharWriter.appendText(text: String) = appendQuoted(text)
 
     }
 }

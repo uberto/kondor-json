@@ -32,7 +32,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
     override fun schema(): JsonNodeObject = arraySchema(converter)
 
     //TODO not sure we need all parameters here
-    override fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: CT): StrAppendable =
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: CT): CharWriter =
         app.appendArrayValues(jsonStyle, 0, value, converter::appendValue)
 }
 

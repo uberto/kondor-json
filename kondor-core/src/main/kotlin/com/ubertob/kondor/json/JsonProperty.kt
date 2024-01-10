@@ -10,7 +10,7 @@ import com.ubertob.kondor.outcome.failIfNull
 
 typealias MutableFieldMap = MutableMap<String, JsonNode>
 typealias PropertySetter = (MutableFieldMap, NodePath) -> MutableFieldMap
-typealias PropertyAppender = StrAppendable.(JsonStyle, Int) -> StrAppendable
+typealias PropertyAppender = CharWriter.(JsonStyle, Int) -> CharWriter
 typealias NamedAppender = Pair<String, PropertyAppender?>
 
 sealed class JsonProperty<T> {
@@ -50,11 +50,11 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
             .appendValue(style, off, value)
     }
 
-    fun StrAppendable.appendValue(
+    fun CharWriter.appendValue(
         style: JsonStyle,
         offset: Int,
         value: T
-    ): StrAppendable = converter.appendValue(this, style, offset, value)
+    ): CharWriter = converter.appendValue(this, style, offset, value)
 }
 
 
@@ -87,11 +87,11 @@ data class JsonPropOptional<T, JN : JsonNode>(
                 .appendValue(style, off, value)
         }
 
-    fun StrAppendable.appendValue(
+    fun CharWriter.appendValue(
         style: JsonStyle,
         offset: Int,
         value: T
-    ): StrAppendable = converter.appendValue(this, style, offset, value)
+    ): CharWriter = converter.appendValue(this, style, offset, value)
 }
 
 data class JsonPropMandatoryFlatten<T : Any>(

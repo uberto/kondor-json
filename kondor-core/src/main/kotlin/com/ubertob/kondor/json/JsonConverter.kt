@@ -77,7 +77,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                     it.asSuccess()
             }
 
-    fun appendValue(app: StrAppendable, style: JsonStyle, offset: Int, value: T): StrAppendable
+    fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
 }
 
