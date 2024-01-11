@@ -32,7 +32,7 @@ class JsonRenderTest {
     fun `render exp Num`() {
         val value = Double.MIN_VALUE
 
-        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value).render()
 
         expectThat(jsonString).isEqualTo("4.9E-324")
     }
@@ -41,7 +41,7 @@ class JsonRenderTest {
     fun `render integer Num`() {
         val value = Int.MAX_VALUE
 
-        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value).render()
 
         expectThat(jsonString).isEqualTo("2147483647")
     }
@@ -50,7 +50,7 @@ class JsonRenderTest {
     fun `render Nan Num`() {
         val value = Double.NaN
 
-        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value).render()
 
         expectThat(jsonString).isEqualTo("NaN")
     }
@@ -131,8 +131,8 @@ class JsonRenderTest {
     fun `render object from node`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123, NodePathRoot),
-                "name" to JsonNodeString("Ann", NodePathRoot)
+                "id" to JsonNodeNumber(123),
+                "name" to JsonNodeString("Ann")
             )
         ).render()
 
@@ -163,10 +163,10 @@ class JsonRenderTest {
     fun `render object with nulls from node`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "firstNullable" to JsonNodeNull(NodePathRoot),
-                "id" to JsonNodeNumber(123, NodePathRoot),
-                "name" to JsonNodeString("Ann", NodePathRoot),
-                "lastNullable" to JsonNodeNull(NodePathRoot)
+                "firstNullable" to JsonNodeNull,
+                "id" to JsonNodeNumber(123),
+                "name" to JsonNodeString("Ann"),
+                "lastNullable" to JsonNodeNull
             )
         ).render()
 
@@ -191,8 +191,8 @@ class JsonRenderTest {
             val style = pretty.copy(appendNewline = ::customNewLine )
             val jsonString = JsonObjectNode(
                 mapOf(
-                    "id" to JsonNodeNumber(123, NodePathRoot),
-                    "name" to JsonNodeString("Ann", NodePathRoot)
+                    "id" to JsonNodeNumber(123),
+                    "name" to JsonNodeString("Ann")
                 )
             ).render(style)
 
@@ -207,12 +207,11 @@ class JsonRenderTest {
 
     @Test
     fun `render object with null explicit`() {
-        val path = NodePathRoot
         val nodeObject = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123, path),
-                "name" to JsonNodeString("Ann", path),
-                "somethingelse" to JsonNodeNull(path)
+                "id" to JsonNodeNumber(123),
+                "name" to JsonNodeString("Ann"),
+                "somethingelse" to JsonNodeNull
             )
         )
         val jsonString = prettyWithNulls.render(nodeObject)
@@ -237,9 +236,9 @@ class JsonRenderTest {
     fun `compact render object`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123, NodePathRoot),
-                "name" to JsonNodeString("Ann", NodePathRoot),
-                "nullable" to JsonNodeNull(NodePathRoot)
+                "id" to JsonNodeNumber(123),
+                "name" to JsonNodeString("Ann"),
+                "nullable" to JsonNodeNull
             )
         ).render(compact)
 

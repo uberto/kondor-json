@@ -12,7 +12,7 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
     abstract val cons: (Boolean) -> T
     abstract val render: (T) -> Boolean
 
-    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> = tryFromNode(node, path) { cons(node.boolean) }
+    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> = tryFromNode(path) { cons(node.boolean) }
     override fun toJsonNode(value: T): JsonNodeBoolean =
         JsonNodeBoolean(render(value))
 

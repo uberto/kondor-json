@@ -17,11 +17,11 @@ sealed class JsonNode(val nodeKind: NodeKind<*>)
 
 object JsonNodeNull : JsonNode(NullNode)
 
-data class JsonNodeBoolean(val boolean: Boolean, override val _path: NodePath) : JsonNode(BooleanNode)
+data class JsonNodeBoolean(val boolean: Boolean) : JsonNode(BooleanNode)
 
-data class JsonNodeNumber(val num: Number, override val _path: NodePath) : JsonNode(NumberNode)
-data class JsonNodeString(val text: String, override val _path: NodePath) : JsonNode(StringNode)
-data class JsonNodeArray(val elements: Iterable<JsonNode>, override val _path: NodePath) : JsonNode(ArrayNode) {
+data class JsonNodeNumber(val num: Number) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String) : JsonNode(StringNode)
+data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode) {
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 

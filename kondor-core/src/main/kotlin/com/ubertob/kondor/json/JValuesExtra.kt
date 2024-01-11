@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.JsonObjectNode
 import com.ubertob.kondor.json.schema.enumSchema
 import java.math.BigDecimal
 import java.math.BigInteger
