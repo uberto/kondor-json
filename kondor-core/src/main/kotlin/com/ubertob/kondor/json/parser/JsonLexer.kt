@@ -1,5 +1,7 @@
 package com.ubertob.kondor.json.parser
 
+import com.ubertob.kondor.json.CharWriter
+import com.ubertob.kondor.json.ChunkedStringWriter
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.KondorSeparator.*
@@ -21,7 +23,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
     fun tokenize(): JsonOutcome<TokensStream> =
         sequence {
-            val currToken = StringBuilder()
+            val currToken = ChunkedStringWriter(256)
             var state = OutString
 
             inputStream
@@ -67,7 +69,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                     state = InString
                                 }
 
-                                else -> currToken.append(char)
+                                else -> currToken.write(char)
                             }
 
                         InString -> when (char) {
@@ -81,18 +83,18 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                 state = OutString
                             }
 
-                            else -> currToken += char
+                            else -> currToken.write(char)
                         }
 
                         Escaping -> when (char) {
-                            '\\' -> currToken.append('\\')
-                            '"' -> currToken.append('\"')
-                            'n' -> currToken.append('\n')
-                            'f' -> currToken.append('\t')
-                            't' -> currToken.append('\t')
-                            'r' -> currToken.append('\r')
-                            'b' -> currToken.append('\b')
-                            'u' -> currToken.append("\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
+                            '\\' -> currToken.write('\\')
+                            '"' -> currToken.write('\"')
+                            'n' -> currToken.write('\n')
+                            'f' -> currToken.write('\t')
+                            't' -> currToken.write('\t')
+                            'r' -> currToken.write('\r')
+                            'b' -> currToken.write('\b')
+                            'u' -> currToken.write("\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
                             else -> error("wrongly escaped char '\\$char' inside a Json string")
                         }.also { state = InString }
                     }
@@ -101,12 +103,12 @@ class JsonLexerLazy(val inputStream: InputStream) {
             yieldValue(currToken, currPos)
         }.peekingIterator().let { TokensStream(it).asSuccess() }
 
-    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: StringBuilder, pos: Int) {
-        if (currWord.isNotEmpty()) {
+    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: CharWriter, pos: Int) {
+        if (!currWord.isEmpty()) {
             val text = currWord.toString()
             yield(Value(text, pos - text.length))
+            currWord.clear()
         }
-        currWord.clear()
     }
 }
 
@@ -127,61 +129,62 @@ operator fun StringBuilder.plusAssign(c: Char) {
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 
-    fun MutableList<KondorToken>.addValue(currWord: StringBuilder, startPos: Int) {
-        if (currWord.isNotEmpty()) {
-            val text = currWord.toString()
+    fun MutableList<KondorToken>.addValue(charWriter: CharWriter, startPos: Int) {
+        if (!charWriter.isEmpty()) {
+            val text = charWriter.toString()
             add(Value(text, startPos - text.length))
+            charWriter.clear()
         }
-        currWord.clear()
     }
 
     fun tokenize(): JsonOutcome<TokensStream> {
         var pos = 1
-        val currToken = StringBuilder()
+        val charWriter = ChunkedStringWriter(256)
         var state = OutString
         val tokens = mutableListOf<KondorToken>()
         for (char in jsonStr) {
             when (state) {
                 OutString ->
                     when (char) {
-                        ' ', '\t', '\n', '\r', '\b' -> tokens.addValue(currToken, pos)
+                        ' ', '\t', '\n', '\r', '\b' ->
+                            tokens.addValue(charWriter, pos)
                         '{' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(OpeningCurly, pos))
                         }
 
                         '}' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(ClosingCurly, pos))
                         }
 
                         '[' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(OpeningBracket, pos))
                         }
 
                         ']' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(ClosingBracket, pos))
                         }
 
                         ',' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(Comma, pos))
                         }
 
                         ':' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(Colon, pos))
                         }
 
                         '"' -> {
-                            tokens.addValue(currToken, pos)
+                            tokens.addValue(charWriter, pos)
                             tokens.add(Separator(OpeningQuotes, pos))
                             state = InString
                         }
 
-                        else -> currToken.append(char)
+                        else -> charWriter.write(char)
                     }
 
                 InString -> when (char) {
@@ -190,27 +193,27 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     }
 
                     '"' -> {
-                        tokens.addValue(currToken, pos)
+                        tokens.addValue(charWriter, pos)
                         tokens.add(Separator(ClosingQuotes, pos))
                         state = OutString
                     }
 
-                    else -> currToken += char
+                    else -> charWriter.write(char)
                 }
 
                 Escaping -> when (char) {
-                    '\\' -> currToken.append('\\')
-                    '"' -> currToken.append('\"')
-                    '/' -> currToken.append('/')
-                    'n' -> currToken.append('\n')
-                    'f' -> currToken.append('\t')
-                    't' -> currToken.append('\t')
-                    'r' -> currToken.append('\r')
-                    'b' -> currToken.append('\b')
-                    'u' -> currToken.append("\\u")
+                    '\\' -> charWriter.write('\\')
+                    '"' -> charWriter.write('"')
+                    '/' -> charWriter.write('/')
+                    'n' -> charWriter.write('\n')
+                    'f' -> charWriter.write('\t')
+                    't' -> charWriter.write('\t')
+                    'r' -> charWriter.write('\r')
+                    'b' -> charWriter.write('\b')
+                    'u' -> charWriter.write("\\u")
                     else -> return parsingFailure(
                         "a valid Json",
-                        "wrongly escaped char '\\$char' inside a Json string after '${currToken.takeLast(10)}'",
+                        "wrongly escaped char '\\$char' inside a Json string after '${charWriter.takeLast(10)}'",
                         pos,
                         NodePathRoot,
                         "Invalid Json"
@@ -219,7 +222,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
             }
             pos++
         }
-        tokens.addValue(currToken, pos)
+        tokens.addValue(charWriter, pos)
         return TokensStream(PeekingIteratorWrapper(tokens.iterator())).asSuccess()
     }
 }
@@ -232,98 +235,5 @@ object KondorTokenizer {
     //a bit slower but consuming as little memory as possible
     fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStream> = JsonLexerLazy(jsonStream).tokenize()
 }
-
-
-/*
-during string, don't add char by char but all at the closing quotes
-and process escaping char correctly (store value so far??)
-
-class JsonLexerEager(val jsonStr: CharSequence) {
-
-
-    // extract the logic of tokenization
-    fun tokenize(): TokensStream {
-
-        var currTokenStart = 0
-        var pos = 1
-
-        fun MutableList<KondorToken>.addValue() {
-            if (currTokenStart < pos -1) {
-                add(Value(jsonStr.substring(currTokenStart, pos -1), currTokenStart + 1))
-            }
-            currTokenStart = pos
-        }
-
-
-
-        var state = OutString
-        val tokens = mutableListOf<KondorToken>()
-        jsonStr.forEach { char ->
-            when (state) {
-                OutString ->
-                    when (char) {
-                        ' ', '\t', '\n', '\r', '\b' -> tokens.addValue()
-                        '{' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(OpeningCurly, pos))
-                        }
-                        '}' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(ClosingCurly,pos))
-                        }
-                        '[' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(OpeningBracket,pos))
-                        }
-                        ']' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(ClosingBracket,pos))
-                        }
-                        ',' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(Comma,pos))
-                        }
-                        ':' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(Colon,pos))
-                        }
-                        '"' -> {
-                            tokens.addValue()
-                            tokens.add(Separator(OpeningQuotes,pos))
-                            state = InString
-                        }
-                         // else -> nothing
-                    }
-
-                InString -> when (char) {
-                    '\\' -> {
-                        state = Escaping
-                    }
-                    '"' -> {
-                        tokens.addValue()
-                        tokens.add(Separator(ClosingQuotes,pos))
-                        state = OutString
-                    }
-                    // else -> nothing
-                }
-                Escaping -> when (char) {
-                    '\\',
-                    'n',
-                    'f',
-                    't',
-                    'r',
-                    'b',
-                    '"' -> char //nothing
-                    else -> error("wrongly escaped char '\\$char' in Json string")
-                }.also { state = InStringWithEsc }
-            }
-            pos += 1
-        }
-        tokens.addValue()
-
-    return  TokensStream(PeekingIteratorWrapper(tokens.iterator()))
-
-}
- */
 
 

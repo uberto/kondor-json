@@ -5,10 +5,13 @@ interface CharWriter {
     fun write(str: String): CharWriter
     fun write(cbuf: CharArray, len: Int): CharWriter
     fun write(c: Char): CharWriter
+    fun clear(): CharWriter
+    fun isEmpty(): Boolean
+    fun takeLast(numberOfChar: Int): String
 }
 
 
-class ChunkedStringWriter(val bufferSize: Int = 8192): CharWriter {
+class ChunkedStringWriter(val bufferSize: Int = 8192) : CharWriter {
 
     private val out = StringBuilder()
     private val charArray = CharArray(bufferSize)
@@ -45,11 +48,6 @@ class ChunkedStringWriter(val bufferSize: Int = 8192): CharWriter {
         return this
     }
 
-    fun reset(): CharWriter {
-        nextChar = 0
-        out.clear()
-        return this
-    }
 
     override fun write(str: String): CharWriter {
         val len = str.length
@@ -68,6 +66,24 @@ class ChunkedStringWriter(val bufferSize: Int = 8192): CharWriter {
     override fun write(c: Char): CharWriter {
         if (nextChar >= bufferSize) flushBuffer()
         charArray[nextChar++] = c
+        return this
+    }
+
+    override fun isEmpty(): Boolean = nextChar == 0
+    override fun takeLast(numberOfChar: Int): String =
+        String(
+            charArray.copyOfRange(
+                if (nextChar < numberOfChar)
+                    0
+                else
+                    nextChar - numberOfChar,
+                nextChar
+            )
+        )
+
+    override fun clear(): CharWriter {
+        nextChar = 0
+        out.clear()
         return this
     }
 

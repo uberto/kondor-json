@@ -40,4 +40,4 @@ private fun toJson(it: List<DemoClass>) =
 // add direct support for OutputStream instead of StringBuilder
 
 //deser:
-// direct deser: taking adventage of number type and removing regex
+// direct deser: taking adventage of number type and removing bigdecimal parsing and conversion
