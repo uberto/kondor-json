@@ -145,10 +145,22 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcome(
 ): Outcome<ERR, U> =
     fold(initial.asSuccess() as Outcome<ERR, U>) { acc, el -> acc.bind { operation(it, el) } }
 
+fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcomeIndexed(
+    initial: U,
+    operation: (Int, acc: U, T) -> Outcome<ERR, U>
+): Outcome<ERR, U> =
+    foldIndexed(initial.asSuccess() as Outcome<ERR, U>) { index, acc, el -> acc.bind { operation(index, it, el) } }
+
+
 
 fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     foldOutcome(mutableListOf()) { acc, e ->
         f(e).transform { acc.add(it); acc }
+    }
+
+fun <E : OutcomeError, T, U> Iterable<T>.traverseIndexed(f: (index: Int, T) -> Outcome<E, U>): Outcome<E, List<U>> =
+    foldOutcomeIndexed(mutableListOf()) { index, acc, e ->
+        f(index, e).transform { acc.add(it); acc }
     }
 
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =

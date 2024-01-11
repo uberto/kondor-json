@@ -66,7 +66,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         JsonNodeString(extractTypeName(obj))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val jsonNode = JsonObjectNode(_fieldMap) //!!!
+        val jsonNode = JsonObjectNode(_fieldMap) //!!! redundant allocation
         val discriminatorNode = _fieldMap[discriminatorFieldName]
             ?: defaultConverter?.let { return it.fromJsonNode(jsonNode, _path).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")

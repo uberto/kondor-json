@@ -42,7 +42,7 @@ fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val throwable = throwableError.throwable) {
-                is JsonParsingException -> throwable.error // add!!! path info
+                is JsonParsingException -> throwable.error // add path info ?
                 is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
                 else -> ConverterJsonError(path, "Caught exception: $throwable")
             }

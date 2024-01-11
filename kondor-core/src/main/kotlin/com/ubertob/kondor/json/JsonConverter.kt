@@ -41,10 +41,10 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             ).asFailure()
         }
 
-    private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
+    private fun fromJsonNodeNullable(node: JN?, path: NodePath): JsonOutcome<T?> = node?.let { fromJsonNode(it, path) } ?: null.asSuccess()
 
     fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
-        safeCast(node, path).bind(::fromJsonNodeNull)
+        safeCast(node, path).bind { fromJsonNodeNullable(it, path) }
 
     fun fromJsonNode(node: JN, path: NodePath = NodePathRoot): JsonOutcome<T>
 

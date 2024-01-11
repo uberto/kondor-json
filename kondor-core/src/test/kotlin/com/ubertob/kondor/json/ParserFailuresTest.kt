@@ -1,10 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
-import com.ubertob.kondor.json.jsonnode.ObjectNode
-import com.ubertob.kondor.json.parser.KondorTokenizer
-import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -81,7 +77,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - ")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found '123-234' - Character - is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
     @Test
@@ -266,14 +262,7 @@ class ParserFailuresTest {
   "total": "123.45"
 }  """.trimIndent()
 
-        val tt = KondorTokenizer.tokenize(jsonWithDifferentField)
-            .expectSuccess()
-
-        val jsonObj = ObjectNode.parse(TokensPath(tt, NodePathRoot)).expectSuccess()
-
-        val error = JInvoice.fromJsonNode(jsonObj).expectFailure()
-
-//!!!        val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
+        val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number but found String")
     }

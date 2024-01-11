@@ -31,11 +31,10 @@ data class JsonObjectNode(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
 }
 
-
 data class JsonNodeObject(val _fieldMap: FieldMap, val _path: NodePath){
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
-        getter(this@JsonNodeObject._fieldMap, path = _path)
+        getter(_fieldMap, path = _path)
             .onFailure { throw JsonParsingException(it) }
 }
 

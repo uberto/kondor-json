@@ -3,7 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.extractList
+import com.ubertob.kondor.outcome.traverseIndexed
 
 interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
@@ -12,7 +12,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
     fun convertToCollection(from: Iterable<T>): CT
 
     override fun fromJsonNode(node: JsonNodeArray, path: NodePath): Outcome<JsonError, CT> =
-        mapFromArray(node) { converter.fromJsonNodeBase(it, path) }
+        mapFromArray(node) { i, e -> converter.fromJsonNodeBase(e, NodePathSegment("[$i]", path)) }
             .transform { convertToCollection(it) }
 
     override fun toJsonNode(value: CT): JsonNodeArray =
@@ -23,9 +23,9 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
     private fun <T : Any> mapFromArray(
         node: JsonNodeArray,
-        f: (JsonNode) -> JsonOutcome<T?>
-    ): JsonOutcome<Iterable<T>> = node.elements.map(f)
-        .extractList()
+        f: (Int, JsonNode) -> JsonOutcome<T?>
+    ): JsonOutcome<Iterable<T>> = node.elements
+        .traverseIndexed(f)
         .transform { it.filterNotNull() }
 
     override fun schema(): JsonObjectNode = arraySchema(converter)
