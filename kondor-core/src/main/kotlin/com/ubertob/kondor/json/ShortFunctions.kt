@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.JsonObjectNode
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
@@ -127,5 +127,5 @@ inline fun <PT : Any, reified T : Any> JAny<PT>.flatten(
         JFieldFlatten(binder, converter, this)
 
 @JvmName("bindFlattenJsonNode")
-fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonNodeObject) =
+fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonObjectNode) =
         JFieldFlatten(binder, JJsonNode, this)

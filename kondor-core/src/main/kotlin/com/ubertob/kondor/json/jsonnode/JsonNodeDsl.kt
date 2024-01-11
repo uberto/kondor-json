@@ -4,7 +4,7 @@ import com.ubertob.kondor.json.NamedNode
 import java.math.BigDecimal
 
 infix fun String.toNode(fieldValuesMap: Map<String, String?>): NamedNode =
-    this to JsonNodeObject(fieldValuesMap.toNodes())
+    this to JsonObjectNode(fieldValuesMap.toNodes())
 
 fun Map<String, String?>.toNodes(): FieldMap =
     mapValues { (_, str) -> str?.let { JsonNodeString(str) } ?: JsonNodeNull }
@@ -46,7 +46,7 @@ infix fun String.toNode(fieldValue: Double?): NamedNode =
 infix fun String.toNode(fieldValue: Boolean?): NamedNode =
     fieldValue?.let(::toNode) ?: nullNode()
 
-fun nodeObject(vararg nodes: NamedNode): JsonNodeObject = JsonNodeObject(
+fun nodeObject(vararg nodes: NamedNode): JsonObjectNode = JsonObjectNode(
     _fieldMap = nodes.toMap()
 )
 
@@ -56,6 +56,6 @@ fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.boolean
 
 fun JsonNode?.asNumValue(): BigDecimal? = (this as? JsonNodeNumber)?.num
 
-fun JsonNode?.asObjFieldMap(): FieldMap? = (this as? JsonNodeObject)?._fieldMap
+fun JsonNode?.asObjFieldMap(): FieldMap? = (this as? JsonObjectNode)?._fieldMap
 
 

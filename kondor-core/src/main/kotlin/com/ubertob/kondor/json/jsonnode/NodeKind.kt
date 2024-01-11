@@ -17,5 +17,5 @@ object ArrayNode : NodeKind<JsonNodeArray>("Array", TokensPath::parseJsonNodeArr
 object BooleanNode : NodeKind<JsonNodeBoolean>("Boolean", TokensPath::parseJsonNodeBoolean)
 object NullNode : NodeKind<JsonNodeNull>("Null", TokensPath::parseJsonNodeNull)
 object NumberNode : NodeKind<JsonNodeNumber>("Number", TokensPath::parseJsonNodeNum)
-object ObjectNode : NodeKind<JsonNodeObject>("Object", TokensPath::parseJsonNodeObject)
+object ObjectNode : NodeKind<JsonObjectNode>("Object", TokensPath::parseJsonNodeObject)
 object StringNode : NodeKind<JsonNodeString>("String", TokensPath::parseJsonNodeString)

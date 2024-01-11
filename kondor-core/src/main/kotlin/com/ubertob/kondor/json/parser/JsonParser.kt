@@ -46,7 +46,7 @@ fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> = surrounded(
 )()
 
 
-fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> = surrounded(
+fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonObjectNode> = surrounded(
     OpeningCurly, TokensPath::jsonObject, ClosingCurly
 )()
 
@@ -108,11 +108,11 @@ fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> =
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
     commaSepared { parseNewNode() }.transform { JsonNodeArray(it) }
 
-fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSepared(withParentNode {
+fun TokensPath.jsonObject(): JsonOutcome<JsonObjectNode> = commaSepared(withParentNode {
     keyValue {
         parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.last()?.pos ?: 0, path, "invalid Json")
     }
-}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap()) }
+}).transform(::checkForDuplicateKeys).transform { JsonObjectNode(it.toMap()) }
 
 private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
     pairs.sortedBy { it.first }

@@ -23,7 +23,7 @@ class NodeKindTest {
 
     @Test
     fun `from Json to JsonNode`() {
-        val jsonNode: JsonNodeObject = ObjectNode.fromJsonString(jsonString).expectSuccess()
+        val jsonNode: JsonObjectNode = ObjectNode.fromJsonString(jsonString).expectSuccess()
 
         expectThat(jsonNode._fieldMap.keys).containsExactly(setOf("id", "name", "somethingelse"))
         expectThat(jsonNode.render(prettyWithNulls)).isEqualTo(jsonString)

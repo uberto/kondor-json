@@ -1,9 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeNull
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
@@ -15,7 +12,7 @@ typealias PropertySetter = (MutableFieldMap) -> MutableFieldMap
 sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
-    abstract fun getter(wrapped: JsonNodeObject, path: NodePath): JsonOutcome<T>
+    abstract fun getter(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -25,14 +22,14 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T>() {
 
-    override fun getter(wrapped: JsonNodeObject, path: NodePath): Outcome<JsonError, T> =
-        wrapped._fieldMap[propName]
+    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+        fieldMap[propName]
             ?.let { converter.fromJsonNodeBase(it, path) }
             ?.failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
             ?: JsonPropertyError(
                 path,
                 propName,
-                "Not found key '$propName'. Keys found: [${wrapped._fieldMap.keys.joinToString()}]"
+                "Not found key '$propName'. Keys found: [${fieldMap.keys.joinToString()}]"
             ).asFailure()
 
 
@@ -49,8 +46,8 @@ data class JsonPropOptional<T, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T?>() {
 
-    override fun getter(wrapped: JsonNodeObject, path: NodePath): Outcome<JsonError, T?> =
-        wrapped._fieldMap[propName]
+    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T?> =
+        fieldMap[propName]
             ?.let { converter.fromJsonNodeBase(it, path) }
             ?: null.asSuccess()
 
@@ -74,14 +71,13 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     private val parentProperties = parent.getProperties().map { it.propName }
 
-    override fun getter(wrapped: JsonNodeObject, path: NodePath): Outcome<JsonError, T> =
-        wrapped.removeFieldsFromParent()
-            .let { JsonNodeObject(it) }
+    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+        JsonObjectNode(fieldMap.removeFieldsFromParent())
             .let(converter::fromJsonNode)
             .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
 
-    private fun JsonNodeObject.removeFieldsFromParent() =
-        _fieldMap.filterKeys { key -> !parentProperties.contains(key) }
+    private fun FieldMap.removeFieldsFromParent() =
+        filterKeys { key -> !parentProperties.contains(key) }
 
     override fun setter(value: T): PropertySetter = { fm ->
         fm.apply {

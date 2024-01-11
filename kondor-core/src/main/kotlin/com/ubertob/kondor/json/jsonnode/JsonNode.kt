@@ -25,14 +25,18 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode)
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
+data class JsonObjectNode(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
     val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
 
-    operator fun <T> JsonProperty<T>.unaryPlus(): T =
-        getter(this@JsonNodeObject, path = NodePathRoot) //!!!
-            .onFailure { throw JsonParsingException(it) }
+}
 
+
+data class JsonNodeObject(val _fieldMap: FieldMap, val _path: NodePath){
+
+    operator fun <T> JsonProperty<T>.unaryPlus(): T =
+        getter(this@JsonNodeObject._fieldMap, path = _path)
+            .onFailure { throw JsonParsingException(it) }
 }
 
 fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =

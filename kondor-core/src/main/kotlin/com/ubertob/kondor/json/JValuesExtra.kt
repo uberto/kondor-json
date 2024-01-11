@@ -3,7 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.jsonnode.JsonObjectNode
 import com.ubertob.kondor.json.schema.enumSchema
 import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
@@ -40,7 +40,7 @@ object JCurrency : JStringRepresentable<Currency>() {
 data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List<E> = emptyList()) :
     JStringRepresentable<E>() {
     override val render: (E) -> String = { it.name } //see enumValueOf() and enumValues()
-    override fun schema(): JsonNodeObject = enumSchema(values)
+    override fun schema(): JsonObjectNode = enumSchema(values)
 }
 
 data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) :
@@ -48,7 +48,7 @@ data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) :
     private val valuesMap: Map<String, E> by lazy { clazz.java.enumConstants.associateBy { it.name } }
     override val cons: (String) -> E = { name -> valuesMap[name] ?: error("not found $name among ${valuesMap.keys}") }
     override val render: (E) -> String = { it.name }
-    override fun schema(): JsonNodeObject = enumSchema(valuesMap.values.toList())
+    override fun schema(): JsonObjectNode = enumSchema(valuesMap.values.toList())
 }
 
 //for serializing Kotlin object and other single instance types
@@ -66,14 +66,14 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         JsonNodeString(extractTypeName(obj))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val path = NodePathRoot //!!!
+        val jsonNode = JsonObjectNode(_fieldMap) //!!!
         val discriminatorNode = _fieldMap[discriminatorFieldName]
-            ?: defaultConverter?.let { return it.fromJsonNode(this, path).orThrow() }
+            ?: defaultConverter?.let { return it.fromJsonNode(jsonNode, _path).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
-        val typeName = JString.fromJsonNodeBase(discriminatorNode, path).orThrow()
+        val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-        return converter.fromJsonNode(this, path).orThrow()
+        return converter.fromJsonNode(jsonNode, _path).orThrow()
     }
 
     override fun convertFields(valueObject: T): Map<String, JsonNode> =

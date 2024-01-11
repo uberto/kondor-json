@@ -77,7 +77,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                     it.asSuccess()
             }
 
-    fun schema(): JsonNodeObject = valueSchema(_nodeType)
+    fun schema(): JsonObjectNode = valueSchema(_nodeType)
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =

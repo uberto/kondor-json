@@ -28,7 +28,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
         .extractList()
         .transform { it.filterNotNull() }
 
-    override fun schema(): JsonNodeObject = arraySchema(converter)
+    override fun schema(): JsonObjectNode = arraySchema(converter)
 
 }
 

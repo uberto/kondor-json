@@ -112,7 +112,7 @@ class JsonRenderTest {
 
     @Test
     fun `render object`() {
-        val jsonString = JsonNodeObject(
+        val jsonString = JsonObjectNode(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal()),
                 "name" to JsonNodeString("Ann")
@@ -126,7 +126,7 @@ class JsonRenderTest {
 
     @Test
     fun `render object with nulls`() {
-        val jsonString = JsonNodeObject(
+        val jsonString = JsonObjectNode(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal()),
                 "name" to JsonNodeString("Ann"),
@@ -144,7 +144,7 @@ class JsonRenderTest {
         repeat(5) {
             val indent = Random.nextInt(8)
             val style = pretty.copy(indent = indent)
-            val jsonString = JsonNodeObject(
+            val jsonString = JsonObjectNode(
                 mapOf(
                     "id" to JsonNodeNumber(123.toBigDecimal()),
                     "name" to JsonNodeString("Ann")
@@ -163,7 +163,7 @@ class JsonRenderTest {
     @Test
     fun `render object with null explicit`() {
         val path = NodePathRoot
-        val nodeObject = JsonNodeObject(
+        val nodeObject = JsonObjectNode(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal()),
                 "name" to JsonNodeString("Ann"),
@@ -190,7 +190,7 @@ class JsonRenderTest {
 
     @Test
     fun `compact render object`() {
-        val jsonString = JsonNodeObject(
+        val jsonString = JsonObjectNode(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal()),
                 "name" to JsonNodeString("Ann"),
@@ -203,7 +203,7 @@ class JsonRenderTest {
 
     @Test
     fun `compact render object with null explicit`() {
-        val jsonString = JsonNodeObject(
+        val jsonString = JsonObjectNode(
             mapOf(
                 "id" to JsonNodeNumber(123.toBigDecimal()),
                 "name" to JsonNodeString("Ann"),
@@ -214,7 +214,7 @@ class JsonRenderTest {
                         JsonNodeNull
                     )
                 ),
-                "objectNullable" to JsonNodeObject(
+                "objectNullable" to JsonObjectNode(
                     mapOf(
                         "one" to JsonNodeString("two"),
                         "three" to JsonNodeNull

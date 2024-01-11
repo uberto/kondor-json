@@ -74,7 +74,7 @@ data class JsonStyle(
                     append(']')
                 }
 
-                is JsonNodeObject -> {
+                is JsonObjectNode -> {
                     append('{')
                     appendNewlineIfNeeded(style.indent, offset + 1)
                     node.fields(style.includeNulls, style.sortedObjectFields)
@@ -122,7 +122,7 @@ data class JsonStyle(
             append("\"")
         }
 
-        private fun JsonNodeObject.fields(includeNulls: Boolean, sorted: Boolean) =
+        private fun JsonObjectNode.fields(includeNulls: Boolean, sorted: Boolean) =
             (if (includeNulls) _fieldMap.entries else notNullFields).let {
                 if (sorted) it.sortedBy(Map.Entry<String, JsonNode>::key) else it
             }

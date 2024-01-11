@@ -309,10 +309,10 @@ class JsonParserTest {
                     "String"
                 )
             )
-            get { attributes._fieldMap["aObj"] }.isA<JsonNodeObject>()
+            get { attributes._fieldMap["aObj"] }.isA<JsonObjectNode>()
         }
 
-        expectThat(objWithDynamicAttr.attributes._fieldMap["aObj"] as? JsonNodeObject).isNotNull()
+        expectThat(objWithDynamicAttr.attributes._fieldMap["aObj"] as? JsonObjectNode).isNotNull()
             .and {
                 get { (_fieldMap["aNestedString"] as? JsonNodeString)?.text }.isEqualTo("NestedString")
                 get { (_fieldMap["aNestedNum"] as JsonNodeNumber).num.toInt() }.isEqualTo(123123)

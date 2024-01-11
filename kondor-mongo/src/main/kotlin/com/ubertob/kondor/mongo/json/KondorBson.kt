@@ -9,7 +9,7 @@ import org.bson.types.ObjectId
 object KondorBson {
 
     fun <T : Any> toBsonDoc(conv: JAny<T>, value: T): BsonDocument {
-        val jn: JsonNodeObject = conv.toJsonNode(value)
+        val jn: JsonObjectNode = conv.toJsonNode(value)
 
         return convertJsonNodeToBson(jn)
     }
@@ -47,7 +47,7 @@ object KondorBson {
 //        return JsonNodeNull(NodePathRoot)
 //    }
 
-    fun convertJsonNodeToBson(jn: JsonNodeObject): BsonDocument {
+    fun convertJsonNodeToBson(jn: JsonObjectNode): BsonDocument {
         val writer = BsonDocumentWriter(BsonDocument())
 
         encodeValue(writer, jn)
@@ -68,7 +68,7 @@ object KondorBson {
 
             is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
             is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
-            is JsonNodeObject -> {
+            is JsonObjectNode -> {
                 if (value._fieldMap.keys.contains("\$oid"))
                     writer.writeObjectId(ObjectId(value._fieldMap["\$oid"].asStringValue()))
                 else
@@ -79,7 +79,7 @@ object KondorBson {
         }
     }
 
-    private fun encodeNormalObject(writer: BsonDocumentWriter, value: JsonNodeObject) {
+    private fun encodeNormalObject(writer: BsonDocumentWriter, value: JsonObjectNode) {
         writer.writeStartDocument()
         value._fieldMap.forEach { (fieldName, node) ->
             writer.writeName(fieldName)
@@ -91,5 +91,5 @@ object KondorBson {
 }
 
 
-fun JsonNodeObject.toBsonDocument(): BsonDocument = KondorBson.convertJsonNodeToBson(this)
+fun JsonObjectNode.toBsonDocument(): BsonDocument = KondorBson.convertJsonNodeToBson(this)
 

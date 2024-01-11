@@ -9,7 +9,7 @@ typealias NamedNode = Pair<String, JsonNode>
 typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap
 
 
-interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
+interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonObjectNode> {
     override val _nodeType get() = ObjectNode
 }
 
@@ -17,15 +17,15 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+    override fun fromJsonNode(node: JsonObjectNode, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            node.deserializeOrThrow() ?: throw JsonParsingException(
+            JsonNodeObject(node._fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
                 ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
 
-    override fun toJsonNode(value: T): JsonNodeObject =
-        JsonNodeObject(convertFields(value))
+    override fun toJsonNode(value: T): JsonObjectNode =
+        JsonObjectNode(convertFields(value))
 
     abstract fun convertFields(valueObject: T): Map<String, JsonNode>
 
@@ -59,7 +59,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
         registerWriter { mfm, obj -> jsonProperty.setter(binder(obj))(mfm) }
     }
 
-    override fun schema(): JsonNodeObject = objectSchema(properties.get())
+    override fun schema(): JsonObjectNode = objectSchema(properties.get())
 }
 
 private fun <T> ((MutableFieldMap, T) -> MutableFieldMap).toWriter(): NodeWriter<T> =
