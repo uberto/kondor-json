@@ -436,7 +436,6 @@ object JVariant : JSealed<Variant>() {
     override val discriminatorFieldName = "type"
     override val defaultConverter = JVariantString
 
-
     override fun extractTypeName(obj: Variant) =
         when (obj) {
             is VariantInt -> INT
@@ -469,9 +468,9 @@ object JDynamicAttr : JAny<DynamicAttr>() {
 }
 
 
-data class OptionalAddress(val name: String, val street: String?, val city: String?)
+data class OptionalAddress(val name: String?, val street: String?, val city: String?)
 
-object JOptionalAddressPretty : JAny<OptionalAddress>() {
+object JOptionalAddress : JAny<OptionalAddress>() {
 
     override val jsonStyle = prettyWithNulls
 

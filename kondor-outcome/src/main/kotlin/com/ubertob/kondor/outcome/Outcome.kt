@@ -1,7 +1,7 @@
 package com.ubertob.kondor.outcome
 
 
-sealed class Outcome<out E : OutcomeError, out T> {
+sealed interface Outcome<out E : OutcomeError, out T> {
 
     fun <U> transform(f: (T) -> U): Outcome<E, U> =
         when (this) {
@@ -23,11 +23,6 @@ sealed class Outcome<out E : OutcomeError, out T> {
 
     fun orNull(): T? = recover { null }
 
-    inline fun <reified U: @UnsafeVariance T> castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
-        when(this){
-            is Failure -> this
-            is Success -> if (value is U) { value.asSuccess() } else {error(value).asFailure() }
-        }
 
     companion object {
 
@@ -43,14 +38,20 @@ sealed class Outcome<out E : OutcomeError, out T> {
             } catch (t: Throwable) {
                 ThrowableError(t).asFailure()
             }
-
     }
-
 }
 
-data class Success<T> internal constructor(val value: T) : Outcome<Nothing, T>()
-data class Failure<E : OutcomeError> internal constructor(val error: E) : Outcome<E, Nothing>()
+@JvmInline
+value class Success<T> internal constructor(val value: T) : Outcome<Nothing, T>
 
+@JvmInline
+value class Failure<E : OutcomeError> internal constructor(val error: E) : Outcome<E, Nothing>
+
+inline fun <T, E : OutcomeError, reified U: @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
+    when(this){
+        is Failure -> this
+        is Success -> if (value is U) { value.asSuccess() } else {error(value).asFailure() }
+    }
 
 inline fun <T, E : OutcomeError> Outcome<E, T>.recover(recoverError: (E) -> T): T =
     when (this) {

@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
@@ -31,6 +32,23 @@ class JMap<K : Any, V : Any>(
                         .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
                         .orThrow()
         }
+
+
+    private fun valueAppender(propName: String, value: V?): PropertyAppender? =
+        if (value == null) null
+        else { style, off ->
+            appendText(propName)
+            style.appendValueSeparator(this)
+            valueConverter.appendValue(this, style, off, value)
+        }
+
+    override fun fieldAppenders(valueObject: Map<K, V>): List<NamedAppender> =
+        valueObject
+            .map { (key, value) ->
+                val propName = keyConverter.render(key)
+                propName to valueAppender(propName, value)
+            }
+            .sortedBy { it.first }
 
     override fun convertFields(valueObject: Map<K, V>): Map<String, JsonNode> =
         valueObject

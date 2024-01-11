@@ -2,10 +2,9 @@ package com.ubertob.kondor.json.datetime
 
 import com.ubertob.kondor.json.JNumRepresentable
 import com.ubertob.kondor.json.JStringRepresentable
-import java.math.BigDecimal
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Locale
+import java.util.*
 
 object JZoneId : JStringRepresentable<ZoneId>() {
     override val cons: (String) -> ZoneId = ZoneId::of
@@ -70,6 +69,6 @@ object JInstant : JStringRepresentable<Instant>() {
 
 //instant as epoch millis
 object JInstantEpoch : JNumRepresentable<Instant>() {
-    override val cons: (BigDecimal) -> Instant = { Instant.ofEpochMilli(it.toLong()) }
-    override val render: (Instant) -> BigDecimal = { it.toEpochMilli().toBigDecimal() }
+    override val cons: (Number) -> Instant = { Instant.ofEpochMilli(it.toLong()) }
+    override val render: (Instant) -> Number = { it.toEpochMilli() }
 }

@@ -53,11 +53,11 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
 
-
     val jsonStyle: JsonStyle
         get() = JsonStyle.singleLine
 
-    override fun toJson(value: T): String = jsonStyle.render(toJsonNode(value))
+    override fun toJson(value: T): String =
+        toJson(value, jsonStyle)
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)
@@ -77,11 +77,12 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                     it.asSuccess()
             }
 
+    fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonObjectNode = valueSchema(_nodeType)
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
-    renderer.render(toJsonNode(value))
+    appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
 
 
 //deprecated methods

@@ -32,22 +32,38 @@ class JsonRenderTest {
     fun `render exp Num`() {
         val value = Double.MIN_VALUE
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal()).render()
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("4.9E-324")
     }
 
     @Test
     fun `render integer Num`() {
-        val value = Int.MAX_VALUE.toDouble()
+        val value = Int.MAX_VALUE
 
-        val jsonString = JsonNodeNumber(value.toBigDecimal()).render()
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
 
         expectThat(jsonString).isEqualTo("2147483647")
     }
 
+     @Test
+    fun `render Nan Num`() {
+        val value = Double.NaN
+
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+
+        expectThat(jsonString).isEqualTo("NaN")
+    }
+
     @Test
-    fun `render escaped String`() {
+    fun `render directly non numeric values`() {
+        expectThat(JDouble.toJson(Double.NaN)).isEqualTo(""""NaN"""")
+        expectThat(JDouble.toJson(Double.NEGATIVE_INFINITY)).isEqualTo(""""-Infinity"""")
+        expectThat(JDouble.toJson(Double.POSITIVE_INFINITY)).isEqualTo(""""Infinity"""")
+    }
+
+    @Test
+    fun `render String field honoring Json escaping rules`() {
         val value = "abc {} \\ , : [] \" \n \t \r 123"
 
         val jsonString = JsonNodeString(value).render()
@@ -110,27 +126,47 @@ class JsonRenderTest {
 
     }
 
+
     @Test
-    fun `render object`() {
+    fun `render object from node`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal()),
-                "name" to JsonNodeString("Ann")
+                "id" to JsonNodeNumber(123, NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot)
             )
         ).render()
 
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(jsonString).isEqualTo(expected)
     }
-
 
     @Test
     fun `render object with nulls`() {
+
+        val nullOnlyObj =OptionalAddress(null, null, null)
+
+        expectThat(JOptionalAddress.toJson(nullOnlyObj, compact))
+            .isEqualTo("""{}""")
+
+        val streetOnlyObj =OptionalAddress(null, "42 Adams Road", null)
+
+        expectThat(JOptionalAddress.toJson(streetOnlyObj, compact))
+            .isEqualTo("""{"street":"42 Adams Road"}""")
+
+        val nameAndstreetObj =OptionalAddress("Marvin", "42 Adams Road", null)
+
+        expectThat(JOptionalAddress.toJson(nameAndstreetObj, compact))
+            .isEqualTo("""{"name":"Marvin","street":"42 Adams Road"}""")
+    }
+
+    @Test
+    fun `render object with nulls from node`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal()),
-                "name" to JsonNodeString("Ann"),
-                "nullable" to JsonNodeNull
+                "firstNullable" to JsonNodeNull(NodePathRoot),
+                "id" to JsonNodeNumber(123, NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot),
+                "lastNullable" to JsonNodeNull(NodePathRoot)
             )
         ).render()
 
@@ -138,16 +174,25 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo(expected)
     }
 
-    @Test
-    fun `pretty render object`() {
 
+     @Test
+    fun `custom pretty render object`() {
         repeat(5) {
             val indent = Random.nextInt(8)
-            val style = pretty.copy(indent = indent)
+
+            fun customNewLine(app: CharWriter, offset: Int): CharWriter =
+                app.apply {
+                    app.write('\n')
+                    repeat(offset * indent) {
+                        app.write(' ')
+                    }
+                }
+
+            val style = pretty.copy(appendNewline = ::customNewLine )
             val jsonString = JsonObjectNode(
                 mapOf(
-                    "id" to JsonNodeNumber(123.toBigDecimal()),
-                    "name" to JsonNodeString("Ann")
+                    "id" to JsonNodeNumber(123, NodePathRoot),
+                    "name" to JsonNodeString("Ann", NodePathRoot)
                 )
             ).render(style)
 
@@ -165,9 +210,9 @@ class JsonRenderTest {
         val path = NodePathRoot
         val nodeObject = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal()),
-                "name" to JsonNodeString("Ann"),
-                "somethingelse" to JsonNodeNull
+                "id" to JsonNodeNumber(123, path),
+                "name" to JsonNodeString("Ann", path),
+                "somethingelse" to JsonNodeNull(path)
             )
         )
         val jsonString = prettyWithNulls.render(nodeObject)
@@ -192,9 +237,9 @@ class JsonRenderTest {
     fun `compact render object`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal()),
-                "name" to JsonNodeString("Ann"),
-                "nullable" to JsonNodeNull
+                "id" to JsonNodeNumber(123, NodePathRoot),
+                "name" to JsonNodeString("Ann", NodePathRoot),
+                "nullable" to JsonNodeNull(NodePathRoot)
             )
         ).render(compact)
 
@@ -205,7 +250,7 @@ class JsonRenderTest {
     fun `compact render object with null explicit`() {
         val jsonString = JsonObjectNode(
             mapOf(
-                "id" to JsonNodeNumber(123.toBigDecimal()),
+                "id" to JsonNodeNumber(123),
                 "name" to JsonNodeString("Ann"),
                 "nullable" to JsonNodeNull,
                 "arrayNullable" to JsonNodeArray(
@@ -229,7 +274,7 @@ class JsonRenderTest {
     @Test
     fun `using converter with different default style`() {
         val addr = OptionalAddress("Jack", null, "London")
-        val jsonPretty = JOptionalAddressPretty.toJson(addr)
+        val jsonPretty = JOptionalAddress.toJson(addr)
 
         expectThat(jsonPretty).isEqualTo(
             """{

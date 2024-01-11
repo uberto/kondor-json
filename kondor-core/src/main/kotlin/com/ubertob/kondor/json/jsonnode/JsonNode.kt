@@ -9,7 +9,6 @@ import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.onFailure
-import java.math.BigDecimal
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 typealias FieldMap = Map<String, JsonNode>
@@ -18,10 +17,11 @@ sealed class JsonNode(val nodeKind: NodeKind<*>)
 
 object JsonNodeNull : JsonNode(NullNode)
 
-data class JsonNodeBoolean(val boolean: Boolean) : JsonNode(BooleanNode)
-data class JsonNodeNumber(val num: BigDecimal) : JsonNode(NumberNode)
-data class JsonNodeString(val text: String) : JsonNode(StringNode)
-data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode) {
+data class JsonNodeBoolean(val boolean: Boolean, override val _path: NodePath) : JsonNode(BooleanNode)
+
+data class JsonNodeNumber(val num: Number, override val _path: NodePath) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String, override val _path: NodePath) : JsonNode(StringNode)
+data class JsonNodeArray(val elements: Iterable<JsonNode>, override val _path: NodePath) : JsonNode(ArrayNode) {
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 

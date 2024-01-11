@@ -33,7 +33,7 @@ class JValuesExtraTest {
     }
 
     @Test
-    fun `Json Customer`() {
+    fun `JSealed Customer`() {
 
         repeat(10) {
 
@@ -175,8 +175,8 @@ class JValuesExtraTest {
               |  "file_name": "filename",
               |  "folder_path": "/tmp",
               |  "is_dir": false,
-              |  "selected": true,
-              |  "size": 123
+              |  "size": 123,
+              |  "selected": true
               |}""".trimMargin()
         )
 

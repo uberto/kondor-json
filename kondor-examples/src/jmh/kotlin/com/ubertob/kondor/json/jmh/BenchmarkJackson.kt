@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json.jmh
 
-import org.openjdk.jmh.annotations.Benchmark
+ import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
 //Jackson, Moshi, Gson, KotlinX comparison
@@ -41,4 +41,9 @@ open class BenchmarkJackson {
             blackHole.consume(list)
         }
 
+}
+
+fun main() {
+    benchLoop(JacksonDsl::toJson, JacksonReflection::fromJson)
+//    benchLoop(JacksonReflection::toJson, JacksonReflection::fromJson)
 }

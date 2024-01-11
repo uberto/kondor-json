@@ -1,11 +1,7 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.JsonObjectNode
 import com.ubertob.kondor.json.schema.enumSchema
-import com.ubertob.kondor.json.schema.sealedSchema
 import java.math.BigDecimal
 import java.math.BigInteger
 import java.util.*
@@ -21,13 +17,13 @@ data class JStringWrapper<T : StringWrapper>(override val cons: (String) -> T) :
 }
 
 object JBigDecimal : JNumRepresentable<BigDecimal>() {
-    override val cons: (BigDecimal) -> BigDecimal = { it }
-    override val render: (BigDecimal) -> BigDecimal = { it }
+    override val cons: (Number) -> BigDecimal = { BigDecimal (it.toString()) }
+    override val render: (BigDecimal) -> Number = { it }
 }
 
 object JBigInteger : JNumRepresentable<BigInteger>() {
-    override val cons: (BigDecimal) -> BigInteger = BigDecimal::toBigInteger
-    override val render: (BigInteger) -> BigDecimal = BigInteger::toBigDecimal
+    override val cons: (Number) -> BigInteger = { BigInteger (it.toString()) }
+    override val render: (BigInteger) -> Number = BigInteger::toBigDecimal
 }
 
 
@@ -56,34 +52,3 @@ data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow() = singleton
 }
 
-abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
-
-    open val discriminatorFieldName: String = "_type"
-
-    open val defaultConverter: ObjectNodeConverterWriters<out T>? = null
-
-    private fun discriminatorFieldNode(obj: T) =
-        JsonNodeString(extractTypeName(obj))
-
-    override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val jsonNode = JsonObjectNode(_fieldMap) //!!! redundant allocation
-        val discriminatorNode = _fieldMap[discriminatorFieldName]
-            ?: defaultConverter?.let { return it.fromJsonNode(jsonNode, _path).orThrow() }
-            ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
-
-        val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
-        val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-        return converter.fromJsonNode(jsonNode, _path).orThrow()
-    }
-
-    override fun convertFields(valueObject: T): Map<String, JsonNode> =
-        extractTypeName(valueObject).let { typeName ->
-            findSubTypeConverter(typeName)
-                ?.convertFields(valueObject)
-                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
-                ?: error("subtype not known $typeName")
-        }
-
-    override fun schema() = sealedSchema(discriminatorFieldName, subConverters)
-
-}

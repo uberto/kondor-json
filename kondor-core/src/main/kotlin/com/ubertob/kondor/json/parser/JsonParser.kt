@@ -170,23 +170,27 @@ private fun TokensPath.takeOrNull(separator: KondorSeparator): JsonOutcome<Kondo
 
     }
 
-fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? = when (val t = tokens.peek()) {
-    is Value -> when (t.text) {
-        "null" -> parseJsonNodeNull()
-        "false", "true" -> parseJsonNodeBoolean()
-        else -> parseJsonNodeNum()
-    }
+fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
+    if (!tokens.hasNext())
+        null
+    else
+        when (val t = tokens.peek()) {
+            is Value -> when (t.text) {
+                "null" -> parseJsonNodeNull()
+                "false", "true" -> parseJsonNodeBoolean()
+                else -> parseJsonNodeNum()
+            }
 
-    is Separator -> when (t.sep) {
-        OpeningQuotes -> parseJsonNodeString()
-        OpeningBracket -> parseJsonNodeArray()
-        OpeningCurly -> parseJsonNodeObject()
-        ClosingBracket, ClosingCurly -> null //no more nodes
-        ClosingQuotes, Comma, Colon -> parsingError(
-            "a new node", tokens.lastToken(), path, "${t.desc} in wrong position"
-        ).asFailure()
-    }
-}
+            is Separator -> when (t.sep) {
+                OpeningQuotes -> parseJsonNodeString()
+                OpeningBracket -> parseJsonNodeArray()
+                OpeningCurly -> parseJsonNodeObject()
+                ClosingBracket, ClosingCurly -> null //no more nodes
+                ClosingQuotes, Comma, Colon -> parsingError(
+                    "a new node", tokens.lastToken(), path, "${t.desc} in wrong position"
+                ).asFailure()
+            }
+        }
 
 private fun string(token: Value) = token.text
 

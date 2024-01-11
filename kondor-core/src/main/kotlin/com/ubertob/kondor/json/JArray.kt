@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.JsonStyle.Companion.appendArrayValues
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
@@ -30,6 +31,9 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
     override fun schema(): JsonObjectNode = arraySchema(converter)
 
+    //TODO not sure we need all parameters here
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: CT): CharWriter =
+        app.appendArrayValues(jsonStyle, 0, value, converter::appendValue)
 }
 
 
