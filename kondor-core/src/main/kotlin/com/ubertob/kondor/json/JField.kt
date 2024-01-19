@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
 sealed class JFieldBase<T, PT : Any>
     : ReadOnlyProperty<JAny<PT>, JsonProperty<T>> {
 
-    protected abstract val binder: (PT) -> T
+    protected abstract val binder: (PT) -> T //TODO having a special field that store a method ref with the name of the method?
 
     protected abstract fun buildJsonProperty(property: KProperty<*>): JsonProperty<T>
 
