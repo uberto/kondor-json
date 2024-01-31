@@ -5,6 +5,8 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
 import java.math.BigDecimal
 
 
@@ -83,6 +85,26 @@ fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
+
+    override fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> =
+        when(node){
+            is JsonNodeNumber -> fromJsonNode(node)
+            is JsonNodeString -> tryNanNode(node)
+            is JsonNodeNull -> null.asSuccess()
+            else -> ConverterJsonError(node._path,
+                "expected a Number or NaN but found ${node.nodeKind.desc}"
+            ).asFailure()
+        }
+
+    private fun tryNanNode(node: JsonNodeString): Outcome<JsonError, T?> =
+        when (node.text){
+            "NaN" -> cons(Double.NaN).asSuccess()
+            "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
+            "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
+            else -> ConverterJsonError(node._path,
+                "expected a Number or NaN but found '${node.text}'"
+            ).asFailure()
+    }
 
     override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> = tryFromNode(node) { cons(node.num) }
     override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =

@@ -111,6 +111,21 @@ class JsonParserTest {
 
     }
 
+    @Test
+    fun `parse NaN Double`() {
+
+        val value = Double.NaN
+
+        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+
+        val tokens = tokenize(jsonString).expectSuccess()
+
+        val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
+
+        expectThat(node.num).isEqualTo(value)
+        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
+    }
+
 
     @Test
     fun `parse empty String`() {

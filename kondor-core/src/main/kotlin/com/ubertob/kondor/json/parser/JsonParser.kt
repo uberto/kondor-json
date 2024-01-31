@@ -88,14 +88,18 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 
 
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = when (val token = tokens.next()) {
-    is Value -> stringToBigDecimal(token, path)
+    is Value -> stringToNumber(token, path)
     else -> parsingFailure("a Number", token, path, "not a valid number")
 }.transform { JsonNodeNumber(it, path) }
 
-private fun stringToBigDecimal(token: Value, nodePath: NodePath): Outcome<JsonError, BigDecimal> = try {
-    BigDecimal(string(token)).asSuccess()
-} catch (t: NumberFormatException) {
-    parsingFailure("a Number", token, nodePath, t.message.orEmpty())
+private fun stringToNumber(token: Value, nodePath: NodePath): Outcome<JsonError, Number> = try {
+    BigDecimal(token.text).asSuccess()
+} catch (e: NumberFormatException) {
+    try {
+        token.text.toDouble().asSuccess()
+    } catch (t: NumberFormatException) {
+        parsingFailure("a Number", token, nodePath, t.message.orEmpty())
+    }
 }
 
 

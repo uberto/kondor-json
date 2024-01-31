@@ -4,7 +4,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendArrayValues
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.extractList
+import com.ubertob.kondor.outcome.traverse
 
 interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
@@ -25,8 +25,8 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
     private fun <T : Any> mapFromArray(
         node: JsonNodeArray,
         f: (JsonNode) -> JsonOutcome<T?>
-    ): JsonOutcome<Iterable<T>> = node.elements.map(f)
-        .extractList()
+    ): JsonOutcome<Iterable<T>> = node.elements
+        .traverse(f)
         .transform { it.filterNotNull() }
 
     override fun schema(): JsonNodeObject = arraySchema(converter)

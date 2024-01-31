@@ -273,7 +273,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number but found String")
+        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number or NaN but found 'a string'")
     }
 
     object JPersonIncomplete : JAny<Person>() {
