@@ -23,14 +23,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>2.2.1</version>
+    <version>2.2.2</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:2.2.1'
+implementation 'com.ubertob.kondor:kondor-core:2.2.2'
 ```
 
 ## The Video Presentation
@@ -390,7 +390,7 @@ We can parse and render a Json like this:
    "aString": "String",
    "aObj": {
      "aNestedString": "NestedString",
-     "aNestedNum": 12.2.1
+     "aNestedNum": 12.2.2
    }
  }
 ```

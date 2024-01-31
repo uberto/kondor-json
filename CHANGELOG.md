@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.2.2 - 10 January 2024
+
+Kondor-core: handling NaN and Infinity deserialization of Double
+
 ### v.2.2.1 - 10 January 2024
 
 Kondor-core: fixed issue with invalid Json parsing
