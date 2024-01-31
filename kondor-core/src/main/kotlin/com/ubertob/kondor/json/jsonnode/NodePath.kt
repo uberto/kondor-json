@@ -13,7 +13,10 @@ object NodePathRoot : NodePath() {
     override fun toString(): String = ROOT_NODE
 }
 
-data class NodePathSegment(val nodeName: String, val parent: NodePath) : NodePath()
+data class NodePathSegment(val nodeName: String, val parent: NodePath) : NodePath() {
+    override fun toString(): String =
+        "$parent/$nodeName"
+}
 
 private val ROOT_NODE = "[root]"
 

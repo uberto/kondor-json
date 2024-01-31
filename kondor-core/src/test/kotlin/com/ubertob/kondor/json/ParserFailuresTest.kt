@@ -204,11 +204,19 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing invalid json`() {
+    fun `parsing invalid json gives an error`() {
         val invalidJson = "BOOM"
         val error = JPerson.fromJson(invalidJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected OpeningCurly but found 'BOOM' - invalid Json")
+    }
+
+    @Test
+    fun `parsing nested invalid json gives an error with the correct position`() {
+        val invalidJson = """{ "obj": {"num": 123, "nestedObj": { BOOOM} } }"""
+        val error = JPerson.fromJson(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node </obj/nestedObj> at position 38: expected a valid key but found 'BOOOM' - key missing in object field")
     }
 
     @Test
