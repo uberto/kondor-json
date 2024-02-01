@@ -141,7 +141,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
         var pos = 1
         val charWriter = ChunkedStringWriter(256)
         var state = OutString
-        val tokens = mutableListOf<KondorToken>()
+        val tokens = ArrayList<KondorToken>(128)
         for (char in jsonStr) {
             when (state) {
                 OutString ->
