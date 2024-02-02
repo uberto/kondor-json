@@ -40,7 +40,6 @@ dependencies {
     testImplementation("org.testcontainers:mongodb:$testContainerVersion")
 
     testImplementation project (":kondor-tools")
-    testImplementation "org.jetbrains.kotlin:kotlin-reflect:1.8.0"
 }
 
 
