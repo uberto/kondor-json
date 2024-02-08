@@ -199,3 +199,12 @@ fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>
     is Failure -> this
     is Success -> f(value).transform { value }
 }
+
+
+
+typealias ObjectFields = Map<String, Any?>
+fun TokensPath.toObjectFields(): JsonOutcome< ObjectFields> = commaSepared(withParentNode {
+    keyValue {
+        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.last()?.pos ?: 0, path, "invalid Json")
+    }
+}).transform(::checkForDuplicateKeys).transform { it.toMap() }
