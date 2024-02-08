@@ -27,6 +27,14 @@ subprojects {
         jmhVersion = "1.36"
     }
 
+//    kotlin {
+//        sourceSets.all {
+//            languageSettings {
+//                languageVersion = "2.0"
+//            }
+//        }
+//    }
+
 }
 
 
