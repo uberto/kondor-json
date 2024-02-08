@@ -21,7 +21,23 @@ sealed interface Outcome<out E : OutcomeError, out T> {
             is Failure -> throw OutcomeException(error)
         }
 
-    fun orNull(): T? = recover { null }
+    fun orNull(): T? = when (this) {
+        is Success -> value
+        is Failure -> null
+    }
+
+
+    fun <U, F: @UnsafeVariance E> bind(f: (T) -> Outcome< F, U>): Outcome<E, U> =
+        when (this) {
+            is Success -> f(value)
+            is Failure -> this
+        }
+
+    fun <F : OutcomeError> bindFailure(f: (E) -> Outcome<F, @UnsafeVariance T>): Outcome<F, T> =
+        when (this) {
+            is Success -> this
+            is Failure -> f(error)
+        }
 
 
     companion object {
@@ -47,28 +63,20 @@ value class Success<T> internal constructor(val value: T) : Outcome<Nothing, T>
 @JvmInline
 value class Failure<E : OutcomeError> internal constructor(val error: E) : Outcome<E, Nothing>
 
-inline fun <T, E : OutcomeError, reified U: @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
-    when(this){
+inline fun <T, E : OutcomeError, reified U : @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
+    when (this) {
         is Failure -> this
-        is Success -> if (value is U) { value.asSuccess() } else {error(value).asFailure() }
+        is Success -> if (value is U) {
+            value.asSuccess()
+        } else {
+            error(value).asFailure()
+        }
     }
 
 inline fun <T, E : OutcomeError> Outcome<E, T>.recover(recoverError: (E) -> T): T =
     when (this) {
         is Success -> value
         is Failure -> recoverError(error)
-    }
-
-inline fun <T, U, E : OutcomeError> Outcome<E, T>.bind(f: (T) -> Outcome<E, U>): Outcome<E, U> =
-    when (this) {
-        is Success -> f(value)
-        is Failure -> this
-    }
-
-inline fun <T, E : OutcomeError, F : OutcomeError> Outcome<E, T>.bindFailure(f: (E) -> Outcome<F, T>): Outcome<F, T> =
-    when (this) {
-        is Success -> this
-        is Failure -> f(error)
     }
 
 fun <T, E : OutcomeError> Outcome<E, Outcome<E, T>>.join(): Outcome<E, T> =
@@ -82,12 +90,10 @@ infix fun <A, B, C, E : OutcomeError> ((A) -> Outcome<E, B>).compose(other: (B) 
     { a -> this(a).bind(other) }
 
 
-
-
 //convenience methods
 
 fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
-    failUnless({predicate(this).not()}, error)
+    failUnless({ predicate(this).not() }, error)
 
 fun <T, E : OutcomeError> Outcome<E, T>.failUnless(predicate: T.() -> Boolean, error: (T) -> E): Outcome<E, T> =
     when (this) {

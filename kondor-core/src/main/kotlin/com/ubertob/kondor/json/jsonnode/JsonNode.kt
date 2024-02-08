@@ -7,7 +7,6 @@ import com.ubertob.kondor.json.parser.JsonLexerEager
 import com.ubertob.kondor.json.parser.parseNewNode
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>

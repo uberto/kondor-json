@@ -10,7 +10,6 @@ import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
 import java.io.InputStream
 
 typealias JConverter<T> = JsonConverter<T, *>

@@ -11,13 +11,14 @@ data class MatcherError(val expected: String, val actual: String) : OutcomeError
 infix fun String.isEquivalentJson(expected: String): UnitOutcome {
     return parseJsonNode(expected)
         .bind { j1 ->
-            parseJsonNode(this).bind { j2 ->
-                val render1 = JsonStyle.prettyWithNulls.render(j1)
-                val render2 = JsonStyle.prettyWithNulls.render(j2)
-                if (render1 == render2)
-                    Unit.asSuccess()
-                else
-                    MatcherError(render1, render2).asFailure()
-            }
+            parseJsonNode(this)
+                .bind { j2 ->
+                    val render1 = JsonStyle.prettyWithNulls.render(j1)
+                    val render2 = JsonStyle.prettyWithNulls.render(j2)
+                    if (render1 == render2)
+                        Unit.asSuccess()
+                    else
+                        MatcherError(render1, render2).asFailure()
+                }
         }
 }
