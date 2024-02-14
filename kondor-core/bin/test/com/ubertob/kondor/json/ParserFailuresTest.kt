@@ -11,14 +11,6 @@ import strikt.assertions.startsWith
 class ParserFailuresTest {
 
     @Test
-    fun `parsing empty json fails`() {
-        val invalidJson = ""
-        val error = JPerson.fromJson(invalidJson).expectFailure()
-
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected OpeningCurly but found end of file - invalid Json")
-    }
-
-    @Test
     fun `parsing not complaint json fails`() {
         val illegalJson = "123 b"
 
@@ -149,7 +141,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 10: expected a valid key but found Comma - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected a valid key but found Comma - key missing in object field")
     }
 
     @Test
@@ -176,7 +168,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 11: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 12: expected a new node but found Comma - Comma in wrong position")
 
     }
 
@@ -187,7 +179,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 1: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 2: expected a new node but found Comma - Comma in wrong position")
     }
 
     @Test
@@ -197,7 +189,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected ClosingBracket but found ClosingCurly - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
 

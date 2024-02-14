@@ -2,6 +2,7 @@ package com.ubertob.kondor.json.parser
 
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.json.parser.LexerState.*
 import com.ubertob.kondor.outcome.asSuccess
 import java.io.InputStream

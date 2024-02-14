@@ -31,13 +31,16 @@ fun main() {
     benchLoop(::toJson, ::fromJson)
 }
 
-private fun fromJson(it: String) = jDemoClasses.fromJson(it).orThrow()
-
-private fun toJson(it: List<DemoClass>) =
-    jDemoClasses.toJson(it, JsonStyle.compact)
+private fun fromJson(json: String) =
+    jDemoClasses.fromJson(json).orThrow() //!!!
+//    KondorTokenizer.tokenize(json.byteInputStream())
+//        .bind(jDemoClasses::parseAndConvert).orThrow()
+private fun toJson(objs: List<DemoClass>) =
+    jDemoClasses.toJson(objs, JsonStyle.compact)
 
 //serialization:
 // add direct support for OutputStream instead of StringBuilder
 
 //deser:
-// direct deser: taking adventage of number type and removing regex
+// direct deser: taking adventage of number type
+

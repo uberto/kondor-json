@@ -72,7 +72,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             .bind { fromJsonNode(it) }
             .bind {
                 if (tokens.hasNext())
-                    parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+                    parsingFailure("EOF", tokens.next(), NodePathRoot, "json continue after end")
                 else
                     it.asSuccess()
             }

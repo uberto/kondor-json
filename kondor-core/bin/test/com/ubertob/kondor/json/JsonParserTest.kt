@@ -227,7 +227,12 @@ class JsonParserTest {
     @Test
     fun `parse an object`() {
 
-        val jsonString = """{"id": 123, "name": "Ann"}"""
+        val jsonString = """
+          {
+            "id": 123,
+            "name": "Ann"
+          }
+        """.trimIndent()
 
         val tokens = tokenize(jsonString).expectSuccess()
 
@@ -254,7 +259,13 @@ class JsonParserTest {
     @Test
     fun `parse an object with nulls`() {
 
-        val jsonString = """{"id": 123, "name": "Ann", "somethingelse": null}"""
+        val jsonString = """
+          {
+            "id": 123,
+            "name": "Ann",
+            "somethingelse": null
+          }
+        """.trimIndent()
 
         val tokens = tokenize(jsonString).expectSuccess()
 
@@ -268,7 +279,11 @@ class JsonParserTest {
     }
 
     private fun lastPosRead(tokens: TokensStream): Int =
-        tokens.lastPosRead()
+        when (val t = tokens.last()) {
+            is Separator -> t.pos
+            is Value -> t.pos + t.text.length - 1
+            null -> 0
+        }
 
     @Test
     fun `parse an object with JsonNode field`() {
