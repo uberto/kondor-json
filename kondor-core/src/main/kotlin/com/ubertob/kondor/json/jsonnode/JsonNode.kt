@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonParsingException
 import com.ubertob.kondor.json.JsonProperty
 import com.ubertob.kondor.json.parser.JsonLexerEager
 import com.ubertob.kondor.json.parser.parseNewNode
+import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
@@ -38,6 +39,9 @@ data class JsonNodeObject(val _fieldMap: FieldMap, override val _path: NodePath)
 }
 
 fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
-    JsonLexerEager(jsonString).tokenize()
+    if (jsonString.isEmpty())
+        parsingFailure("some valid Json", "end of file", 0, NodePathRoot, "invalid Json")
+    else
+        JsonLexerEager(jsonString).tokenize()
 //    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray())).tokenize()
-        .bind { it.onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess() }
+            .bind { it.onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess() }

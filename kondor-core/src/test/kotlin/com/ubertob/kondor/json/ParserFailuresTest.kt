@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -9,6 +10,31 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.startsWith
 
 class ParserFailuresTest {
+
+    @Test
+    fun `parsing empty json node fails`() {
+        val invalidJson = ""
+        val error = parseJsonNode(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected some valid Json but found end of file - invalid Json")
+    }
+
+    @Test
+    fun `parsing illegal json node fails`() {
+        val invalidJson = "BOOM"
+        val error = parseJsonNode(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found 'BOOM' - For input string: \"BOOM\"")
+    }
+
+
+    @Test
+    fun `parsing empty json fails`() {
+        val invalidJson = ""
+        val error = JPerson.fromJson(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected OpeningCurly but found end of file - invalid Json")
+    }
 
     @Test
     fun `parsing not complaint json fails`() {
