@@ -4,4 +4,6 @@
 .gradle/
 build/
 out/
+bin/
+.vscode
 *.ignoreme
