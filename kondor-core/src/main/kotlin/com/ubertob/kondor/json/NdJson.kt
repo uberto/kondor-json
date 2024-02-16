@@ -21,14 +21,15 @@ fun <T : Any> fromNdJsonStream(converter: JConverter<T>): (InputStream) -> JsonO
         stream.bufferedReader().lineSequence().traverse { converter.fromJson(it) }
     }
 
-fun <T : Any> toNdJsonStream(converter: JConverter<T>): (Iterable<T>, OutputStream) -> Unit =
+fun <T : Any> toNdJsonStream(converter: JConverter<T>): (Iterable<T>, OutputStream) -> OutputStream =
     { coll, stream ->
-
+        stream.apply {
 
             coll.onEach {
                 val json = converter.toJson(it)
-                stream.write(json.toByteArray(UTF_8))
-                stream.write('\n'.code)
+                write(json.toByteArray(UTF_8))
+                write('\n'.code)
             }
+        }
 
     }

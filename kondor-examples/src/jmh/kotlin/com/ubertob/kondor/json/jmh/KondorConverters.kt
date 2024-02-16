@@ -22,3 +22,6 @@ object JDemoClass : JAny<DemoClass>() {
 }
 
 val jDemoClasses = JList(JDemoClass)
+
+val demoClassNdProducer = toNdJson(JDemoClass)
+val demoClassNdConsumer = fromNdJson(JDemoClass)
