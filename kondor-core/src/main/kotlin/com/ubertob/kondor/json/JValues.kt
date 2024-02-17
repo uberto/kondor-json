@@ -86,22 +86,24 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
 
-    override fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> =
+
+
+    override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when(node){
             is JsonNodeNumber -> fromJsonNode(node)
-            is JsonNodeString -> tryNanNode(node)
+            is JsonNodeString -> tryNanNode(node, path)
             is JsonNodeNull -> null.asSuccess()
-            else -> ConverterJsonError(node._path,
+            else -> ConverterJsonError(path,
                 "expected a Number or NaN but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
-    private fun tryNanNode(node: JsonNodeString): Outcome<JsonError, T?> =
+    private fun tryNanNode(node: JsonNodeString, path: NodePath): Outcome<JsonError, T?> =
         when (node.text){
             "NaN" -> cons(Double.NaN).asSuccess()
             "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
             "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
-            else -> ConverterJsonError(node._path,
+            else -> ConverterJsonError(path,
                 "expected a Number or NaN but found '${node.text}'"
             ).asFailure()
     }

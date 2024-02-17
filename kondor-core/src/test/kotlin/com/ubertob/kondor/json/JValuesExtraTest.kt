@@ -38,7 +38,7 @@ class JValuesExtraTest {
         repeat(5) {
 
             val value = randomCompany()
-            val json = JCompanyAuto.toJsonNode(value, NodePathRoot)
+            val json = JCompanyAuto.toJsonNode(value)
 
             val actual = JCompanyAuto.fromJsonNode(json).expectSuccess()
 

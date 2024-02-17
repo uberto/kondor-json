@@ -116,7 +116,7 @@ class JsonParserTest {
 
         val value = Double.NaN
 
-        val jsonString = JsonNodeNumber(value, NodePathRoot).render()
+        val jsonString = JsonNodeNumber(value).render()
 
         val tokens = tokenize(jsonString).expectSuccess()
 

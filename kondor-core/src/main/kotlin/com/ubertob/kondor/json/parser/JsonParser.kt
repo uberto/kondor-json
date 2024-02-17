@@ -94,20 +94,14 @@ fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = when (val token = tokens.
     else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
 }.transform { JsonNodeNumber(it) }
 
-private fun stringToNumber(token: Value, nodePath: NodePath): Outcome<JsonError, Number> = try {
+private fun TokensPath.stringToNumber(token: Value, nodePath: NodePath): Outcome<JsonError, Number> = try {
     BigDecimal(token.text).asSuccess()
 } catch (e: NumberFormatException) {
     try {
         token.text.toDouble().asSuccess()
     } catch (t: NumberFormatException) {
-        parsingFailure("a Number", token, nodePath, t.message.orEmpty())
+        parsingFailure("a Number", token, tokens.lastPosRead(), nodePath, t.message.orEmpty())
     }
-
- check this
-private fun TokensPath.stringToBigDecimal(token: Value, nodePath: NodePath): Outcome<JsonError, BigDecimal> = try {
-    BigDecimal(string(token)).asSuccess()
-} catch (t: NumberFormatException) {
-    parsingFailure("a Number", token, tokens.lastPosRead(), nodePath, t.message.orEmpty())
 }
 
 
@@ -142,7 +136,8 @@ fun <T> withParentNode(f: TokensPath.() -> JsonOutcome<T>?): TokensPath.() -> Js
 
 fun <T> TokensPath.keyValue(contentParser: TokensPath.() -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
     parseOptionalKeyNode()?.bind { key ->
-        take(Colon).bind { contentParser(copy(path = NodePathSegment(key, path))) }.transform { value -> key to value }
+        take(Colon).bind { contentParser(copy(path = NodePathSegment(key, path))) }
+            .transform { value -> key to value }
     }
 
 private fun TokensPath.parseOptionalKeyNode(): JsonOutcome<String>? = parseNewNode()?.transformFailure {
