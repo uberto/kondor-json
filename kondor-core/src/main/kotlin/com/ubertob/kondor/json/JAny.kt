@@ -106,6 +106,8 @@ abstract class JDataClass<T : Any> : JAny<T>() {
     val constructor by lazy { clazz.constructors.first() }
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
+
+
         //can we check that is a Kotlin data class? we can also compare constructors args and Json fields
 
 
@@ -127,6 +129,9 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 //            println("cons param ${param.name}  $field")
 //            args.add(field)
 //        }
+
+
+        //using asm we can create a unnamed class with a single method that deserialize json based on the converter fields and then get the method handler and call it here !!!
 
         //this work assuming the JConverter has fields in the same exact order then the data class constructor
         val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() } //!!!
