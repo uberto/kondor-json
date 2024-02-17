@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -9,6 +10,23 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.startsWith
 
 class ParserFailuresTest {
+
+    @Test
+    fun `parsing empty json node fails`() {
+        val invalidJson = ""
+        val error = parseJsonNode(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected some valid Json but found end of file - invalid Json")
+    }
+
+    @Test
+    fun `parsing illegal json node fails`() {
+        val invalidJson = "BOOM"
+        val error = parseJsonNode(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Number but found 'BOOM' - For input string: \"BOOM\"")
+    }
+
 
     @Test
     fun `parsing empty json fails`() {
@@ -212,11 +230,19 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing invalid json`() {
+    fun `parsing invalid json gives an error`() {
         val invalidJson = "BOOM"
         val error = JPerson.fromJson(invalidJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected OpeningCurly but found 'BOOM' - invalid Json")
+    }
+
+    @Test
+    fun `parsing nested invalid json gives an error with the correct position`() {
+        val invalidJson = """{ "obj": {"num": 123, "nestedObj": { BOOOM} } }"""
+        val error = JPerson.fromJson(invalidJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node </obj/nestedObj> at position 38: expected a valid key but found 'BOOOM' - key missing in object field")
     }
 
     @Test
@@ -281,7 +307,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number but found String")
+        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number or NaN but found 'a string'")
     }
 
     object JPersonIncomplete : JAny<Person>() {

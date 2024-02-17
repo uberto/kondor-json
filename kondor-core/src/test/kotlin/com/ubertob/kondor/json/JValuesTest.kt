@@ -99,7 +99,7 @@ class JValuesTest {
     @Test
     fun `Json Long`() {
 
-        repeat(10) {
+        repeat(50) {
 
             val value = Random.nextLong()
             val json = JLong.toJsonNode(value)

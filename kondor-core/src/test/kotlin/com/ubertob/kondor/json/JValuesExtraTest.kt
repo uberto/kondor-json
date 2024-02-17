@@ -33,6 +33,24 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `Json Company with auto deser`() {
+
+        repeat(5) {
+
+            val value = randomCompany()
+            val json = JCompanyAuto.toJsonNode(value, NodePathRoot)
+
+            val actual = JCompanyAuto.fromJsonNode(json).expectSuccess()
+
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JCompanyAuto.toJson(value)
+
+            expectThat(JCompanyAuto.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
     fun `JSealed Customer`() {
 
         repeat(10) {

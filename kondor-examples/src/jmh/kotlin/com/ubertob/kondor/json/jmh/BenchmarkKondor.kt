@@ -39,8 +39,7 @@ private fun toJson(objs: List<DemoClass>) =
     jDemoClasses.toJson(objs, JsonStyle.compact)
 
 //serialization:
-// add direct support for OutputStream instead of StringBuilder
+// replace StringBuilder with better Writer with support to OutputStream
 
 //deser:
-// direct deser: taking adventage of number type
-
+// direct deser from Converter

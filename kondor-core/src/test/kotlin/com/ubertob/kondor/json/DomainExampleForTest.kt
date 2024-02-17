@@ -178,6 +178,13 @@ object JCompany : JAny<Company>() {
         )
 }
 
+object JCompanyAuto : JDataClass<Company>() {
+
+    private val name by str(Company::name)
+    private val tax_type by str(Company::taxType)
+    override val clazz: Class<Company> = Company::class.java
+}
+
 object JCustomer : JSealed<Customer>() {
 
     override val discriminatorFieldName = "type"

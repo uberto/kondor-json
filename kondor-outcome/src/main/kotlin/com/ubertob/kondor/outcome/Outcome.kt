@@ -155,7 +155,7 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcomeIndexed(
 
 
 fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
-    foldOutcome(mutableListOf()) { acc, e ->
+    foldOutcome(ArrayList(128)) { acc, e ->
         f(e).transform { acc.add(it); acc }
     }
 
@@ -168,7 +168,7 @@ fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List
     traverse { it }
 
 fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
-    foldOutcome(mutableListOf()) { acc, e ->
+    foldOutcome(ArrayList(128)) { acc, e ->
         f(e).transform { acc.add(it); acc }
     }
 

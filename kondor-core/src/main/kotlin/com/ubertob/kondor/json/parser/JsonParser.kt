@@ -67,7 +67,7 @@ fun <T> surrounded(
 
 fun <T> TokensPath.extractNodesIndexed(f: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> {
     var arrayIndex = 0
-    val nodes = mutableListOf<T>()
+    val nodes = ArrayList<T>(128)
     while (true) { //is it possible to use recursion here?
         val nodeOutcome = f(subNodePath(arrayIndex++)) ?: break
         val node = nodeOutcome.onFailure { return it.asFailure() }
@@ -90,10 +90,20 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 
 
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = when (val token = tokens.next()) {
-    is Value -> stringToBigDecimal(token, path)
+    is Value -> stringToNumber(token, path)
     else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
 }.transform { JsonNodeNumber(it) }
 
+private fun stringToNumber(token: Value, nodePath: NodePath): Outcome<JsonError, Number> = try {
+    BigDecimal(token.text).asSuccess()
+} catch (e: NumberFormatException) {
+    try {
+        token.text.toDouble().asSuccess()
+    } catch (t: NumberFormatException) {
+        parsingFailure("a Number", token, nodePath, t.message.orEmpty())
+    }
+
+ check this
 private fun TokensPath.stringToBigDecimal(token: Value, nodePath: NodePath): Outcome<JsonError, BigDecimal> = try {
     BigDecimal(string(token)).asSuccess()
 } catch (t: NumberFormatException) {

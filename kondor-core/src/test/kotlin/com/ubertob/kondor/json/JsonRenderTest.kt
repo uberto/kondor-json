@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -46,7 +47,7 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo("2147483647")
     }
 
-     @Test
+    @Test
     fun `render Nan Num`() {
         val value = Double.NaN
 
@@ -97,6 +98,25 @@ class JsonRenderTest {
     }
 
     @Test
+    fun `render double array with NaNs`() {
+        val doubles = listOf(0.0, 1.0, -252.0, 3.14159, Double.NaN, Double.NEGATIVE_INFINITY, 16E+100)
+
+        val jDoubles = JList(JDouble)
+
+        val jsonString = jDoubles.toJson(doubles)
+
+        expectThat(jsonString).isEqualTo("""[0.0, 1.0, -252.0, 3.14159, "NaN", "-Infinity", 1.6E101]""")
+
+        val parsedDoubles = jDoubles.fromJson(jsonString).expectSuccess()
+
+        expectThat(parsedDoubles).isEqualTo(doubles)
+
+        val parsedDoubleNoDecimal = jDoubles.fromJson("""[0, 1, -252, 3.14159, "NaN", "-Infinity",  1.6E101]""").expectSuccess()
+
+        expectThat(parsedDoubleNoDecimal).isEqualTo(doubles)
+    }
+
+    @Test
     fun `pretty render array`() {
         val nodeArray = JsonNodeArray(
             listOf(
@@ -143,17 +163,17 @@ class JsonRenderTest {
     @Test
     fun `render object with nulls`() {
 
-        val nullOnlyObj =OptionalAddress(null, null, null)
+        val nullOnlyObj = OptionalAddress(null, null, null)
 
         expectThat(JOptionalAddress.toJson(nullOnlyObj, compact))
             .isEqualTo("""{}""")
 
-        val streetOnlyObj =OptionalAddress(null, "42 Adams Road", null)
+        val streetOnlyObj = OptionalAddress(null, "42 Adams Road", null)
 
         expectThat(JOptionalAddress.toJson(streetOnlyObj, compact))
             .isEqualTo("""{"street":"42 Adams Road"}""")
 
-        val nameAndstreetObj =OptionalAddress("Marvin", "42 Adams Road", null)
+        val nameAndstreetObj = OptionalAddress("Marvin", "42 Adams Road", null)
 
         expectThat(JOptionalAddress.toJson(nameAndstreetObj, compact))
             .isEqualTo("""{"name":"Marvin","street":"42 Adams Road"}""")
@@ -175,7 +195,7 @@ class JsonRenderTest {
     }
 
 
-     @Test
+    @Test
     fun `custom pretty render object`() {
         repeat(5) {
             val indent = Random.nextInt(8)
@@ -188,7 +208,7 @@ class JsonRenderTest {
                     }
                 }
 
-            val style = pretty.copy(appendNewline = ::customNewLine )
+            val style = pretty.copy(appendNewline = ::customNewLine)
             val jsonString = JsonObjectNode(
                 mapOf(
                     "id" to JsonNodeNumber(123),
