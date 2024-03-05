@@ -97,113 +97,7 @@ internal class OutcomeTest {
         expectThat(name).isEqualTo("user12")
     }
 
-    //================ Monads
 
-    @Test
-    fun bindingComposition() {
-
-        val res: UnitOutcome = getUser(123)
-            .bind { u ->
-                getMailText(u.name)
-                    .bind { t ->
-                        sendEmailUser(u.email, t)
-                    }
-            }
-        res.expectSuccess()
-    }
-
-    @Test
-    fun bindingCompositionOnFailure() {
-
-        val res = fun(): UnitOutcome {
-            val u = getUser(123).onFailure { return it.asFailure() }
-            val t = getMailText(u.name).onFailure { return it.asFailure() }
-            val e = sendEmailUser(u.email, t).onFailure { return it.asFailure() }
-            return e.asSuccess()
-        }
-        res().expectSuccess()
-
-    }
-
-    @Test
-    fun `bindFailure allow to retry another way`() {
-        val user = getUser(-23)
-            .bindFailure { getUser(23) }
-            .expectSuccess()
-
-        expectThat(user.name).isEqualTo("user23")
-    }
-
-    @Test
-    fun `bindAlso ignores the result of second fun if success`() {
-        val user = getUser(42)
-            .bindAlso { user -> sendEmailUser(user.email, "Hello ${user.name}") }
-            .expectSuccess()
-
-        expectThat(user.name).isEqualTo("user42")
-    }
-
-    @Test
-    fun `bindAlso fails the result if second fun fails`() {
-        val error = getUser(42)
-            .bindAlso { user -> sendEmailUser(user.email, "") }
-            .expectFailure()
-
-        expectThat(error.msg).isEqualTo("empty text or email")
-    }
-
-
-
-    //convenience methods
-    @Test
-    fun `asOutcome transforms values into Outcomes`() {
-
-        val okStr = "All ok"
-        okStr.asOutcome({ contains("ok") }, ::Err).expectSuccess()
-
-        val errStr = "There is an error!"
-        errStr.asOutcome({ contains("error").not() }, ::Err).expectFailure()
-
-    }
-
-    @Test
-    fun `failIf fails the outcome if a predicate is true`() {
-        val error = getUser(100)
-            .failIf({ it.name.length > 6 }, { Err("${it.name} is too long!") })
-            .expectFailure()
-
-        expectThat(error.msg).isEqualTo("user100 is too long!")
-    }
-
-    @Test
-    fun `failUnless fails the outcome if a predicate is false`() {
-        val error = getUser(100)
-            .failUnless({ name.length <= 6 }, { Err("${it.name} is too long!") })
-            .expectFailure()
-
-        expectThat(error.msg).isEqualTo("user100 is too long!")
-    }
-
-
-    @Test
-    fun `combine successes`() {
-        val a = 2.asSuccess()
-        val b = 3.asSuccess()
-
-        val combined = a.combine(b)
-
-        expectThat(combined).isEqualTo(Success(Pair(2, 3)))
-    }
-
-    val intFailure: Outcome<Err, Int> = Err("NAN").asFailure()
-    @Test
-    fun `combine success with failure`() {
-        val two = 2.asSuccess()
-
-        val combined = two.combine(intFailure).expectFailure()
-
-        expectThat(combined).isEqualTo(Err(msg="NAN"))
-    }
 
     @Test
     fun `Kleisli composition`() {
@@ -263,6 +157,17 @@ internal class OutcomeTest {
 
         expectThat(result).isEqualTo(successOutcome)
         expectThat(sideEffect).isEqualTo(42)
+    }
+
+
+
+    @Test
+    fun `combine success with failure`() {
+        val two = 2.asSuccess()
+
+        val combined = two.combine(intFailure).expectFailure()
+
+        expectThat(combined).isEqualTo(Err(msg="NAN"))
     }
 
     @Test

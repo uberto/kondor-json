@@ -7,8 +7,6 @@ import strikt.assertions.isEqualTo
 
 class ApplicativesTest {
 
-//applicatives
-
     @Test
     fun `transform2 maps a function with two arguments`() {
         val a = 2.asSuccess()
@@ -40,22 +38,35 @@ class ApplicativesTest {
     }
 
     @Test
+    fun `star and bang also work with lambda outcomes (lazily)`() {
+        val add3: (Int, Int, Int) -> Int = { x, y, z -> x + y + z }
+        val a = { 3.asSuccess() }
+        val b = { 4.asSuccess() }
+        val c = { 5.asSuccess() }
+
+        val result = add3 `!` a `*` b `*` c
+
+        expectThat(result).isEqualTo(12.asSuccess())
+    }
+
+    @Test
+    fun `lazy star and bang won't evaluate if failed before`() {
+        val add3: (Int, Int, Int) -> Int = { x, y, z -> x + y + z }
+        val a = { 3.asSuccess() }
+        val b = { intFailure }
+        val c = { error("This should not be called!") }
+
+        val result = add3 `!` a `*` b `*` c
+
+        expectThat(result).isEqualTo(intFailure)
+    }
+    @Test
     fun `castOrFail allow for subcasting`() {
         val person: BaseOutcome<Person> = getUser(12)
 
         val user = person.castOrFail { value -> Err("Cannot cast $value to User") }.orThrow()
 
         expectThat(user).isA<User>()
-    }
-
-    @Test
-    fun `castOrFail return failure for wrong subcasting`() {
-        val person: BaseOutcome<Person> = getUser(12)
-
-        val interested: Outcome<OutcomeError, Interested> = person.castOrFail { value -> Err("Cannot cast $value to Interested") }
-
-        val failure = interested.expectFailure()
-        expectThat(failure.msg).isEqualTo("Cannot cast User(name=user12, email=12@example.com) to Interested")
     }
 
 

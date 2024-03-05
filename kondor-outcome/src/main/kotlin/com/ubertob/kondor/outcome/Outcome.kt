@@ -184,14 +184,25 @@ fun <T, ERR : OutcomeError, U> Sequence<T>.foldOutcome(
 
 
 infix fun <A, B, D, ER : OutcomeError> ((A, B) -> D).`!`(other: Outcome<ER, A>): Outcome<ER, (B) -> D> =
-    other.transform { a -> { this(a, it) } }
+    other.transform { a -> { b -> this(a, b) } }
 
 infix fun <A, B, C, D, ER : OutcomeError> ((A, B, C) -> D).`!`(other: Outcome<ER, A>): Outcome<ER, (B) -> (C) -> D> =
     other.transform { a -> { b -> { this(a, b, it) } } }
 
+
 @Suppress("DANGEROUS_CHARACTERS")
 infix fun <A, B, ER : OutcomeError> Outcome<ER, (A) -> B>.`*`(a: Outcome<ER, A>): Outcome<ER, B> =
     bind { a.transform(it) }
+
+infix fun <A, B, D, ER : OutcomeError> ((A, B) -> D).`!`(other: () -> Outcome<ER, A>): Outcome<ER, (B) -> D> =
+    other().transform { a -> { b -> this(a, b) } }
+
+infix fun <A, B, C, D, ER : OutcomeError> ((A, B, C) -> D).`!`(other: () -> Outcome<ER, A>): Outcome<ER, (B) -> (C) -> D> =
+    other().transform { a -> { b -> { c-> this(a, b, c) } } }
+
+@Suppress("DANGEROUS_CHARACTERS")
+infix fun <A, B, ER : OutcomeError> Outcome<ER, (A) -> B>.`*`(a: () -> Outcome<ER, A>): Outcome<ER, B> =
+    bind { a().transform(it) }
 
 
 //for side effects
