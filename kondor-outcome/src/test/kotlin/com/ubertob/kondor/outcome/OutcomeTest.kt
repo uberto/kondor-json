@@ -5,11 +5,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import strikt.assertions.isNull
-import kotlin.random.Random
 
 internal class OutcomeTest {
-
-    //================ Basics
 
     @Test
     fun `transform change the result`() {
@@ -95,30 +92,6 @@ internal class OutcomeTest {
             .name
 
         expectThat(name).isEqualTo("user12")
-    }
-
-
-
-    @Test
-    fun `Kleisli composition`() {
-        val addTwo: (Int) -> Outcome<Err, Int> = { x -> (x + 2).asSuccess() }
-        val multiplyThree: (Int) -> Outcome<Err, Int> = { x -> (x * 3).asSuccess() }
-
-        val addTwoAndMultiplyThree = addTwo compose multiplyThree
-
-        val result = addTwoAndMultiplyThree(2)
-
-        expectThat(result).isEqualTo(Success(12))
-    }
-
-    @Test
-    fun `join nested outcomes`() {
-        val value = Random.nextInt().asSuccess()
-        val nested = Success(value)
-
-        val joined = nested.join()
-
-        expectThat(joined).isEqualTo(value)
     }
 
 

@@ -47,10 +47,14 @@ value class Success<T> internal constructor(val value: T) : Outcome<Nothing, T>
 @JvmInline
 value class Failure<E : OutcomeError> internal constructor(val error: E) : Outcome<E, Nothing>
 
-inline fun <T, E : OutcomeError, reified U: @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
-    when(this){
+inline fun <T, E : OutcomeError, reified U : @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
+    when (this) {
         is Failure -> this
-        is Success -> if (value is U) { value.asSuccess() } else {error(value).asFailure() }
+        is Success -> if (value is U) {
+            value.asSuccess()
+        } else {
+            error(value).asFailure()
+        }
     }
 
 inline fun <T, E : OutcomeError> Outcome<E, T>.recover(recoverError: (E) -> T): T =
@@ -82,12 +86,10 @@ infix fun <A, B, C, E : OutcomeError> ((A) -> Outcome<E, B>).compose(other: (B) 
     { a -> this(a).bind(other) }
 
 
-
-
 //convenience methods
 
 fun <T, E : OutcomeError> Outcome<E, T>.failIf(predicate: (T) -> Boolean, error: (T) -> E): Outcome<E, T> =
-    failUnless({predicate(this).not()}, error)
+    failUnless({ predicate(this).not() }, error)
 
 fun <T, E : OutcomeError> Outcome<E, T>.failUnless(predicate: T.() -> Boolean, error: (T) -> E): Outcome<E, T> =
     when (this) {
@@ -155,6 +157,15 @@ fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outc
 fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
     traverse { it }
 
+
+fun <E : OutcomeError, T, U> Iterable<T>.traverseToSet(f: (T) -> Outcome<E, U>): Outcome<E, Set<U>> =
+    foldOutcome(HashSet(128)) { acc, e ->
+        f(e).transform { acc.add(it); acc }
+    }
+
+fun <E : OutcomeError, T> Iterable<Outcome<E, T>>.extractSet(): Outcome<E, Set<T>> =
+    traverseToSet { it }
+
 fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =
     foldOutcome(ArrayList(128)) { acc, e ->
         f(e).transform { acc.add(it); acc }
@@ -162,6 +173,14 @@ fun <E : OutcomeError, T, U> Sequence<T>.traverse(f: (T) -> Outcome<E, U>): Outc
 
 fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractList(): Outcome<E, List<T>> =
     traverse { it }
+
+fun <E : OutcomeError, T, U> Sequence<T>.traverseToSet(f: (T) -> Outcome<E, U>): Outcome<E, Set<U>> =
+    foldOutcome(HashSet(128)) { acc, e ->
+        f(e).transform { acc.add(it); acc }
+    }
+
+fun <E : OutcomeError, T> Sequence<Outcome<E, T>>.extractSet(): Outcome<E, Set<T>> =
+    traverseToSet { it }
 
 
 // fold until end of sequence (success) or first failure
@@ -187,8 +206,13 @@ infix fun <A, B, D, ER : OutcomeError> ((A, B) -> D).`!`(other: Outcome<ER, A>):
     other.transform { a -> { b -> this(a, b) } }
 
 infix fun <A, B, C, D, ER : OutcomeError> ((A, B, C) -> D).`!`(other: Outcome<ER, A>): Outcome<ER, (B) -> (C) -> D> =
-    other.transform { a -> { b -> { this(a, b, it) } } }
+    other.transform { a -> { b -> { c -> this(a, b, c) } } }
 
+infix fun <A, B, C, D, E, ER : OutcomeError> ((A, B, C, D) -> E).`!`(other: Outcome<ER, A>): Outcome<ER, (B) -> (C) -> (D) -> E> =
+    other.transform { a -> { b -> { c -> { d -> this(a, b, c, d) } } } }
+
+infix fun <A, B, C, D, E, F, ER : OutcomeError> ((A, B, C, D, E) -> F).`!`(other: Outcome<ER, A>): Outcome<ER, (B) -> (C) -> (D) -> (E) -> F> =
+    other.transform { a -> { b -> { c -> { d -> { e -> this(a, b, c, d, e) } } } } }
 
 @Suppress("DANGEROUS_CHARACTERS")
 infix fun <A, B, ER : OutcomeError> Outcome<ER, (A) -> B>.`*`(a: Outcome<ER, A>): Outcome<ER, B> =
@@ -198,7 +222,7 @@ infix fun <A, B, D, ER : OutcomeError> ((A, B) -> D).`!`(other: () -> Outcome<ER
     other().transform { a -> { b -> this(a, b) } }
 
 infix fun <A, B, C, D, ER : OutcomeError> ((A, B, C) -> D).`!`(other: () -> Outcome<ER, A>): Outcome<ER, (B) -> (C) -> D> =
-    other().transform { a -> { b -> { c-> this(a, b, c) } } }
+    other().transform { a -> { b -> { c -> this(a, b, c) } } }
 
 @Suppress("DANGEROUS_CHARACTERS")
 infix fun <A, B, ER : OutcomeError> Outcome<ER, (A) -> B>.`*`(a: () -> Outcome<ER, A>): Outcome<ER, B> =

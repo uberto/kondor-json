@@ -2,7 +2,9 @@ package com.ubertob.kondor.outcome
 
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.hasSize
 import strikt.assertions.isEqualTo
+import kotlin.random.Random
 
 class MonadsTest {
 
@@ -57,6 +59,61 @@ class MonadsTest {
             .expectFailure()
 
         expectThat(error.msg).isEqualTo("empty text or email")
+    }
+
+    @Test
+    fun `Kleisli composition`() {
+        val addTwo: (Int) -> Outcome<Err, Int> = { x -> (x + 2).asSuccess() }
+        val multiplyThree: (Int) -> Outcome<Err, Int> = { x -> (x * 3).asSuccess() }
+
+        val addTwoAndMultiplyThree = addTwo compose multiplyThree
+
+        val result = addTwoAndMultiplyThree(2)
+
+        expectThat(result).isEqualTo(Success(12))
+    }
+
+    @Test
+    fun `join nested outcomes`() {
+        val value = Random.nextInt().asSuccess()
+        val nested = Success(value)
+
+        val joined = nested.join()
+
+        expectThat(joined).isEqualTo(value)
+    }
+
+
+    @Test
+    fun `traverse a list of outcome to outcome of a list`() {
+
+        val userIds = (1..20).toList()
+
+        val outcome1 = userIds.traverse { getUser(it) }
+
+        val outcome2 = userIds.map { getUser(it) }.extractList()
+
+        expectThat(outcome1).isEqualTo(outcome2)
+
+        expectThat( outcome1.expectSuccess()).hasSize(20)
+
+
+    }
+
+    @Test
+    fun `traverse a sequence of outcome to outcome of a set`() {
+
+        val userIds = (1..20).toList().asSequence()
+
+        val outcome1 = userIds.traverseToSet { getUser(it) }
+
+        val outcome2 = userIds.map { getUser(it) }.extractSet()
+
+        expectThat(outcome1).isEqualTo(outcome2)
+
+        expectThat( outcome1.expectSuccess()).hasSize(20)
+
+
     }
 
 }

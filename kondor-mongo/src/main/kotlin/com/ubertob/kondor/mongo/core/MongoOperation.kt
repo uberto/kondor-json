@@ -5,6 +5,16 @@ import com.ubertob.kondor.outcome.Outcome
 typealias MongoOperation<T> = ContextReader<MongoSession, T>
 typealias MongoOutcome<T> = Outcome<MongoError, T>
 
+
+
+//!!!!!!!!!!!!!
+//kondor mongo -> add joinOperation
+//
+//add mongo converter doc->json
+//
+//make the json conversion safe (from BsonDoc)
+
+
 fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOperation<T> = //unit
     { input: U -> MongoOperation { session -> calculation(session, input) } }
 
