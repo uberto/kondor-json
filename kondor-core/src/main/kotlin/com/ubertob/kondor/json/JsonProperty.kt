@@ -15,7 +15,7 @@ typealias NamedAppender = Pair<String, PropertyAppender?>
 
 sealed class JsonProperty<T> {
     abstract val propName: String
-    abstract fun setter(value: T): PropertySetter //TODO redefine it on appender?
+    abstract fun setter(value: T): PropertySetter
     abstract fun appender(value: T): PropertyAppender?
     abstract fun getter(wrapped: JsonNodeObject): JsonOutcome<T>
 }

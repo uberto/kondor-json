@@ -9,7 +9,7 @@ abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {
     abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
 
     @Suppress("UNCHECKED_CAST")
-    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? = //TODO can we return to simple ObjectNodeConverter?
+    fun findSubTypeConverter(typeName: String): ObjectNodeConverter<T>? =
         subConverters[typeName] as? ObjectNodeConverter<T>
 
 }
