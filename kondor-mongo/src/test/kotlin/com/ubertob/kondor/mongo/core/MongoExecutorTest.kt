@@ -119,7 +119,7 @@ class MongoExecutorTest {
 
         val outcomeCalculation: ContextReader<MongoSession, Outcome<MessageError, String>> = docQueryReader.transform { docName(it) }
         val name = executor.bindOutcome(outcomeCalculation).expectSuccess()
-        expectThat("42").isEqualTo(name)
+        expectThat("subdoc42").isEqualTo(name)
     }
 
     @Test
