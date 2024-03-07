@@ -7,6 +7,8 @@ import org.bson.BsonDocument
 import org.bson.BsonValue
 import org.bson.Document
 import org.bson.conversions.Bson
+import org.bson.types.ObjectId
+
 
 class MongoDbSession(
     val database: MongoDatabase,
@@ -101,6 +103,13 @@ class MongoDbSession(
         }
 
     override fun <T : Any> MongoTable<T>.findById(id: Any): T? =
+        internalRun { coll ->
+            coll.find(Filters.eq("_id", id))
+                .singleOrNull()
+                ?.let(::fromBsonDoc)
+        }
+
+    override fun <T : Any> MongoTable<T>.findByOid(id: ObjectId): T? =
         internalRun { coll ->
             coll.find(Filters.eq("_id", id))
                 .singleOrNull()
