@@ -87,10 +87,9 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 
     abstract val clazz: Class<T>
 
-
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
-        //can we check that is a Kotlin data class? we can also compare constructors args and Json fields
+        //todo can we check that is a Kotlin data class? we can also compare constructors args and Json fields
         val constructor = clazz.constructors.first()
 
 //        val map: Map<String, Any?> = getProperties().associate {
@@ -98,7 +97,7 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 //        }
 //
 //        println("properties map ${map.keys}") //json names
-//        val args = mutableListOf<Any?>() //TODO
+//        val args = mutableListOf<Any?>()
 ////        first translate all props in objects values, then pass to the constructor
 //        val consParams = constructor.parameters
 //        println("found ${consParams.size} cons params")
@@ -113,7 +112,7 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 //        }
 
         //this work assuming the JConverter has fields in the same exact order then the data class constructor
-        val args =   getProperties().map { it.getter(this).orThrow() }
+        val args = getProperties().map { it.getter(this).orThrow() }
 
         @Suppress("UNCHECKED_CAST")
         return constructor.newInstance(*args.toTypedArray()) as T
