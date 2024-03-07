@@ -2,6 +2,9 @@ package com.ubertob.kondor.mongo.core
 
 import com.mongodb.MongoTimeoutException
 import com.mongodb.connection.ServerConnectionState
+import com.ubertob.kondor.outcome.MessageError
+import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.failIfNull
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.bson.BsonDocument
@@ -18,7 +21,6 @@ import java.util.*
 
 private object collForTest : BsonTable() {
     override val collectionName: String = "collForTest"
-    //retention... policy.. index
 }
 
 @Testcontainers
@@ -67,12 +69,14 @@ class MongoExecutorTest {
         collForTest.all().count()
     }
 
-    val docQueryReader = mongoOperation {
+    val docQueryReader: ContextReader<MongoSession, BsonDocument> = mongoOperation {
         (1..100).forEach {
             collForTest.insertOne(createDoc(it))
         }
         collForTest.find("{ index: 42 }").first()
     }
+
+    fun docName(doc: BsonDocument): Outcome<MessageError, String> = (doc["name"]?.asString()?.value).failIfNull { MessageError("Name not found!") }
 
     private val dbName = "MongoProvTest"
 
@@ -107,6 +111,15 @@ class MongoExecutorTest {
 
         val myDoc = executor(docQueryReader).expectSuccess()
         expectThat(42).isEqualTo(myDoc["index"]!!.asInt32().value)
+    }
+
+    @Test
+    fun `handle outcome operations`() {
+        val executor = buildExecutor()
+
+        val outcomeCalculation: ContextReader<MongoSession, Outcome<MessageError, String>> = docQueryReader.transform { docName(it) }
+        val name = executor.bindOutcome(outcomeCalculation).expectSuccess()
+        expectThat("42").isEqualTo(name)
     }
 
     @Test

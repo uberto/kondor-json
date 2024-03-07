@@ -5,9 +5,7 @@ import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoCollection
 import com.mongodb.connection.ClusterDescription
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.*
 import org.bson.BsonDocument
 import org.bson.Document
 import java.util.concurrent.ConcurrentHashMap
@@ -17,6 +15,7 @@ interface MongoExecutor : ContextProvider<MongoSession> {
     fun listDatabaseNames(): List<String>
 
     override operator fun <T> invoke(context: MongoOperation<T>): Outcome<MongoError, T>
+    fun <T> bindOutcome(context: MongoOperation<Outcome<OutcomeError, T>>): Outcome<OutcomeError, T>
 }
 
 class MongoExecutorDbClient(override val databaseName: String, clientProvider: () -> MongoClient) :
@@ -34,6 +33,9 @@ class MongoExecutorDbClient(override val databaseName: String, clientProvider: (
         } catch (e: Exception) {
             MongoErrorException(mongoClient.clusterDescription.shortDescription, databaseName, e).asFailure()
         }
+
+    override fun <T> bindOutcome(context: MongoOperation<Outcome<OutcomeError, T>>): Outcome<OutcomeError, T> =
+        invoke(context).join()
 
     fun listDatabases(): List<Document> = mongoClient.listDatabases().toList()
 

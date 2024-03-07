@@ -7,12 +7,13 @@ typealias MongoOutcome<T> = Outcome<MongoError, T>
 
 
 
-//!!!!!!!!!!!!!
-//kondor mongo -> add joinOperation
+//!!! todo
 //
 //add mongo converter doc->json
 //
 //make the json conversion safe (from BsonDoc)
+//
+//ad infix operator for query? (or just import them)
 
 
 fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOperation<T> = //unit
@@ -20,6 +21,8 @@ fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOpe
 
 fun <T> mongoOperation(operation: MongoSession.() -> T): MongoOperation<T> =
     mongoCalculation<Unit, T> { operation(this) }(Unit)
+
+
 
 fun <T, U> MongoOperation<T>.bindCalculation(operation: MongoSession.(T) -> U): MongoOperation<U> =
     bind { input -> mongoCalculation(operation)(input) }

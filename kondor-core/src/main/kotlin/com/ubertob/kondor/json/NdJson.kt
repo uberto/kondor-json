@@ -5,6 +5,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import kotlin.text.Charsets.UTF_8
 
+//!!! add other lazy methods???
 fun <T : Any> fromNdJson(converter: JConverter<T>): (Sequence<String>) -> JsonOutcome<List<T>> =
     { lines ->
         lines.traverse { converter.fromJson(it) }
