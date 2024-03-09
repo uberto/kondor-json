@@ -36,12 +36,13 @@ dependencies {
     testImplementation "io.strikt:strikt-core:$striktVersion"
 
     testImplementation("org.testcontainers:testcontainers:$testContainerVersion")
-    testImplementation ("org.testcontainers:junit-jupiter:$testContainerVersion")
+    testImplementation("org.testcontainers:junit-jupiter:$testContainerVersion")
     testImplementation("org.testcontainers:mongodb:$testContainerVersion")
+    testImplementation ("org.jetbrains.kotlin:kotlin-reflect") //needed for random values generator
 
-    testImplementation project (":kondor-tools")
+    testImplementation project(":kondor-tools")
+
 }
-
 
 
 archivesBaseName = 'kondor-mongo'

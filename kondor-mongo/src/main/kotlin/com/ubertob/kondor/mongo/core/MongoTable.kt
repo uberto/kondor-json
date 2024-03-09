@@ -10,11 +10,13 @@ import com.ubertob.kondor.outcome.onFailure
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
 
+// todo: add new typedView to use mongo view (aggregate pipeline) as they were ReadOnly tables
+
 sealed interface MongoTable<T : Any> { //actual collections are objects
     val collectionName: String
     val onConnection: (MongoCollection<BsonDocument>) -> Unit
 
-    fun fromBsonDoc(doc: BsonDocument): T
+    fun fromBsonDoc(doc: BsonDocument): T?
     fun toBsonDoc(obj: T): BsonDocument
 
 }
@@ -30,10 +32,12 @@ abstract class BsonTable : MongoTable<BsonDocument> {
 
 //abstract class TypedTable<T : Any, CONV: ObjectNodeConverter<T>>(val converter: CONV) : MongoTable<T> {
 abstract class TypedTable<T : Any>(val converter: ObjectNodeConverter<T>) : MongoTable<T> {
-    override fun fromBsonDoc(doc: BsonDocument): T = converter.fromJson(doc.toJson())
+    override fun fromBsonDoc(doc: BsonDocument): T? =
+        converter.fromJson(doc.toJson())
+//        converter.fromJsonNodeBase( convertBsonToJsonNode(doc))
         .onFailure {
             error("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")
-        }
+        } //!!! handle error with failure
 
     override fun toBsonDoc(obj: T): BsonDocument = converter.toJsonNode(obj, NodePathRoot).toBsonDocument()
 

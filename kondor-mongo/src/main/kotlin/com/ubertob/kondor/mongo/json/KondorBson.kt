@@ -4,6 +4,7 @@ import com.ubertob.kondor.json.JAny
 import com.ubertob.kondor.json.jsonnode.*
 import org.bson.BsonDocument
 import org.bson.BsonDocumentWriter
+import org.bson.BsonType
 import org.bson.types.ObjectId
 
 object KondorBson {
@@ -14,38 +15,45 @@ object KondorBson {
         return convertJsonNodeToBson(jn)
     }
 
-    // TODO: integrate with JsonNode!!!
-//    private fun convertBsonToJsonNode(bsonDocument: BsonDocument): JsonNode {
-//        val br = bsonDocument.asBsonReader()
-//        val t = br.readBsonType()
-//        when (t) {
-//            BsonType.END_OF_DOCUMENT -> TODO()
-//            BsonType.DOUBLE -> TODO()
-//            BsonType.STRING -> TODO()
-//            BsonType.DOCUMENT -> TODO()
-//            BsonType.ARRAY -> TODO()
-//            BsonType.BINARY -> TODO()
-//            BsonType.UNDEFINED -> TODO()
-//            BsonType.OBJECT_ID -> TODO()
-//            BsonType.BOOLEAN -> TODO()
-//            BsonType.DATE_TIME -> TODO()
-//            BsonType.NULL -> TODO()
-//            BsonType.REGULAR_EXPRESSION -> TODO()
-//            BsonType.DB_POINTER -> TODO()
-//            BsonType.JAVASCRIPT -> TODO()
-//            BsonType.SYMBOL -> TODO()
-//            BsonType.JAVASCRIPT_WITH_SCOPE -> TODO()
-//            BsonType.INT32 -> TODO()
-//            BsonType.TIMESTAMP -> TODO()
-//            BsonType.INT64 -> TODO()
-//            BsonType.DECIMAL128 -> TODO()
-//            BsonType.MIN_KEY -> TODO()
-//            BsonType.MAX_KEY -> TODO()
-//            null -> TODO()
-//        }
-//
-//        return JsonNodeNull(NodePathRoot)
-//    }
+
+     fun convertBsonToJsonNode(bsonDocument: BsonDocument): JsonNode {
+        val br = bsonDocument.asBsonReader()
+        val t = br.readBsonType()
+       return when (t) {
+            BsonType.END_OF_DOCUMENT -> TODO()
+            BsonType.DOUBLE -> TODO()
+            BsonType.STRING -> TODO()
+            BsonType.DOCUMENT -> TODO()
+            BsonType.ARRAY -> TODO()
+            BsonType.BINARY -> TODO()
+            BsonType.UNDEFINED -> TODO()
+            BsonType.OBJECT_ID -> TODO()
+            BsonType.BOOLEAN -> TODO()
+            BsonType.DATE_TIME -> TODO()
+            BsonType.NULL -> TODO()
+            BsonType.REGULAR_EXPRESSION -> TODO()
+            BsonType.DB_POINTER -> TODO()
+            BsonType.JAVASCRIPT -> TODO()
+            BsonType.SYMBOL -> TODO()
+            BsonType.JAVASCRIPT_WITH_SCOPE -> TODO()
+            BsonType.INT32 -> TODO()
+            BsonType.TIMESTAMP -> TODO()
+            BsonType.INT64 -> TODO()
+            BsonType.DECIMAL128 -> TODO()
+            BsonType.MIN_KEY -> TODO()
+            BsonType.MAX_KEY -> TODO()
+            null -> JsonNodeNull(NodePathRoot)
+        }
+
+    }
+
+    fun fromBsonDoc(jn: JsonNodeObject): BsonDocument {
+        val writer = BsonDocumentWriter(BsonDocument())
+
+        encodeValue(writer, jn)
+
+        return writer.document
+    }
 
     fun convertJsonNodeToBson(jn: JsonNodeObject): BsonDocument {
         val writer = BsonDocumentWriter(BsonDocument())

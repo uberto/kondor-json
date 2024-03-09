@@ -122,13 +122,16 @@ class MongoDbSession(
                 "" -> it.find()
                 else ->
                     it.find(BsonDocument.parse(queryString))
-            }.asSequence().map(::fromBsonDoc)
+            }.asSequence()
+                .map(::fromBsonDoc)
+                .filterNotNull()
         }
 
     override fun <T : Any> MongoTable<T>.find(bsonFilters: Bson): Sequence<T> =
         internalRun {
             it.find(bsonFilters)
                 .asSequence().map(::fromBsonDoc)
+                .filterNotNull()
         }
 
 //    override fun <T : Any, CONV: ObjectNodeConverter<T>> TypedTable<T, CONV>.find(filter: (CONV) -> Bson): Sequence<T> =

@@ -7,13 +7,6 @@ typealias MongoOutcome<T> = Outcome<MongoError, T>
 
 
 
-//!!! todo
-//
-//add mongo converter doc->json
-//
-//make the json conversion safe (from BsonDoc)
-//
-//ad infix operator for where conditions? (or just import them)
 
 
 fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOperation<T> = //unit
