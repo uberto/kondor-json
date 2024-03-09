@@ -32,7 +32,7 @@ data class JsonObjectNode(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
 }
 
-data class JsonNodeObject(val _fieldMap: FieldMap, val _path: NodePath){
+data class JsonNodeObject(val _fieldMap: FieldMap, val _path: NodePath) { //used by legacy
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(_fieldMap, path = _path)
