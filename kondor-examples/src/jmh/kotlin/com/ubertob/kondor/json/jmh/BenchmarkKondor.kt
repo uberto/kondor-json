@@ -6,6 +6,7 @@ import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
 //add Moshi, Gson, KotlinX comparison
+//add test with real world Json examples+schemas
 
 open class BenchmarkKondor {
 
