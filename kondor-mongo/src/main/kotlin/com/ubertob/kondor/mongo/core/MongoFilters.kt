@@ -4,6 +4,12 @@ import com.mongodb.client.model.Filters
 import com.ubertob.kondor.json.JsonProperty
 import org.bson.conversions.Bson
 
+object MongoSpecialFields {
+    const val oid = "\$oid"
+    const val date = "\$date"
+}
+
+
 infix fun <T : CharSequence> JsonProperty<T>.eq(value: T): Bson =
     Filters.eq(propName, value)
 

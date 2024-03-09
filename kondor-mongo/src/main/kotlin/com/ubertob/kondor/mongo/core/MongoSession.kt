@@ -6,6 +6,7 @@ import org.bson.BsonDocument
 import org.bson.BsonValue
 import org.bson.Document
 import org.bson.conversions.Bson
+import org.bson.types.ObjectId
 
 interface MongoSession {
 
@@ -41,6 +42,7 @@ interface MongoSession {
 
     //Query Methods
     fun <T : Any> MongoTable<T>.findById(id: Any): T?
+    fun <T : Any> MongoTable<T>.findByOid(id: ObjectId): T?
     fun <T : Any> MongoTable<T>.find(bsonFilters: Bson): Sequence<T>
 
     //    fun <T : Any, CONV: ObjectNodeConverter<T>> TypedTable<T, CONV>.find(filter: (CONV) -> Bson): Sequence<T>

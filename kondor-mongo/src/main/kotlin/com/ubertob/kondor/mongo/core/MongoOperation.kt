@@ -5,11 +5,24 @@ import com.ubertob.kondor.outcome.Outcome
 typealias MongoOperation<T> = ContextReader<MongoSession, T>
 typealias MongoOutcome<T> = Outcome<MongoError, T>
 
+
+
+//!!! todo
+//
+//add mongo converter doc->json
+//
+//make the json conversion safe (from BsonDoc)
+//
+//ad infix operator for where conditions? (or just import them)
+
+
 fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOperation<T> = //unit
     { input: U -> MongoOperation { session -> calculation(session, input) } }
 
 fun <T> mongoOperation(operation: MongoSession.() -> T): MongoOperation<T> =
     mongoCalculation<Unit, T> { operation(this) }(Unit)
+
+
 
 fun <T, U> MongoOperation<T>.bindCalculation(operation: MongoSession.(T) -> U): MongoOperation<U> =
     bind { input -> mongoCalculation(operation)(input) }

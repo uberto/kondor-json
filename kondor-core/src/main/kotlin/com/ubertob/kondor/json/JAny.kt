@@ -108,15 +108,14 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 
 
 
-        //can we check that is a Kotlin data class? we can also compare constructors args and Json fields
-
+        //todo can we check that is a Kotlin data class? we can also compare constructors args and Json fields
 
 //        val map: Map<String, Any?> = getProperties().associate {
 //            it.propName to it.getter(this).orThrow()
 //        }
 //
 //        println("properties map ${map.keys}") //json names
-//        val args = mutableListOf<Any?>() //TODO
+//        val args = mutableListOf<Any?>()
 ////        first translate all props in objects values, then pass to the constructor
 //        val consParams = constructor.parameters
 //        println("found ${consParams.size} cons params")

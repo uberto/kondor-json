@@ -36,4 +36,5 @@ fun <CTX, T> ContextReader<CTX, ContextReader<CTX, T>>.join(): ContextReader<CTX
 
 interface ContextProvider<CTX> {
     operator fun <T> invoke(context: ContextReader<CTX, T>): Outcome<OutcomeError, T>
+
 }
