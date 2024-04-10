@@ -12,6 +12,7 @@ import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
 import java.io.InputStream
+import java.io.OutputStream
 
 typealias JConverter<T> = JsonConverter<T, *>
 
@@ -83,6 +84,9 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
+
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(value: T, outputStream: OutputStream, renderer: JsonStyle = this.jsonStyle) =
+    appendValue(OutputStreamCharWriter(outputStream), renderer, 0, value)
 
 
 //deprecated methods

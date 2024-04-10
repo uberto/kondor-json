@@ -9,6 +9,7 @@ import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import java.io.ByteArrayOutputStream
 import kotlin.random.Random
 
 class JsonRenderTest {
@@ -111,7 +112,8 @@ class JsonRenderTest {
 
         expectThat(parsedDoubles).isEqualTo(doubles)
 
-        val parsedDoubleNoDecimal = jDoubles.fromJson("""[0, 1, -252, 3.14159, "NaN", "-Infinity",  1.6E101]""").expectSuccess()
+        val parsedDoubleNoDecimal =
+            jDoubles.fromJson("""[0, 1, -252, 3.14159, "NaN", "-Infinity",  1.6E101]""").expectSuccess()
 
         expectThat(parsedDoubleNoDecimal).isEqualTo(doubles)
     }
@@ -296,6 +298,21 @@ class JsonRenderTest {
         val jsonPretty = JOptionalAddress.toJson(addr)
 
         expectThat(jsonPretty).isEqualTo(
+            """{
+              |  "city": "London",
+              |  "name": "Jack",
+              |  "street": null
+              |}""".trimMargin()
+        )
+    }
+
+    @Test
+    fun `render object to outputstream`() {
+        val addr = OptionalAddress("Jack", null, "London")
+        val outputStream = ByteArrayOutputStream()
+        JOptionalAddress.toJsonStream(addr, outputStream)
+
+        expectThat(outputStream.toString()).isEqualTo(
             """{
               |  "city": "London",
               |  "name": "Jack",

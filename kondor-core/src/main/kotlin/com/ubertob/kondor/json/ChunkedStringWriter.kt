@@ -1,17 +1,14 @@
 package com.ubertob.kondor.json
 
 
-interface CharWriter {
-    fun write(str: String): CharWriter
-    fun write(cbuf: CharArray, len: Int): CharWriter
-    fun write(c: Char): CharWriter
+interface ChunkedWriter: CharWriter {
+
     fun clear(): CharWriter
     fun isEmpty(): Boolean
     fun takeLast(numberOfChar: Int): String
 }
 
-
-class ChunkedStringWriter(val bufferSize: Int = 8192) : CharWriter {
+class ChunkedStringWriter(val bufferSize: Int = 8192) : ChunkedWriter {
 
     private val out = StringBuilder()
     private val charArray = CharArray(bufferSize)
