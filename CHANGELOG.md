@@ -3,6 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.3.0 - 10 April 2024
+
+Kondor-core: added NdJson utility functions
+Kondor-core: added toJsonStream function to write to output stream
+Kondor-mongo: added findByOid and bindOutcome functions
+
 ### v.2.2.3 - 14 February 2024
 
 Kondor-core: trying to parse an empty file gives an error
