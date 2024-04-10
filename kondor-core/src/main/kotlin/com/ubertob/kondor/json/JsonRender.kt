@@ -6,3 +6,8 @@ fun JsonNode.render(style: JsonStyle = JsonStyle.compact): String = style.render
 
 fun <APP : CharWriter> JsonNode.render(appendable: APP, style: JsonStyle = JsonStyle.compact): APP =
     style.render(this, appendable).let { appendable }
+
+
+//TODO add toJson on OutputStream (also for JsonNode)
+
+
