@@ -1,7 +1,7 @@
 package com.ubertob.kondor.json.parser
 
-import com.ubertob.kondor.json.CharWriter
 import com.ubertob.kondor.json.ChunkedStringWriter
+import com.ubertob.kondor.json.ChunkedWriter
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.KondorSeparator.*
@@ -103,7 +103,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
             yieldValue(currToken, currPos)
         }.peekingIterator().let { TokensStream(it).asSuccess() }
 
-    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: CharWriter, pos: Int) {
+    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: ChunkedWriter, pos: Int) {
         if (!currWord.isEmpty()) {
             val text = currWord.toString()
             yield(Value(text, pos - text.length))
@@ -129,7 +129,7 @@ operator fun StringBuilder.plusAssign(c: Char) {
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 
-    fun MutableList<KondorToken>.addValue(charWriter: CharWriter, startPos: Int) {
+    fun MutableList<KondorToken>.addValue(charWriter: ChunkedWriter, startPos: Int) {
         if (!charWriter.isEmpty()) {
             val text = charWriter.toString()
             add(Value(text, startPos - text.length))
