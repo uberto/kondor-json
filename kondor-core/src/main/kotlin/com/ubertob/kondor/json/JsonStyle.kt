@@ -200,18 +200,17 @@ data class JsonStyle(
                         style.appendFieldSeparator(this)
                         style.appendNewline(this, offset)
                     }
-                    if (appender != null)
-                        appender(this, style, offset + 1)
+                    appendText(fieldName)
+                    if (appender == null)
+                        appendNullField(style)
                     else
-                        appendNullField(fieldName, style)
+                        appender(style, offset + 1)
                 }
         }
 
-        fun CharWriter.appendNullField(fieldName: String, style: JsonStyle): CharWriter =
-            appendText(fieldName).apply {
+        fun CharWriter.appendNullField(style: JsonStyle): CharWriter =
                 style.appendValueSeparator(this)
                     .appendNull()
-            }
 
         fun CharWriter.appendNull() =
             write("null")

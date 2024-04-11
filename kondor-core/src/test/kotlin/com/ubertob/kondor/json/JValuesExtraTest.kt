@@ -70,6 +70,31 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `JSealed rendered correctly with discriminant field`() {
+
+        val expected = """[
+              |  {
+              |      "id": 1,
+              |      "name": "Adam",
+              |      "type": "private"
+              |    },
+              |  {
+              |      "name": "Acme",
+              |      "tax_type": "US",
+              |      "type": "company"
+              |    }
+              |]""".trimMargin()
+        val customers = listOf(
+            Person(1, "Adam"),
+            Company("Acme", TaxType.US)
+        )
+        val json = JList(JCustomer).toJson(customers, pretty)
+
+        expectThat(json).isEqualTo(expected)
+
+    }
+
+    @Test
     fun `Json ExpenseReport`() {
 
         repeat(10) {
@@ -82,8 +107,6 @@ class JValuesExtraTest {
             expectThat(actual).isEqualTo(value)
 
             val jsonStr = JExpenseReport.toJson(value)
-
-//            println(jsonStr)
 
             expectThat(JExpenseReport.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
@@ -194,8 +217,8 @@ class JValuesExtraTest {
               |  "file_name": "filename",
               |  "folder_path": "/tmp",
               |  "is_dir": false,
-              |  "size": 123,
-              |  "selected": true
+              |  "selected": true,
+              |  "size": 123
               |}""".trimMargin()
         )
 
@@ -273,8 +296,6 @@ class JValuesExtraTest {
 
             val jsonStr = JTitleRequest.toJson(value)
 
-//            println( jsonStr)
-
             expectThat(JTitleRequest.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
@@ -301,8 +322,10 @@ class JValuesExtraTest {
     fun `Json schema with fields called path and jsonNode`() {
 
         repeat(5) {
-            val value =
-                GraphNode(randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5),)
+            val value = GraphNode(
+                randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5)
+            )
+
             val json = JGraphNode.toJsonNode(value, NodePathRoot)
 
             val actual = JGraphNode.fromJsonNode(json).expectSuccess()

@@ -60,11 +60,14 @@ object JUserW : JAny<UserW>() {
 fun main() {
     //    val x = Age(23)
 //    val y = Name("Fred")
-    val fred1 = UserW(Name("Fred"), Age(23), DoB(LocalDate.now()), RecordedAt(Instant.now()))
+    val fred1 = UserW(Name("Fred"), Age(23), DoB(LocalDate.of(2023,11, 17)), RecordedAt(Instant.ofEpochMilli(1700212086459)))
 
     val fred = JUserW.fromJson(
         """{"name": "Fred", "age": 23, "doB": "2023-11-17", "recordedAt": 1700212086459}"""
     ).orThrow()
+
+    assert(fred1 == fred)
+
     println(intWrappersMap)
 
 
