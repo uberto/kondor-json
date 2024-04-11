@@ -101,7 +101,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
     override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 
     override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
-        JsonObjectNode(fieldMap.removeFieldsFromParent())
+        JsonNodeObject(fieldMap.removeFieldsFromParent())
             .let(converter::fromJsonNode)
             .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
 

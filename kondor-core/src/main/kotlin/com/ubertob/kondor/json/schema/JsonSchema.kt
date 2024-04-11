@@ -9,13 +9,13 @@ import com.ubertob.kondor.json.jsonnode.*
 // other types can add more constrain (i.e. date format on string, max, min on Int and Long, Double etc.)
 
 
-internal fun valueSchema(nodeKind: NodeKind<*>): JsonObjectNode =
+internal fun valueSchema(nodeKind: NodeKind<*>): JsonNodeObject =
     mapOf(
         "type" to nodeKind.desc.lowercase().asNode()
     ).asNode()
 
 
-internal fun <E : Enum<E>> enumSchema(values: List<E>): JsonObjectNode =
+internal fun <E : Enum<E>> enumSchema(values: List<E>): JsonNodeObject =
 
     mapOf(
         if (values.isEmpty())
@@ -25,13 +25,13 @@ internal fun <E : Enum<E>> enumSchema(values: List<E>): JsonObjectNode =
     ).asNode()
 
 
-internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonObjectNode =
+internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonNodeObject =
     mapOf(
         "type" to "array".asNode(),
         "items" to itemsConverter.schema()
     ).asNode()
 
-internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonObjectNode {
+internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject {
 
     val reqProp = mutableListOf<String>()
     val pmap = properties.flatMap { prop ->
@@ -44,7 +44,7 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonObjectNode
         }
 
     }.toMap()
-    val propNode = JsonObjectNode(pmap)
+    val propNode = JsonNodeObject(pmap)
 
     val map = mapOf(
         "type" to "object".asNode(),
@@ -52,17 +52,17 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonObjectNode
         "required" to reqProp.asNode()
     )
 
-    return JsonObjectNode(map)
+    return JsonNodeObject(map)
 }
 
 fun sealedSchema(
     discriminatorFieldName: String,
     subConverters: Map<String, ObjectNodeConverter<*>>
-): JsonObjectNode {
+): JsonNodeObject {
     val subMaps: List<JsonNode> = subConverters.map { (name, conv) ->
         val required = conv.schema()._fieldMap["required"]
         conv.schema()._fieldMap["properties"]
-            .let { it as JsonObjectNode }
+            .let { it as JsonNodeObject }
             .let { it._fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
             .let { mapOf("properties" to it) }
             .let {
@@ -79,12 +79,12 @@ fun sealedSchema(
         "oneOf" to subMaps.asNodes()
     )
 
-    return JsonObjectNode(map)
+    return JsonNodeObject(map)
 }
 
 
 private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNode>> =
-    (schema()._fieldMap["properties"] as JsonObjectNode)._fieldMap.entries.map { it.key to it.value }
+    (schema()._fieldMap["properties"] as JsonNodeObject)._fieldMap.entries.map { it.key to it.value }
 
 private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
     (schema()._fieldMap["required"] as JsonNodeArray).elements.map { (it as JsonNodeString).text }
@@ -92,7 +92,7 @@ private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
 internal fun String.asNode() = JsonNodeString(this)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() })
 internal fun List<JsonNode>.asNodes() = JsonNodeArray(this)
-internal fun FieldMap.asNode() = JsonObjectNode(this)
-internal fun List<Pair<String, String>>.asNode() = JsonObjectNode(
+internal fun FieldMap.asNode() = JsonNodeObject(this)
+internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
     map { it.first to it.second.asNode() }.toMap()
 )

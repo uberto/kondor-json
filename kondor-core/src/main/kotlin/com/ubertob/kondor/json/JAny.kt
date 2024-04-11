@@ -10,7 +10,7 @@ typealias NamedNode = Pair<String, JsonNode>
 typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap
 
 
-interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonObjectNode> {
+interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
 
     fun fieldAppenders(valueObject: T): List<NamedAppender>
@@ -21,17 +21,19 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonObjectNode> {
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
-    abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
-    override fun fromJsonNode(node: JsonObjectNode, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) {
+    abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
+
+    @Suppress("DEPRECATION")
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { //!!! unnecessary allocation but ok for the moment
             JsonNodeObject(node._fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
                 ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
 
-    override fun toJsonNode(value: T): JsonObjectNode =
-        JsonObjectNode(convertFields(value))
+    override fun toJsonNode(value: T): JsonNodeObject =
+        JsonNodeObject(convertFields(value))
 
     abstract fun convertFields(valueObject: T): Map<String, JsonNode>
 
@@ -73,5 +75,5 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =
         appenders.flatMap { it(valueObject) }
 
-    override fun schema(): JsonObjectNode = objectSchema(properties.get())
+    override fun schema(): JsonNodeObject = objectSchema(properties.get())
 }

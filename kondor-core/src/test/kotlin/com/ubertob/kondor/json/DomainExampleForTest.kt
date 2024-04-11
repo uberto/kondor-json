@@ -77,7 +77,7 @@ fun randomMetadata(): Map<String, String> =
 fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
     id = Random.nextInt(1, 1000),
     name = randomString(lowercase, 1, 10),
-    attributes = JsonObjectNode(
+    attributes = JsonNodeObject(
         randomNodeFields()
     )
 )
@@ -460,7 +460,7 @@ object JVariant : JSealed<Variant>() {
 data class DynamicAttr(
     val id: Int,
     val name: String,
-    val attributes: JsonObjectNode
+    val attributes: JsonNodeObject
 )
 
 object JDynamicAttr : JAny<DynamicAttr>() {

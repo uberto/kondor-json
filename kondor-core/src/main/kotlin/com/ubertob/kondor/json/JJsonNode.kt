@@ -4,22 +4,22 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.asSuccess
 
-object JJsonNode : ObjectNodeConverter<JsonObjectNode> {
+object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override val _nodeType = ObjectNode
-    override fun toJsonNode(value: JsonObjectNode): JsonObjectNode =
+    override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromJsonNode(node: JsonObjectNode, path: NodePath): JsonOutcome<JsonObjectNode> =
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
-    override fun fieldAppenders(valueObject: JsonObjectNode): List<NamedAppender> =
+    override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap
             .map { (key, value) ->
-                key to valueAppender(key, value)
+                key to valueAppender(value)
             }
             .sortedBy { it.first }
 
-    private fun valueAppender(propName: String, node: JsonNode): ValueAppender? =
+    private fun valueAppender(node: JsonNode): ValueAppender? =
         if (node is JsonNodeNull) null
         else { style, off ->
             style.appendValueSeparator(this)

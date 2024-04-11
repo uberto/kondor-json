@@ -4,7 +4,6 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.JsonObjectNode
 import com.ubertob.kondor.json.schema.sealedSchema
 
 abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {
@@ -27,7 +26,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         JsonNodeString(extractTypeName(obj))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val jsonNode = JsonObjectNode(_fieldMap) //!!! redundant allocation
+        val jsonNode = JsonNodeObject(_fieldMap) //!!! redundant allocation
         val discriminatorNode = _fieldMap[discriminatorFieldName]
             ?: defaultConverter?.let { return it.fromJsonNode(jsonNode, _path).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")

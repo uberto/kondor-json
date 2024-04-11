@@ -29,7 +29,7 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
         .traverseIndexed(f)
         .transform { it.filterNotNull() }
 
-    override fun schema(): JsonObjectNode = arraySchema(converter)
+    override fun schema(): JsonNodeObject = arraySchema(converter)
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: CT): CharWriter =
         app.appendArrayValues(style, 0, value, converter::appendValue)

@@ -1,6 +1,8 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 
 
 //experimental converter for data classes without any boilerplate WIP!!
@@ -9,6 +11,9 @@ abstract class JDataClass<T : Any> : JAny<T>() {
     abstract val clazz: Class<T>
 
     val constructor by lazy { clazz.constructors.first() }
+
+    internal var _currentPath: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
+
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
         //using ksp to get info about the T parameter names and order
