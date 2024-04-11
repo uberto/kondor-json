@@ -9,12 +9,8 @@ import org.bson.types.ObjectId
 
 object KondorBson {
 
-    fun <T : Any> toBsonDoc(conv: JAny<T>, value: T): BsonDocument {
-        val jn: JsonObjectNode = conv.toJsonNode(value)
-
-        return convertJsonNodeToBson(jn)
-    }
-
+    fun <T : Any> toBsonDoc(conv: JAny<T>, value: T): BsonDocument =
+        convertJsonNodeToBson(conv.toJsonNode(value))
 
      fun convertBsonToJsonNode(bsonDocument: BsonDocument): JsonNode {
         val br = bsonDocument.asBsonReader()
@@ -42,12 +38,12 @@ object KondorBson {
             BsonType.DECIMAL128 -> TODO()
             BsonType.MIN_KEY -> TODO()
             BsonType.MAX_KEY -> TODO()
-            null -> JsonNodeNull(NodePathRoot)
+            null -> JsonNodeNull
         }
 
     }
 
-    fun fromBsonDoc(jn: JsonNodeObject): BsonDocument {
+    fun fromBsonDoc(jn: JsonObjectNode): BsonDocument {
         val writer = BsonDocumentWriter(BsonDocument())
 
         encodeValue(writer, jn)

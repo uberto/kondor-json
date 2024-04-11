@@ -73,5 +73,5 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =
         appenders.flatMap { it(valueObject) }
 
-    override fun schema(): JsonNodeObject = objectSchema(properties.get())
+    override fun schema(): JsonObjectNode = objectSchema(properties.get())
 }
