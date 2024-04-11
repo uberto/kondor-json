@@ -32,6 +32,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     val _nodeType: NodeKind<JN>
 
+    //add a fun getCurrPath() that is supposed to give info only during parsing !!!
+
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
     private fun safeCast(node: JsonNode, path: NodePath): JsonOutcome<JN?> =
         when (node.nodeKind) {
@@ -42,7 +44,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             ).asFailure()
         }
 
-    private fun fromJsonNodeNullable(node: JN?, path: NodePath): JsonOutcome<T?> = node?.let { fromJsonNode(it, path) } ?: null.asSuccess()
+    private fun fromJsonNodeNullable(node: JN?, path: NodePath): JsonOutcome<T?> =
+        node?.let { fromJsonNode(it, path) } ?: null.asSuccess()
 
     fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         safeCast(node, path).bind { fromJsonNodeNullable(it, path) }
