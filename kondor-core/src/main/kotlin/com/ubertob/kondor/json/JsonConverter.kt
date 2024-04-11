@@ -85,9 +85,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
 
-fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(value: T, outputStream: OutputStream, renderer: JsonStyle = this.jsonStyle) =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(value: T, outputStream: OutputStream, renderer: JsonStyle = jsonStyle) =
     appendValue(OutputStreamCharWriter(outputStream), renderer, 0, value)
-
 
 //deprecated methods
 @Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, pretty)"))

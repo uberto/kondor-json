@@ -48,8 +48,6 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
 }
 
-typealias ObjectAppender<T> = (T) -> PropertyAppender? //null appender if the prop is null
-
 abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
@@ -57,7 +55,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     override val writers: List<NodeWriter<T>> by lazy { nodeWriters.get() }
 
-    private val appenders: List<Pair<String, ObjectAppender<T>>> = mutableListOf()
+    private val appenders: List<(T) -> List<NamedAppender>> = mutableListOf()
     fun getProperties(): List<JsonProperty<*>> = properties.get()
 
     private fun registerWriter(writer: NodeWriter<T>) {
@@ -67,37 +65,13 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
         registerWriter { mfm, obj -> jsonProperty.setter(binder(obj))(mfm) }
-        (appenders as MutableList).add(jsonProperty.propName to { obj ->
-            val field = binder(obj)
-            if (field == null)
-                null
-            else
-                jsonProperty.appender(field)
-        })
+        (appenders as MutableList).add { obj ->
+            jsonProperty.appender(binder(obj))
+        }
     }
 
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =
-        appenders.map { it.first to it.second(valueObject) }
+        appenders.flatMap { it(valueObject) }
 
-
-//    override fun fromJson(json: String): JsonOutcome<T> =
-//
-//        JsonLexerEager(json).tokenize().bind {
-//
-//            val tp = TokensPath(it, NodePathRoot) //root??
-//            //asm generated method handler that know the tokens to expect and what to extract
-//
-//            tp.toObjectFields(getProperties())
-//        }.transform {
-//            val args = it.values
-//            @Suppress("UNCHECKED_CAST")
-//            constructor.newInstance(*args.toTypedArray()) as T
-//
-//        }
-
-    override fun schema(): JsonObjectNode = objectSchema(properties.get())
+    override fun schema(): JsonNodeObject = objectSchema(properties.get())
 }
-
-
-
-

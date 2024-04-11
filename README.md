@@ -390,7 +390,7 @@ We can parse and render a Json like this:
    "aString": "String",
    "aObj": {
      "aNestedString": "NestedString",
-     "aNestedNum": 12.2.2
+     "aNestedNum": 123.4
    }
  }
 ```

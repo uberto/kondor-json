@@ -1,6 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePathSegment
@@ -34,10 +33,9 @@ class JMap<K : Any, V : Any>(
         }
 
 
-    private fun valueAppender(propName: String, value: V?): PropertyAppender? =
+    private fun valueAppender(value: V?): ValueAppender? =
         if (value == null) null
         else { style, off ->
-            appendText(propName)
             style.appendValueSeparator(this)
             valueConverter.appendValue(this, style, off, value)
         }
@@ -45,8 +43,7 @@ class JMap<K : Any, V : Any>(
     override fun fieldAppenders(valueObject: Map<K, V>): List<NamedAppender> =
         valueObject
             .map { (key, value) ->
-                val propName = keyConverter.render(key)
-                propName to valueAppender(propName, value)
+                keyConverter.render(key) to valueAppender(value)
             }
             .sortedBy { it.first }
 

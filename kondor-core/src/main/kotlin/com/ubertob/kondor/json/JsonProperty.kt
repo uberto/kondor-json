@@ -1,7 +1,5 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectFields
-import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
@@ -10,13 +8,13 @@ import com.ubertob.kondor.outcome.failIfNull
 
 typealias MutableFieldMap = MutableMap<String, JsonNode>
 typealias PropertySetter = (MutableFieldMap) -> MutableFieldMap
-typealias PropertyAppender = CharWriter.(JsonStyle, Int) -> CharWriter
-typealias NamedAppender = Pair<String, PropertyAppender?>
+typealias ValueAppender = CharWriter.(JsonStyle, Int) -> CharWriter
+typealias NamedAppender = Pair<String, ValueAppender?>
 
 sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
-    abstract fun appender(value: T): PropertyAppender?
+    abstract fun appender(value: T): List<NamedAppender>
     abstract fun getter(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
 }
 
@@ -44,11 +42,10 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
         }
     }
 
-    override fun appender(value: T): PropertyAppender = { style, off ->
-        appendText(propName)
+    override fun appender(value: T): List<NamedAppender> = listOf(propName to { style, off ->
         style.appendValueSeparator(this)
             .appendValue(style, off, value)
-    }
+    })
 
     fun CharWriter.appendValue(
         style: JsonStyle,
@@ -78,14 +75,13 @@ data class JsonPropOptional<T, JN : JsonNode>(
         }
     }
 
-    override fun appender(value: T?): PropertyAppender? =
+    override fun appender(value: T?): List<NamedAppender> =
         if (value == null)
-            null
-        else { style, off ->
-            appendText(propName)
+            listOf(propName to null)
+        else listOf(propName to { style, off ->
             style.appendValueSeparator(this)
                 .appendValue(style, off, value)
-        }
+        })
 
     fun CharWriter.appendValue(
         style: JsonStyle,
@@ -102,9 +98,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     private val parentProperties = parent.getProperties().map { it.propName }
 
-    override fun appender(value: T): PropertyAppender = { js, off ->
-        appendObjectFields(js, off - 1, converter.fieldAppenders(value))
-    }
+    override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 
     override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
         JsonObjectNode(fieldMap.removeFieldsFromParent())

@@ -5,11 +5,13 @@ import java.io.InputStream
 import java.io.OutputStream
 import kotlin.text.Charsets.UTF_8
 
-//!!! add other lazy methods???
-fun <T : Any> fromNdJson(converter: JConverter<T>): (Sequence<String>) -> JsonOutcome<List<T>> =
+fun <T : Any> fromNdJsonToList(converter: JConverter<T>): (Sequence<String>) -> JsonOutcome<List<T>> =
     { lines ->
-        lines.traverse { converter.fromJson(it) }
+        lines.traverse(converter::fromJson)
     }
+
+fun <T : Any> fromNdJson(converter: JConverter<T>): (Sequence<String>) -> Sequence<JsonOutcome<T>> =
+    { lines -> lines.map(converter::fromJson) }
 
 fun <T : Any> toNdJson(converter: JConverter<T>): (Iterable<T>) -> Sequence<String> =
     { coll ->
@@ -17,9 +19,9 @@ fun <T : Any> toNdJson(converter: JConverter<T>): (Iterable<T>) -> Sequence<Stri
     }
 
 
-fun <T : Any> fromNdJsonStream(converter: JConverter<T>): (InputStream) -> JsonOutcome<List<T>> =
+fun <T : Any> fromNdJsonStream(converter: JConverter<T>): (InputStream) -> Sequence<JsonOutcome<T>> =
     { stream ->
-        stream.bufferedReader().lineSequence().traverse { converter.fromJson(it) }
+        stream.bufferedReader().lineSequence().map { converter.fromJson(it) }
     }
 
 fun <T : Any> toNdJsonStream(converter: JConverter<T>): (Iterable<T>, OutputStream) -> OutputStream =

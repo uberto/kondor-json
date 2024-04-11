@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.outcome.extractSet
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -17,7 +18,7 @@ class NdJsonTest {
         repeat(10) {
             val ndJsonProducer = toNdJson(JPerson)
 
-            val ndJsonReader = fromNdJson(JPerson)
+            val ndJsonReader = fromNdJsonToList(JPerson)
 
             val personList = randomList(0, 100) { randomPerson() }.toSet()
 
@@ -52,7 +53,7 @@ class NdJsonTest {
             expectThat(jsonString.count{it =='\n'}).isEqualTo(personList.size)
 
             val inputStream = ByteArrayInputStream(stream.toByteArray())
-            val parsed = ndJsonReader(inputStream).expectSuccess()
+            val parsed = ndJsonReader(inputStream).extractSet().expectSuccess()
 
             expectThat(parsed).containsExactlyInAnyOrder(personList)
         }

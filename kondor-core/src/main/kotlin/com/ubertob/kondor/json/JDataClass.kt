@@ -11,8 +11,7 @@ abstract class JDataClass<T : Any> : JAny<T>() {
     val constructor by lazy { clazz.constructors.first() }
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
-
-      //using ksp to get info about the T parameter names and order
+        //using ksp to get info about the T parameter names and order
 //        class A : Store<B, C> { }
 //
 //        So to get the type of B and C
@@ -48,11 +47,13 @@ abstract class JDataClass<T : Any> : JAny<T>() {
         //using asm we can create a unnamed class with a single method that deserialize json based on the converter fields and then get the method handler and call it here !!!
 
         //this work assuming the JConverter has fields in the same exact order then the data class constructor
-        val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() } //!!!
+
+        val args: List<Any?> = getProperties().map { it.getter(this).orThrow() } //!!!
 
         @Suppress("UNCHECKED_CAST")
         return constructor.newInstance(*args.toTypedArray()) as T
     }
+
 
 //
 //    override fun fromJson(json: String): JsonOutcome<T> =

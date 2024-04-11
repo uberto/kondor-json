@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
-import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.asSuccess
 
@@ -20,10 +19,9 @@ object JJsonNode : ObjectNodeConverter<JsonObjectNode> {
             }
             .sortedBy { it.first }
 
-    private fun valueAppender(propName: String, node: JsonNode): PropertyAppender? =
+    private fun valueAppender(propName: String, node: JsonNode): ValueAppender? =
         if (node is JsonNodeNull) null
         else { style, off ->
-            appendText(propName)
             style.appendValueSeparator(this)
                 .appendNode(node, style, off)
         }
