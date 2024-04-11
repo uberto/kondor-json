@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.3.1 - 11 April 2024
+
+Kondor-core: fixed a bug on Array style
+
 ### v.2.3.0 - 10 April 2024
 
 Kondor-core: added NdJson utility functions
