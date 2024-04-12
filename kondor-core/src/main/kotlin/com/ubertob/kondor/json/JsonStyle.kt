@@ -33,6 +33,14 @@ data class JsonStyle(
             explicitNulls = false
         )
 
+        val compactSorted = JsonStyle(
+            appendFieldSeparator = ::comma,
+            appendValueSeparator = ::colon,
+            appendNewline = JsonStyle::noNewLine,
+            sortedObjectFields = true,
+            explicitNulls = false
+        )
+
         val compactWithNulls = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colon,
