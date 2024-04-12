@@ -43,15 +43,11 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     }
 
     override fun appender(value: T): List<NamedAppender> = listOf(propName to { style, off ->
-        style.appendValueSeparator(this)
-            .appendValue(style, off, value)
+        appendValue(style, off, value)
     })
 
-    fun CharWriter.appendValue(
-        style: JsonStyle,
-        offset: Int,
-        value: T
-    ): CharWriter = converter.appendValue(this, style, offset, value)
+    fun CharWriter.appendValue(style: JsonStyle, offset: Int, value: T): CharWriter =
+        converter.appendValue(this, style, offset, value)
 }
 
 
@@ -79,15 +75,11 @@ data class JsonPropOptional<T, JN : JsonNode>(
         if (value == null)
             listOf(propName to null)
         else listOf(propName to { style, off ->
-            style.appendValueSeparator(this)
-                .appendValue(style, off, value)
+                appendValue(style, off, value)
         })
 
-    fun CharWriter.appendValue(
-        style: JsonStyle,
-        offset: Int,
-        value: T
-    ): CharWriter = converter.appendValue(this, style, offset, value)
+    fun CharWriter.appendValue(style: JsonStyle, offset: Int, value: T): CharWriter =
+        converter.appendValue(this, style, offset, value)
 }
 
 data class JsonPropMandatoryFlatten<T : Any>(

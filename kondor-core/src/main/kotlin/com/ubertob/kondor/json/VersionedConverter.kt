@@ -38,7 +38,6 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     override fun fieldAppenders(valueObject: T): List<NamedAppender> {
         return outputVersionConverter.fieldAppenders(valueObject) +
             (versionProperty to { s, _ ->
-                s.appendValueSeparator(this)
                 appendText(outputVersion)
                 this
             })

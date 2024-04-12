@@ -61,8 +61,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     private fun appendTypeName(discriminatorFieldName: String, typeName: String): NamedAppender =
         discriminatorFieldName to { app: CharWriter, style: JsonStyle, _: Int ->
-            style.appendValueSeparator(app)
-                .appendText(typeName)
+            app.appendText(typeName)
         }
 
     override fun schema() = sealedSchema(discriminatorFieldName, subConverters)

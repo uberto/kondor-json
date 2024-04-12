@@ -36,7 +36,6 @@ class JMap<K : Any, V : Any>(
     private fun valueAppender(value: V?): ValueAppender? =
         if (value == null) null
         else { style, off ->
-            style.appendValueSeparator(this)
             valueConverter.appendValue(this, style, off, value)
         }
 
