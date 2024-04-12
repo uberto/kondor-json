@@ -140,12 +140,8 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `parsing illegal Json with duplicate keys returns an error`() {
+    fun `parsing Json with duplicate keys doesn't return an error`() {
         val illegalJson = """{ "id": 1, "id": 2, "name": "alice"}"""
-
-        //decided to ignore duplicate keys
-//        val error = JPerson.fromJson(illegalJson).expectFailure()
-//        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 15: expected a unique key but found 'id' - duplicated key")
 
         val person = JPerson.fromJson(illegalJson).expectSuccess()
         expectThat(person).isEqualTo(Person(2, "alice"))
