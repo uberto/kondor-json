@@ -25,10 +25,10 @@ class JMap<K : Any, V : Any>(
 
     override fun JsonNodeObject.deserializeOrThrow() =
         _fieldMap.entries.associate { (key, value) ->
-            val newPath = NodePathSegment(key, _path)
+
             keyConverter.cons(key) to
-                    valueConverter.fromJsonNodeBase(value, newPath)
-                        .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
+                    valueConverter.fromJsonNodeBase(value)
+                        .failIfNull { ConverterJsonError(NodePathSegment(key, valueConverter.getCurrPath()), "Found null node in map!") }
                         .orThrow()
         }
 

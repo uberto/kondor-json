@@ -1,7 +1,10 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeNull
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.ObjectNode
 import com.ubertob.kondor.outcome.asSuccess
 
 object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
@@ -9,7 +12,7 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<JsonNodeObject> =
+    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
         node.asSuccess()
 
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =

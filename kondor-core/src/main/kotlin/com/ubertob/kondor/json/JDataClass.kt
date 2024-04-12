@@ -53,7 +53,7 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 
         //this work assuming the JConverter has fields in the same exact order then the data class constructor
 
-        val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() }
+        val args: List<Any?> = getProperties().map { it.getter(_fieldMap).orThrow() }
 
         @Suppress("UNCHECKED_CAST")
         return constructor.newInstance(*args.toTypedArray()) as T

@@ -28,12 +28,12 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
     override fun JsonNodeObject.deserializeOrThrow(): T? {
         val jsonNode = JsonNodeObject(_fieldMap) //!!! redundant allocation
         val discriminatorNode = _fieldMap[discriminatorFieldName]
-            ?: defaultConverter?.let { return it.fromJsonNode(jsonNode, _path).orThrow() }
+            ?: defaultConverter?.let { return it.fromJsonNode(jsonNode).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
-        val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
+        val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow()
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-        return converter.fromJsonNode(jsonNode, _path).orThrow()
+        return converter.fromJsonNode(jsonNode).orThrow()
     }
 
     override fun convertFields(valueObject: T): Map<String, JsonNode> =

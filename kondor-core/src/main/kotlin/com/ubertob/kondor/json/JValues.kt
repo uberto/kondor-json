@@ -14,7 +14,7 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
     abstract val cons: (Boolean) -> T
     abstract val render: (T) -> Boolean
 
-    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> = tryFromNode(path) { cons(node.boolean) }
+    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<T> = tryFromNode(::getCurrPath) { cons(node.boolean) }
     override fun toJsonNode(value: T): JsonNodeBoolean =
         JsonNodeBoolean(render(value))
 
@@ -71,13 +71,13 @@ object JLong : JNumRepresentable<Long>() {
         app.appendNumber(value)
 }
 
-fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
+fun <T> tryFromNode(path: () -> NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val throwable = throwableError.throwable) {
                 is JsonParsingException -> throwable.error // add path info ?
-                is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
-                else -> ConverterJsonError(path, "Caught exception: $throwable")
+                is IllegalStateException -> ConverterJsonError(path(), throwableError.msg)
+                else -> ConverterJsonError(path(), "Caught exception: $throwable")
             }
         }
 
@@ -88,28 +88,28 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
 
 
 
-    override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
+    override fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> =
         when(node){
             is JsonNodeNumber -> fromJsonNode(node)
-            is JsonNodeString -> tryNanNode(node, path)
+            is JsonNodeString -> tryNanNode(node)
             is JsonNodeNull -> null.asSuccess()
-            else -> ConverterJsonError(path,
+            else -> ConverterJsonError(getCurrPath(),
                 "expected a Number or NaN but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
-    private fun tryNanNode(node: JsonNodeString, path: NodePath): Outcome<JsonError, T?> =
+    private fun tryNanNode(node: JsonNodeString): Outcome<JsonError, T?> =
         when (node.text){
             "NaN" -> cons(Double.NaN).asSuccess()
             "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
             "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
-            else -> ConverterJsonError(path,
+            else -> ConverterJsonError(getCurrPath(),
                 "expected a Number or NaN but found '${node.text}'"
             ).asFailure()
     }
 
-    override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) { cons(node.num) }
+    override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> =
+        tryFromNode(::getCurrPath) { cons(node.num) }
 
     override fun toJsonNode(value: T): JsonNodeNumber =
         JsonNodeNumber(render(value))
@@ -123,8 +123,8 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
 
-    override fun fromJsonNode(node: JsonNodeString, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) { cons(node.text) }
+    override fun fromJsonNode(node: JsonNodeString): JsonOutcome<T> =
+        tryFromNode(::getCurrPath) { cons(node.text) }
 
     override fun toJsonNode(value: T): JsonNodeString =
         JsonNodeString(render(value))

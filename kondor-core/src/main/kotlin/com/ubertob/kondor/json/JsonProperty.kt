@@ -15,7 +15,7 @@ sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
     abstract fun appender(value: T): List<NamedAppender>
-    abstract fun getter(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+    abstract fun getter(fieldMap: FieldMap): JsonOutcome<T>
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -25,12 +25,12 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T>() {
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+    override fun getter(fieldMap: FieldMap): Outcome<JsonError, T> =
         fieldMap[propName]
-            ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
-            ?.failIfNull { JsonPropertyError(NodePathSegment(propName, path), propName, "Found null for non-nullable") }
+            ?.let { converter.fromJsonNodeBase(it) }
+            ?.failIfNull { JsonPropertyError(NodePathSegment(propName, converter.getCurrPath()), propName, "Found null for non-nullable") }
             ?: JsonPropertyError(
-                path,
+                converter.getCurrPath(),
                 propName,
                 "Not found key '$propName'. Keys found: [${fieldMap.keys.joinToString()}]"
             ).asFailure()
@@ -60,9 +60,9 @@ data class JsonPropOptional<T, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T?>() {
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T?> =
+    override fun getter(fieldMap: FieldMap): Outcome<JsonError, T?> =
         fieldMap[propName]
-            ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
+            ?.let { converter.fromJsonNodeBase(it) }
             ?: null.asSuccess()
 
 
@@ -100,10 +100,10 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+    override fun getter(fieldMap: FieldMap): Outcome<JsonError, T> =
         JsonNodeObject(fieldMap.removeFieldsFromParent())
             .let(converter::fromJsonNode)
-            .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
+            .failIfNull { JsonPropertyError(converter.getCurrPath(), propName, "Found null for non-nullable") }
 
     private fun FieldMap.removeFieldsFromParent() =
         filterKeys { key -> !parentProperties.contains(key) }

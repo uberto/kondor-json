@@ -1,7 +1,10 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.FieldMap
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.ObjectNode
 import com.ubertob.kondor.json.schema.objectSchema
 import java.util.concurrent.atomic.AtomicReference
 
@@ -25,10 +28,10 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
     abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
     @Suppress("DEPRECATION")
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) { //!!! unnecessary allocation but ok for the moment
-            JsonNodeObject(node._fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
-                ConverterJsonError(path, "deserializeOrThrow returned null!")
+    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
+        tryFromNode(::getCurrPath) { //!!! unnecessary allocation but ok for the moment
+            JsonNodeObject(node._fieldMap).deserializeOrThrow() ?: throw JsonParsingException(
+                ConverterJsonError(getCurrPath(), "deserializeOrThrow returned null!")
             )
         }
 

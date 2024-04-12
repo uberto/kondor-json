@@ -1,7 +1,10 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendArrayValues
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.ArrayNode
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeArray
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.traverseIndexed
@@ -12,8 +15,8 @@ interface JArray<T : Any, CT : Iterable<T>> : JArrayConverter<CT> {
 
     fun convertToCollection(from: Iterable<T>): CT
 
-    override fun fromJsonNode(node: JsonNodeArray, path: NodePath): Outcome<JsonError, CT> =
-        mapFromArray(node) { i, e -> converter.fromJsonNodeBase(e, NodePathSegment("[$i]", path)) }
+    override fun fromJsonNode(node: JsonNodeArray): Outcome<JsonError, CT> =
+        mapFromArray(node) { i, e -> converter.fromJsonNodeBase(e) } //, NodePathSegment("[$i]", path) !!!
             .transform { convertToCollection(it) }
 
     override fun toJsonNode(value: CT): JsonNodeArray =

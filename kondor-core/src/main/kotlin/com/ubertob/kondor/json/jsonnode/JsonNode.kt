@@ -28,17 +28,10 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode)
 
 data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
-    internal var _path: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
-
-    @Deprecated("Use the primary constructor without path")
-    constructor(_fieldMap: FieldMap, _path: NodePath): this(_fieldMap) {
-        this._path = _path
-    }
-
     val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
-        getter(_fieldMap, path = _path)
+        getter(_fieldMap)
             .onFailure { throw JsonParsingException(it) }
 }
 

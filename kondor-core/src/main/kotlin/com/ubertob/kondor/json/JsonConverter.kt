@@ -32,25 +32,25 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     val _nodeType: NodeKind<JN>
 
-    //add a fun getCurrPath() that is supposed to give info only during parsing !!!
+    fun getCurrPath() = NodePathRoot
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    private fun safeCast(node: JsonNode, path: NodePath): JsonOutcome<JN?> =
+    private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
         when (node.nodeKind) {
             _nodeType -> (node as JN).asSuccess()
             NullNode -> null.asSuccess()
             else -> ConverterJsonError(
-                path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
+                getCurrPath(), "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
-    private fun fromJsonNodeNullable(node: JN?, path: NodePath): JsonOutcome<T?> =
-        node?.let { fromJsonNode(it, path) } ?: null.asSuccess()
+    private fun fromJsonNodeNullable(node: JN?): JsonOutcome<T?> =
+        node?.let { fromJsonNode(it) } ?: null.asSuccess()
 
-    fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
-        safeCast(node, path).bind { fromJsonNodeNullable(it, path) }
+    fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> =
+        safeCast(node).bind { fromJsonNodeNullable(it) }
 
-    fun fromJsonNode(node: JN, path: NodePath = NodePathRoot): JsonOutcome<T>
+    fun fromJsonNode(node: JN): JsonOutcome<T>
 
     fun toJsonNode(value: T): JN
 
@@ -83,6 +83,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
+
+
 }
 
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
