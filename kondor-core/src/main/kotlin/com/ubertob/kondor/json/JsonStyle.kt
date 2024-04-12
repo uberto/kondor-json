@@ -209,16 +209,13 @@ data class JsonStyle(
                         style.appendNewline(this, offset)
                     }
                     appendText(fieldName)
+                    style.appendValueSeparator(this)
                     if (appender == null)
-                        appendNullField(style)
+                        appendNull()
                     else
                         appender(style, offset + 1)
                 }
         }
-
-        fun CharWriter.appendNullField(style: JsonStyle): CharWriter =
-                style.appendValueSeparator(this)
-                    .appendNull()
 
         fun CharWriter.appendNull() =
             write("null")

@@ -20,9 +20,8 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
             .sortedBy { it.first }
 
     private fun valueAppender(propName: String, node: JsonNode): ValueAppender? =
-        if (node is JsonNodeNull) null
-        else { style, off ->
-            style.appendValueSeparator(this)
-                .appendNode(node, style, off)
-        }
+        if (node is JsonNodeNull)
+            null
+        else
+            { style, off -> appendNode(node, style, off) }
 }
