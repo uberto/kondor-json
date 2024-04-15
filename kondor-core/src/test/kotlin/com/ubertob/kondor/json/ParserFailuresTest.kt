@@ -322,6 +322,50 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("Error converting node <[root]> not finished yet!")
     }
 
+    @Test
+    fun `nested object parsing error report correct path`() {
+
+        val wrongjson = """{
+  "file": {
+      "creation_date": -3951020977374450952,
+      "file_name": "myfile",
+      "folder_path": "/a/b/c",
+      "is_dir": false,
+      "selected": true,
+      "size": 123
+    },
+  "user": {
+      "id": 597,
+      "name??": "Frank"
+    }
+}"""
+        val error = JUserFile.fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error reading property <name> of node </user> Not found key 'name'. Keys found: [id, name??]")
+    }
+
+    @Test
+    fun `flatten field parsing error report correct path`() {
+
+        val wrongjson = """{
+  "file": {
+      "creation_date": -3951020977374450952,
+      "file_name??": "myfile",
+      "folder_path": "/a/b/c",
+      "is_dir": false,
+      "selected": true,
+      "size": 123
+    },
+  "user": {
+      "id": 597,
+      "name": "Frank"
+    }
+}"""
+        val error = JUserFile.fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error reading property <file_name> of node </file> Not found key 'file_name'. Keys found: [creation_date, file_name??, folder_path, is_dir, size]")
+    }
+
 
     //add tests for... wrong enum, jmap with mixed node types, Double instead of Long
 }

@@ -120,7 +120,37 @@ class JsonRenderTest {
     }
 
     @Test
-    fun `pretty render array`() {
+    fun `pretty render array of objects`() {
+
+        val people = listOf(
+            Person(1, "Adam"),
+            Person(2, "Betty"),
+            Person(3, "Carol")
+        )
+        val jsonString = JList(JPerson).toJson(people, pretty)
+
+        expectThat(jsonString).isEqualTo(
+            """[
+              |  {
+              |    "id": 1,
+              |    "name": "Adam"
+              |  },
+              |  {
+              |    "id": 2,
+              |    "name": "Betty"
+              |  },
+              |  {
+              |    "id": 3,
+              |    "name": "Carol"
+              |  }
+              |]""".trimMargin()
+        )
+
+    }
+
+
+    @Test
+    fun `pretty render array of nullable Strings`() {
         val nodeArray = JsonNodeArray(
             listOf(
                 JsonNodeString("abc", NodePathRoot),

@@ -175,7 +175,7 @@ data class JsonStyle(
                     style.appendFieldSeparator(this)
                     style.appendNewline(this, offset + 1)
                 }
-                appender(style, offset + 2, each)
+                appender(style, offset+1, each)
             }
             style.appendNewline(this, offset)
                 .write(']')

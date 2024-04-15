@@ -361,6 +361,22 @@ object JSelectedFile : JAny<SelectedFile>() {
 }
 
 
+data class UserFile(val user: Person, val file: SelectedFile)
+
+object JUserFile : JAny<UserFile>() {
+
+    val user by obj(JPerson, UserFile::user)
+    val file by obj(JSelectedFile, UserFile::file)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        UserFile(
+            user = +user,
+            file = +file
+        )
+
+
+}
+
 // Using other field of Enum
 data class TitleRequest(
     val id: String,
