@@ -71,17 +71,18 @@ class JValuesExtraTest {
     @Test
     fun `JSealed rendered correctly with discriminant field`() {
 
-        val expected = """[
+        val expected =
+            """[
               |  {
-              |      "id": 1,
-              |      "name": "Adam",
-              |      "type": "private"
-              |    },
+              |    "id": 1,
+              |    "name": "Adam",
+              |    "type": "private"
+              |  },
               |  {
-              |      "name": "Acme",
-              |      "tax_type": "US",
-              |      "type": "company"
-              |    }
+              |    "name": "Acme",
+              |    "tax_type": "US",
+              |    "type": "company"
+              |  }
               |]""".trimMargin()
         val customers = listOf(
             Person(1, "Adam"),
@@ -263,7 +264,7 @@ class JValuesExtraTest {
     }
 
     @Test
-    fun `Json MetadataFile`() {
+    fun `Json with flatten map is rendered and parsed correctly`() {
 
         repeat(10) {
 
@@ -280,6 +281,26 @@ class JValuesExtraTest {
         }
     }
 
+    @Test
+    fun `Json with flatten map is pretty rendered correctly`() {
+
+        val value = MetadataFile("myfile", mapOf("canWrite" to "N", "canRead" to "Y", "owner" to "adam"))
+        val json = JMetadataFile.toJson(value, pretty)
+
+        val expected = """{
+              |  "canRead": "Y",
+              |  "canWrite": "N",
+              |  "fileName": "myfile",
+              |  "owner": "adam"
+              |}""".trimMargin()
+
+        expectThat(json).isEqualTo(expected)
+
+        val actual = JMetadataFile.fromJson(json).expectSuccess()
+
+        expectThat(actual).isEqualTo(value)
+
+    }
 
     @Test
     fun `Json TitleRequest`() {
@@ -357,5 +378,6 @@ class JValuesExtraTest {
         }
     }
 }
+
 
 
