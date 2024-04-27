@@ -1,0 +1,42 @@
+[versions]
+gradlew = "8.4"
+kotlin = "1.8.20"
+java = "8"
+
+kotlinPoet = "1.8.0"
+mongo = "4.8.2"
+http4k = "4.6.0.0"
+jackson = "2.13.0"
+
+jUnit = "5.10.2"
+jUnitLauncher = "1.10.2"
+striKt = "0.34.0"
+testContainers = "1.19.6"
+jmh = "0.7.1"
+justify = "3.1.0"
+joy = "2.0.0"
+
+[libraries]
+kotlin-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+
+kotlinPoet = { module = "com.squareup:kotlinpoet", version.ref = "kotlinPoet" }
+striKt = { module = "io.strikt:strikt-core", version.ref = "striKt" }
+mongo = { module = "org.mongodb:mongodb-driver-sync", version.ref = "mongo" }
+http4k = { module = "org.http4k:http4k-core", version.ref = "http4k" }
+jackson = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
+testContainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
+testContainers-mongo = { module = "org.testcontainers:mongodb", version.ref = "testContainers" }
+
+kotlinPlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+
+jUnit-launcher = { module = "org.junit.platform:junit-platform-launcher", version.ref = "jUnitLauncher" }
+justify = { module = "org.leadpony.justify:justify", version.ref = "justify" }
+joy = { module = "org.leadpony.joy:joy-classic", version.ref = "joy" }
+jUnit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jUnit" }
+
+[plugins]
+kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+jmh = { id = "me.champeau.jmh", version.ref = "jmh" }
