@@ -9,7 +9,7 @@ fi
 # verify it's all working with a
 ./gradlew clean build
 
-# update the version in build.gradle
+# update the version in build.gradle.kts
 ver=$(./gradlew -q printVersion)
 
 echo currrent: $ver
@@ -31,5 +31,5 @@ echo "then go to sonatype site and login"
 echo "https://oss.sonatype.org/#nexus-search;quick~kondor"
 # select Staging Repositories, and close the corresponding one (empty desc is fine)
 # then click release and wait ~10 min to be able to download it
-# and then bouncing the version with SNAPSHOT in build.gradle
+# and then bouncing the version with SNAPSHOT in build.gradle.kts
 # commit new shapshot version
