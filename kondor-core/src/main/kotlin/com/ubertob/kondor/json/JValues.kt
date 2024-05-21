@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.OutcomeException
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import java.math.BigDecimal
@@ -77,9 +78,16 @@ fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
             when (val throwable = throwableError.throwable) {
                 is JsonParsingException -> throwable.error // add path info ?
                 is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
+                is OutcomeException -> jsonError(throwable, path)
                 else -> ConverterJsonError(path, "Caught exception: $throwable")
             }
         }
+
+private fun jsonError(exception: OutcomeException, path: NodePath): JsonError =
+    when (val err = exception.error) {
+        is JsonError -> err
+        else -> ConverterJsonError(path, "Caught exception: $exception")
+    }
 
 
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
@@ -89,24 +97,26 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
 
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
-        when(node){
+        when (node) {
             is JsonNodeNumber -> fromJsonNode(node)
             is JsonNodeString -> tryNanNode(node, path)
             is JsonNodeNull -> null.asSuccess()
-            else -> ConverterJsonError(path,
+            else -> ConverterJsonError(
+                path,
                 "expected a Number or NaN but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
     private fun tryNanNode(node: JsonNodeString, path: NodePath): Outcome<JsonError, T?> =
-        when (node.text){
+        when (node.text) {
             "NaN" -> cons(Double.NaN).asSuccess()
             "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
             "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
-            else -> ConverterJsonError(path,
+            else -> ConverterJsonError(
+                path,
                 "expected a Number or NaN but found '${node.text}'"
             ).asFailure()
-    }
+        }
 
     override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) { cons(node.num) }

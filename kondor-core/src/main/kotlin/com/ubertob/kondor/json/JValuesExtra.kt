@@ -17,12 +17,12 @@ data class JStringWrapper<T : StringWrapper>(override val cons: (String) -> T) :
 }
 
 object JBigDecimal : JNumRepresentable<BigDecimal>() {
-    override val cons: (Number) -> BigDecimal = { BigDecimal (it.toString()) }
+    override val cons: (Number) -> BigDecimal = { BigDecimal(it.toString()) }
     override val render: (BigDecimal) -> Number = { it }
 }
 
 object JBigInteger : JNumRepresentable<BigInteger>() {
-    override val cons: (Number) -> BigInteger = { BigInteger (it.toString()) }
+    override val cons: (Number) -> BigInteger = { BigInteger(it.toString()) }
     override val render: (BigInteger) -> Number = BigInteger::toBigDecimal
 }
 
@@ -39,8 +39,7 @@ data class JEnum<E : Enum<E>>(override val cons: (String) -> E, val values: List
     override fun schema(): JsonNodeObject = enumSchema(values)
 }
 
-data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) :
-    JStringRepresentable<E>() {
+data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) : JStringRepresentable<E>() {
     private val valuesMap: Map<String, E> by lazy { clazz.java.enumConstants.associateBy { it.name } }
     override val cons: (String) -> E = { name -> valuesMap[name] ?: error("not found $name among ${valuesMap.keys}") }
     override val render: (E) -> String = { it.name }

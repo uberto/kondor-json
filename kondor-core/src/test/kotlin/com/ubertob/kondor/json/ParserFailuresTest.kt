@@ -55,6 +55,16 @@ class ParserFailuresTest {
     }
 
     @Test
+    fun `parsing wrong enum returns an error`() {
+        val illegalJson = """
+            {"id": "72825", "vat-to-pay": true, "customer": {"type": "company", "name": "acme lim", "tax_type": "Coyote"}, "items": [], "total": 0, "created_date": "2024-05-21", "paid_datetime": 1716303968000}
+        """.trimIndent()
+
+        val error = JInvoice.fromJson(illegalJson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node </customer/tax_type> not found Coyote among [Domestic, Exempt, EU, US, Other]")
+    }
+    @Test
     fun `thrown exception keep the json error`() {
         val illegalJson = "False"
 
@@ -270,7 +280,6 @@ class ParserFailuresTest {
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error converting node </customer> expected discriminator field \"type\" not found")
-        //if an object is valid json but fail the parser it should use a different error with the node reference
     }
 
 
@@ -396,14 +405,15 @@ class ParserFailuresTest {
    },
    { 
     "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
-    "user": { "id": "597", "name": "Frank" } 
+    "user": { "id": 597.7, "name": "Frank" } 
    }
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number or NaN but found '597'")
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Caught exception: java.lang.ArithmeticException: Rounding necessary")
+        //TODO !!! better errors when parsing numbers
     }
 
 
-    //add tests for... wrong enum, jmap with mixed node types, Double instead of Long
+    //add test for jmap with mixed node types
 }
