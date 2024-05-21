@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
+import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
@@ -44,15 +45,19 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             ).asFailure()
         }
 
-    private fun fromJsonNodeNullable(node: JN?, path: NodePath): JsonOutcome<T?> =
-        node?.let { fromJsonNode(it, path) } ?: null.asSuccess()
+    fun fromJsonNodeBase(node: JsonNode, path: NodePath = NodePathRoot): JsonOutcome<T?> =
+        safeCast(node, path)
+            .bind { fromNullableJsonNode(it, path) }
 
-    fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
-        safeCast(node, path).bind { fromJsonNodeNullable(it, path) }
+    fun fromNullableJsonNode(jsonNode: JN?, path: NodePath): Outcome<JsonError, T?> =
+        jsonNode?.let { fromJsonNode(it, path) } ?: null.asSuccess()
 
     fun fromJsonNode(node: JN, path: NodePath = NodePathRoot): JsonOutcome<T>
 
     fun toJsonNode(value: T): JN
+
+    @Deprecated("NodePath is not used anymore", ReplaceWith("toJsonNode(value)"))
+    fun toJsonNode(value: T, path: NodePath): JN = toJsonNode(value)
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
