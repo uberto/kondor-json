@@ -366,6 +366,44 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("Error reading property <file_name> of node </file> Not found key 'file_name'. Keys found: [creation_date, file_name??, folder_path, is_dir, size]")
     }
 
+    @Test
+    fun `array parsing error on key report correct path`() {
+
+        val wrongjson = """
+  [
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": 597, "name": "Frank" } 
+   },
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name??": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": 597, "name": "Frank" } 
+   }
+  ]"""
+        val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error reading property <file_name> of node </[1]/file> Not found key 'file_name'. Keys found: [creation_date, file_name??, folder_path, is_dir, size]")
+    }
+
+    @Test
+    fun `array parsing error on value report correct path`() {
+
+        val wrongjson = """
+  [
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": 597, "name": "Frank" } 
+   },
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": "597", "name": "Frank" } 
+   }
+  ]"""
+        val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number or NaN but found '597'")
+    }
+
 
     //add tests for... wrong enum, jmap with mixed node types, Double instead of Long
 }
