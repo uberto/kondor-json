@@ -1,10 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.asStringValue
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
@@ -24,15 +21,15 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     
     open val outputVersionConverter: ObjectNodeConverter<T> get() =
         converterForVersion(outputVersion) ?: error("no converter for version $outputVersion")
-    
-    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> {
-        val jsonVersion = node._fieldMap[versionProperty].asStringValue()
+
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
+        val jsonVersion = fieldMap[versionProperty].asStringValue()
             ?: defaultVersion
-            ?: return missingVersionError(node).asFailure()
+            ?: return missingVersionError(path).asFailure()
         
         return converterForVersion(jsonVersion).asSuccess()
-            .failIfNull { unsupportedVersionError(node, jsonVersion) }
-            .bind { it.fromJsonNode(node) }
+            .failIfNull { unsupportedVersionError(path, jsonVersion) }
+            .bind { it.fromFieldMap(fieldMap, path) }
     }
     
     override fun fieldAppenders(valueObject: T): List<NamedAppender> {
@@ -43,21 +40,20 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
             })
     }
     
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
-        outputVersionConverter.toJsonNode(value, path).let {
-            it.copy(_fieldMap = it._fieldMap + (versionProperty to JsonNodeString(outputVersion, path + versionProperty)))
+    override fun toJsonNode(value: T): JsonNodeObject =
+        outputVersionConverter.toJsonNode(value).let {
+            it.copy(_fieldMap = it._fieldMap + (versionProperty to JsonNodeString(outputVersion)))
         }
     
-    private fun missingVersionError(node: JsonNodeObject) =
+    private fun missingVersionError(path: NodePath) =
         JsonPropertyError(
-            node._path,
+            path,
             versionProperty, "missing $versionProperty property"
         )
     
-    private fun unsupportedVersionError(node: JsonNodeObject, version: String) =
-        JsonPropertyError(node._path + versionProperty, versionProperty, "unsupported format version $version")
+    private fun unsupportedVersionError(path: NodePath, version: String) =
+        JsonPropertyError(path + versionProperty, versionProperty, "unsupported format version $version")
 }
-
 
 data class VersionMapConverter<T: Any>(
     override val versionProperty: String = defaultVersionProperty,
