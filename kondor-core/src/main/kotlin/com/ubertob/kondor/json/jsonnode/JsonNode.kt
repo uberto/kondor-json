@@ -28,9 +28,15 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode)
 
 data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
 
+    companion object {
+        @Suppress("DEPRECATION")
+        internal  fun buildForParsing(fieldMap: FieldMap, path: NodePath): JsonNodeObject =
+            JsonNodeObject(fieldMap, path)
+    }
+
     internal var _path: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
 
-    @Deprecated("Use the primary constructor without path")
+    @Deprecated("Use the primary constructor without path instead")
     constructor(_fieldMap: FieldMap, _path: NodePath): this(_fieldMap) {
         this._path = _path
     }

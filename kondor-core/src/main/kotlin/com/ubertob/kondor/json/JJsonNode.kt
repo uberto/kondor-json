@@ -9,8 +9,8 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<JsonNodeObject> =
-        node.asSuccess()
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject>  =
+        JsonNodeObject(fieldMap).asSuccess()
 
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap

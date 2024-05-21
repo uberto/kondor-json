@@ -17,20 +17,26 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
+
+    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+        fromFieldMap(node._fieldMap, path)
+
+
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
-
     abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
-    @Suppress("DEPRECATION")
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) { //!!! unnecessary allocation but ok for the moment
-            JsonNodeObject(node._fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath) =
+        tryFromNode(path) {
+            JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
                 ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
+
 
     override fun toJsonNode(value: T): JsonNodeObject =
         JsonNodeObject(convertFields(value))
