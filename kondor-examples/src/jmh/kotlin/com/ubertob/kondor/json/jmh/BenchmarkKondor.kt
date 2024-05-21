@@ -33,8 +33,8 @@ fun main() {
 }
 
 private fun fromJson(json: String) =
-    jDemoClasses.fromJson(json).orThrow() //!!!
-//    KondorTokenizer.tokenize(json.byteInputStream())
+    jDemoClasses.fromJson(json).orThrow()
+//    KondorTokenizer.tokenize(json.byteInputStream())  !!!compare speed
 //        .bind(jDemoClasses::parseAndConvert).orThrow()
 private fun toJson(objs: List<DemoClass>) =
     jDemoClasses.toJson(objs, JsonStyle.compact)

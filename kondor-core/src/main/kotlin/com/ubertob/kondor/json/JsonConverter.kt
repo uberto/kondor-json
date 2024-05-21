@@ -74,7 +74,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         KondorTokenizer.tokenize(jsonStream) //!!!look at ReaderBasedJsonParser, make the fromJson(String) call this one as well
             .bind(::parseAndConvert)
 
-    fun parseAndConvert(tokens: TokensStream) =
+    fun parseAndConvert(tokens: TokensStream): Outcome<JsonError, T> =
         tokens.parseFromRoot()
             .bind { fromJsonNode(it) }
             .bind {
