@@ -395,7 +395,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `array parsing error on value report correct path`() {
+    fun `array parsing error on numeric precision report correct path`() {
 
         val wrongjson = """
   [
@@ -414,6 +414,25 @@ class ParserFailuresTest {
         //TODO !!! better errors when parsing numbers
     }
 
+    @Test
+    fun `array parsing error on value type report correct path`() {
+
+        val wrongjson = """
+  [
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": 597, "name": "Frank" } 
+   },
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": "id-123", "name": "Frank" } 
+   }
+  ]"""
+        val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number or NaN but found 'id-123'")
+        //TODO !!! better errors when parsing numbers
+    }
 
     //add test for jmap with mixed node types
 }

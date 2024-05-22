@@ -76,13 +76,16 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     fun parseAndConvert(tokens: TokensStream): Outcome<JsonError, T> =
         tokens.parseFromRoot()
-            .bind { fromJsonNode(it) }
-            .bind {
-                if (tokens.hasNext())
-                    parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
-                else
-                    it.asSuccess()
-            }
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { checkForJsonTail(tokens, it) }
+
+    fun checkForJsonTail(
+        tokens: TokensStream,
+        it: T
+    ) = if (tokens.hasNext())
+        parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+    else
+        it.asSuccess()
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
@@ -91,7 +94,11 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
 
-fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(value: T, outputStream: OutputStream, renderer: JsonStyle = jsonStyle) =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(
+    value: T,
+    outputStream: OutputStream,
+    renderer: JsonStyle = jsonStyle
+) =
     appendValue(OutputStreamCharWriter(outputStream), renderer, 0, value)
 
 //deprecated methods

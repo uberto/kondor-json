@@ -94,11 +94,9 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
 
-
-
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when (node) {
-            is JsonNodeNumber -> fromJsonNode(node)
+            is JsonNodeNumber -> fromJsonNode(node, path)
             is JsonNodeString -> tryNanNode(node, path)
             is JsonNodeNull -> null.asSuccess()
             else -> ConverterJsonError(
