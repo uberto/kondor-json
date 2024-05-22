@@ -75,7 +75,7 @@ data class JsonPropOptional<T, JN : JsonNode>(
         if (value == null)
             listOf(propName to null)
         else listOf(propName to { style, off ->
-                appendValue(style, off, value)
+            appendValue(style, off, value)
         })
 
     fun CharWriter.appendValue(style: JsonStyle, offset: Int, value: T): CharWriter =
@@ -93,8 +93,7 @@ data class JsonPropMandatoryFlatten<T : Any>(
     override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 
     override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
-        JsonNodeObject(fieldMap.removeFieldsFromParent())
-            .let(converter::fromJsonNode)
+        converter.fromFieldMap(fieldMap.removeFieldsFromParent(), path)
             .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
 
     private fun FieldMap.removeFieldsFromParent() =
