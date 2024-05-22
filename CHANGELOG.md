@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.2.3.3 - 22 May 2024
+
+Kondor-core: better exception messages and arrays pretty rendering
+
 ### v.2.3.2 - 11 April 2024
 
 Kondor-core: added VersionedConverter to handle Json migrations (thanks N.Pryce)
