@@ -122,7 +122,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson("-9223372036854775809").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -130,7 +130,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson("9223372036854775808000000000000").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -138,7 +138,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson("-2147483649").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -146,7 +146,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson("2147483648").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -410,8 +410,7 @@ class ParserFailuresTest {
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Caught exception: java.lang.ArithmeticException: Rounding necessary")
-        //TODO !!! better errors when parsing numbers
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format: Rounding necessary")
     }
 
     @Test
@@ -431,7 +430,6 @@ class ParserFailuresTest {
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number or NaN but found 'id-123'")
-        //TODO !!! better errors when parsing numbers
     }
 
     //add test for jmap with mixed node types
