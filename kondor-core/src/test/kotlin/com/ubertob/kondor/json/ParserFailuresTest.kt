@@ -122,7 +122,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson("-9223372036854775809").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -130,7 +130,7 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson("9223372036854775808000000000000").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -138,7 +138,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson("-2147483649").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -146,7 +146,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson("2147483648").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> Caught exception: java.lang.ArithmeticException: Overflow")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format: Overflow")
     }
 
     @Test
@@ -410,10 +410,27 @@ class ParserFailuresTest {
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Caught exception: java.lang.ArithmeticException: Rounding necessary")
-        //TODO !!! better errors when parsing numbers
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format: Rounding necessary")
     }
 
+    @Test
+    fun `array parsing error on value type report correct path`() {
+
+        val wrongjson = """
+  [
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": 597, "name": "Frank" } 
+   },
+   { 
+    "file": { "creation_date": -3951020977374450952, "file_name": "myfile", "folder_path": "/a/b/c", "is_dir": false, "selected": true, "size": 123 },
+    "user": { "id": "id-123", "name": "Frank" } 
+   }
+  ]"""
+        val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number or NaN but found 'id-123'")
+    }
 
     //add test for jmap with mixed node types
 }

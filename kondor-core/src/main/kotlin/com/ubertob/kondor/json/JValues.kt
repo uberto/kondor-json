@@ -75,18 +75,19 @@ object JLong : JNumRepresentable<Long>() {
 fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
-            when (val throwable = throwableError.throwable) {
-                is JsonParsingException -> throwable.error // keep path info
+            when (val exception = throwableError.throwable) {
+                is ArithmeticException -> ConverterJsonError(node._path, "Wrong number format: ${exception.message}")
+                is JsonParsingException -> exception.error
                 is IllegalStateException -> ConverterJsonError(node._path, throwableError.msg)
-                is OutcomeException -> jsonError(throwable, node)
-                else -> ConverterJsonError(node._path, "Caught exception: $throwable")
+                is OutcomeException -> exception.toJsonError(node._path)
+                else -> ConverterJsonError(node._path, "Caught exception: $exception")
             }
         }
 
-private fun jsonError(exception: OutcomeException, node: JsonNode): JsonError =
-    when (val err = exception.error) {
+private fun OutcomeException.toJsonError(path: NodePath): JsonError =
+    when (val err = error) {
         is JsonError -> err
-        else -> ConverterJsonError(node._path, "Caught exception: $exception")
+        else -> ConverterJsonError(path, "Nested exception: ${this}")
     }
 
 
