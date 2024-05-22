@@ -3,20 +3,25 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import kotlin.reflect.KClass
 
+abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAny<T>() {
 
-//experimental converter for data classes without any boilerplate WIP!!
-abstract class JDataClass<T : Any> : JAny<T>() {
-
-    abstract val clazz: Class<T>
-
+    val clazz: Class<T> = klazz.java
     val constructor by lazy { clazz.constructors.first() }
 
     internal var _currentPath: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
 
-        //using ksp to get info about the T parameter names and order
+        val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() }
+
+        @Suppress("UNCHECKED_CAST")
+        return constructor.newInstance(*args.toTypedArray()) as T
+    }
+
+
+    //using ksp to get info about the T parameter names and order
 //        class A : Store<B, C> { }
 //
 //        So to get the type of B and C
@@ -27,12 +32,9 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 //        val C = it.superTypes.first().resolve().arguments.elementAtOrNull(1)?.type?.resolve()?.declaration
 //        print(C?.qualifiedName?.asString())
 
-        //todo can we check that is a Kotlin data class? we can also compare constructors args and Json fields
+    //todo can we check that is a Kotlin data class? we can also compare constructors args and Json fields
 
-//        val map: Map<String, Any?> = getProperties().associate {
-//            it.propName to it.getter(this).orThrow()
-//        }
-//
+
 //        println("properties map ${map.keys}") //json names
 //        val args = mutableListOf<Any?>()
 ////        first translate all props in objects values, then pass to the constructor
@@ -49,16 +51,8 @@ abstract class JDataClass<T : Any> : JAny<T>() {
 //        }
 
 
-        //using asm we can create a unnamed class with a single method that deserialize json based on the converter fields and then get the method handler and call it here !!!
-
-        //this work assuming the JConverter has fields in the same exact order then the data class constructor
-
-        val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() }
-
-        @Suppress("UNCHECKED_CAST")
-        return constructor.newInstance(*args.toTypedArray()) as T
-    }
-
+    //using asm we can create a unnamed class with a single method that deserialize json based on the converter fields and then get the method handler and call it here !!!
+    //this work assuming the JConverter has fields in the same exact order then the data class constructor
 
 //
 //    override fun fromJson(json: String): JsonOutcome<T> =
