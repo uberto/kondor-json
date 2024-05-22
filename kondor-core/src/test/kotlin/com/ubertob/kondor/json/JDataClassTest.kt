@@ -8,6 +8,8 @@ import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 
 class JDataClassTest {
+
+    //!!! check on perf tests if it's slower
     @Test
     fun `Json Person and back`() {
 

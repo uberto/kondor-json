@@ -3,6 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
+import com.ubertob.kondor.outcome.Outcome
 import java.util.concurrent.atomic.AtomicReference
 
 
@@ -36,7 +37,7 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath) =
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
         tryFromNode(path) {
             JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
                 ConverterJsonError(path, "deserializeOrThrow returned null!")

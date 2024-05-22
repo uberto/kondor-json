@@ -1,8 +1,9 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.FieldMap
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.outcome.Outcome
 import kotlin.reflect.KClass
 
 abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAny<T>() {
@@ -10,15 +11,21 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAny<T>() {
     val clazz: Class<T> = klazz.java
     val constructor by lazy { clazz.constructors.first() }
 
-    internal var _currentPath: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
+    private val jsonProperties  by lazy { getProperties() }
 
-    override fun JsonNodeObject.deserializeOrThrow(): T? {
+    override fun JsonNodeObject.deserializeOrThrow(): T? = error("Deprecated method! Override fromFieldMap if necessary.")
 
-        val args: List<Any?> = getProperties().map { it.getter(_fieldMap, _path).orThrow() }
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+        tryFromNode(path) {
+            val args: List<Any?> = jsonProperties.map { prop ->
+                prop.getter(fieldMap, path).orThrow()
+            }
 
-        @Suppress("UNCHECKED_CAST")
-        return constructor.newInstance(*args.toTypedArray()) as T
-    }
+            buildInstance(args)
+        }
+
+    private fun buildInstance(args: List<Any?>) = (@Suppress("UNCHECKED_CAST")
+    constructor.newInstance(*args.toTypedArray()) as T)
 
 
     //using ksp to get info about the T parameter names and order
