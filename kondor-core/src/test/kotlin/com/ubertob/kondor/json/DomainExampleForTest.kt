@@ -320,8 +320,8 @@ class Products : ArrayList<Product>() {
 object JProducts : JArray<Product, Products> {
     override val converter = JProduct
 
-    override fun convertToCollection(from: Iterable<Product>) =
-        Products.fromIterable(from)
+    override fun convertToCollection(from: Iterable<Product?>) =
+        Products.fromIterable(from.filterNotNull())
 
     override val _nodeType = ArrayNode
 

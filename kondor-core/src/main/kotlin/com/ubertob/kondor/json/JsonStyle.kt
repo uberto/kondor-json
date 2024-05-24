@@ -25,6 +25,14 @@ data class JsonStyle(
             explicitNulls = false
         )
 
+        val singleLineWithNulls = JsonStyle(
+            appendFieldSeparator = ::commaSpace,
+            appendValueSeparator = ::colonSpace,
+            appendNewline = JsonStyle::noNewLine,
+            sortedObjectFields = false,
+            explicitNulls = true
+        )
+
         val compact = JsonStyle(
             appendFieldSeparator = ::comma,
             appendValueSeparator = ::colon,
@@ -164,7 +172,7 @@ data class JsonStyle(
         fun <T> CharWriter.appendArrayValues(
             style: JsonStyle,
             offset: Int,
-            values: Iterable<T>,
+            values: Iterable<T?>,
             appender: CharWriter.(JsonStyle, Int, T) -> CharWriter
         ): CharWriter {
             write('[')
@@ -175,7 +183,10 @@ data class JsonStyle(
                     style.appendFieldSeparator(this)
                     style.appendNewline(this, offset + 1)
                 }
-                appender(style, offset+1, each)
+                if (each == null) {
+                    appendNull()
+                } else
+                    appender(style, offset + 1, each)
             }
             style.appendNewline(this, offset)
                 .write(']')

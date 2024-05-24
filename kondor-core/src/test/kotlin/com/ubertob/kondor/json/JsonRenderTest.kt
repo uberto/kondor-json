@@ -85,7 +85,7 @@ class JsonRenderTest {
     }
 
     @Test
-    fun `render array with nulls`() {
+    fun `render array with meaningful nulls`() {
         val jsonString =
             JsonNodeArray(
                 listOf(
@@ -96,6 +96,16 @@ class JsonRenderTest {
             ).render()
 
         expectThat(jsonString).isEqualTo("""["abc","def"]""")
+    }
+
+    @Test
+    fun `render array with nulls`() {
+        val jStrings = JNullableList(JString)
+        val listWithMeaningfulNulls =
+            listOf("red", null, null, "green", "blue", null)
+
+        val jsonString = jStrings.toJson(listWithMeaningfulNulls)
+        expectThat(jsonString).isEqualTo("""["red", null, null, "green", "blue", null]""")
     }
 
     @Test
