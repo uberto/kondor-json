@@ -4,6 +4,7 @@ import com.ubertob.kondor.json.datetime.JLocalTime
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -24,7 +25,7 @@ class JLocalTimeTest {
 
         val timeAsJsonNode = JsonNodeString("02:01:34 PM")
         expectThat(jLocalTime.toJsonNode(time)).isEqualTo(timeAsJsonNode)
-        expectThat(jLocalTime.fromJsonNode(timeAsJsonNode).expectSuccess()).isEqualTo(time)
+        expectThat(jLocalTime.fromJsonNode(timeAsJsonNode, NodePathRoot).expectSuccess()).isEqualTo(time)
 
         val timeAsString = "\"02:01:34 PM\""
         expectThat(jLocalTime.toJson(time)).isEqualTo(timeAsString)
@@ -38,7 +39,7 @@ class JLocalTimeTest {
 
         val timeAsJsonNode = JsonNodeString("02:01:34 PM")
         expectThat(jLocalTime.toJsonNode(time)).isEqualTo(timeAsJsonNode)
-        expectThat(jLocalTime.fromJsonNode(timeAsJsonNode).expectSuccess()).isEqualTo(time)
+        expectThat(jLocalTime.fromJsonNode(timeAsJsonNode, NodePathRoot).expectSuccess()).isEqualTo(time)
 
         val timeAsString = "\"02:01:34 PM\""
         expectThat(jLocalTime.toJson(time)).isEqualTo(timeAsString)

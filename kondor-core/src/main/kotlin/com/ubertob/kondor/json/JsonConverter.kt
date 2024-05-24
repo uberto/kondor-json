@@ -50,11 +50,15 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     fun fromNullableJsonNode(jsonNode: JN?, path: NodePath): Outcome<JsonError, T?> =
         jsonNode?.let { fromJsonNode(it, path) } ?: null.asSuccess()
 
-    fun fromJsonNode(node: JN, path: NodePath = NodePathRoot): JsonOutcome<T>
+    fun fromJsonNode(node: JN, path: NodePath): JsonOutcome<T>
 
     fun toJsonNode(value: T): JN
 
-    @Deprecated("NodePath is not used anymore", ReplaceWith("toJsonNode(value)"))
+    //those deprecated functions will be removed later in 3.x
+    @Deprecated("NodePath has to be passed now when parsing, since it's not in JsonNode anymore", ReplaceWith("toJsonNode(value, path)"))
+    fun fromJsonNode(node: JN): JsonOutcome<T> = fromJsonNode(node, NodePathRoot)
+
+    @Deprecated("NodePath is not in the JsonNode anymore", ReplaceWith("toJsonNode(value)"))
     fun toJsonNode(value: T, path: NodePath): JN = toJsonNode(value)
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
