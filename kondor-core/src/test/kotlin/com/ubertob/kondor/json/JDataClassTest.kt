@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.printIt
@@ -17,7 +18,7 @@ class JDataClassTest {
             val value = randomPerson()
             val json = Person.Json.toJsonNode(value)
 
-            val actual = Person.Json.fromJsonNode(json).expectSuccess()
+            val actual = Person.Json.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -38,7 +39,7 @@ class JDataClassTest {
 
             val node = jsonUserArray.toJsonNode(value)
 
-            val actual = jsonUserArray.fromJsonNode(node).expectSuccess()
+            val actual = jsonUserArray.fromJsonNode(node, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -56,7 +57,7 @@ class JDataClassTest {
             val product = randomProduct()
             val json = Product.Json.toJsonNode(product)
 
-            val actual = Product.Json.fromJsonNode(json).expectSuccess()
+            val actual = Product.Json.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(product)
 
@@ -79,7 +80,7 @@ class JDataClassTest {
             val invoice = randomInvoice()
             val json = Invoice.Json.toJsonNode(invoice)
 
-            val actual = Invoice.Json.fromJsonNode(json).expectSuccess()
+            val actual = Invoice.Json.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(invoice)
 
