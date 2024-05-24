@@ -1,11 +1,13 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 class JDataClassTest {
@@ -88,5 +90,28 @@ class JDataClassTest {
 
             expectThat(Invoice.Json.fromJson(jsonStr).expectSuccess()).isEqualTo(invoice)
         }
+    }
+
+    @Test
+    fun `Json DataClass converter auto test`() {
+        Invoice.Json.testParserAndRender { randomInvoice() }
+        Person.Json.testParserAndRender { randomPerson() }
+    }
+
+    object WrongJPerson : JDataClass<Person>(Person::class) {
+        val name by str(Person::name)
+        val id by num(Person::id)
+    }
+
+    @Test
+    fun `Json DataClass converter failing test`() {
+        val person = randomPerson()
+        val json = WrongJPerson.toJson(person)
+        val res = WrongJPerson.fromJson(json)
+
+        expectThat(res).isA<Failure<JsonError>>()
+        val error = (res as Failure<JsonError>).error
+
+        expectThat(error.reason).isEqualTo("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
     }
 }
