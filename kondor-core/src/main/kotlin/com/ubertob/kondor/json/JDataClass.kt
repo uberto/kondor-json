@@ -18,21 +18,20 @@ abstract class JAnyAuto<T : Any>() : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow(): T? =
         error("Deprecated method! Override fromFieldMap if necessary.")
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
-        {
-            val args= _jsonProperties.associate { prop ->
-                val propValue = prop.getter(fieldMap, path)
-                    .onFailure { return it.asFailure() }
-                prop.propName to propValue
-            }
-
-          return buildInstance(args, path)
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
+        val args = _jsonProperties.associate { prop ->
+            val propValue = prop.getter(fieldMap, path)
+                .onFailure { return it.asFailure() }
+            prop.propName to propValue
         }
+
+        return buildInstance(args, path)
+    }
 
     abstract fun buildInstance(args: ObjectFields, path: NodePath): JsonOutcome<T>
 }
 
-abstract class JDataClass<T: Any>(klazz: KClass<T>) : JAnyAuto<T>() {
+abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAnyAuto<T>() {
 
     val clazz: Class<T> = klazz.java
 
@@ -43,7 +42,10 @@ abstract class JDataClass<T: Any>(klazz: KClass<T>) : JAnyAuto<T>() {
             constructor.newInstance(*(args.values).toTypedArray())
                 .asSuccess()
         } catch (t: Exception) {
-            ConverterJsonError(path, "Error calling constructor with signature ${constructor.description()} using params $args")
+            ConverterJsonError(
+                path,
+                "Error calling constructor with signature ${constructor.description()} using params $args"
+            )
                 .asFailure()
         }
 }
