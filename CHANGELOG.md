@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.0.0 - 31 May 2024
+
+Kondor-core: removing the path from the JsonNode object and instead passing it during parsing phase for performance reasons
+
 ### v.2.3.3 - 22 May 2024
 
 Kondor-core: better exception messages and arrays pretty rendering
