@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
+import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
@@ -33,23 +34,32 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     val _nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
-    private fun safeCast(node: JsonNode): JsonOutcome<JN?> =
+    private fun safeCast(node: JsonNode, path: NodePath): JsonOutcome<JN?> =
         when (node.nodeKind) {
             _nodeType -> (node as JN).asSuccess()
             NullNode -> null.asSuccess()
             else -> ConverterJsonError(
-                node._path,
-                "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
+                path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
-    private fun fromJsonNodeNull(node: JN?): JsonOutcome<T?> = node?.let { fromJsonNode(it) } ?: null.asSuccess()
+    fun fromJsonNodeBase(node: JsonNode, path: NodePath = NodePathRoot): JsonOutcome<T?> =
+        safeCast(node, path)
+            .bind { fromNullableJsonNode(it, path) }
 
-    fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> = safeCast(node).bind(::fromJsonNodeNull)
+    fun fromNullableJsonNode(jsonNode: JN?, path: NodePath): Outcome<JsonError, T?> =
+        jsonNode?.let { fromJsonNode(it, path) } ?: null.asSuccess()
 
-    fun fromJsonNode(node: JN): JsonOutcome<T>
+    fun fromJsonNode(node: JN, path: NodePath): JsonOutcome<T>
 
-    fun toJsonNode(value: T, path: NodePath): JN
+    fun toJsonNode(value: T): JN
+
+    //those deprecated functions will be removed later in 3.x
+    @Deprecated("NodePath has to be passed now when parsing, since it's not in JsonNode anymore", ReplaceWith("toJsonNode(value, path)"))
+    fun fromJsonNode(node: JN): JsonOutcome<T> = fromJsonNode(node, NodePathRoot)
+
+    @Deprecated("NodePath is not in the JsonNode anymore", ReplaceWith("toJsonNode(value)"))
+    fun toJsonNode(value: T, path: NodePath): JN = toJsonNode(value)
 
     private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
@@ -65,18 +75,21 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             .bind(::parseAndConvert)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonStream)
+        KondorTokenizer.tokenize(jsonStream) //!!!look at ReaderBasedJsonParser, make the fromJson(String) call this one as well
             .bind(::parseAndConvert)
 
-    fun parseAndConvert(tokens: TokensStream) =
+    fun parseAndConvert(tokens: TokensStream): Outcome<JsonError, T> =
         tokens.parseFromRoot()
-            .bind { fromJsonNode(it) }
-            .bind {
-                if (tokens.hasNext())
-                    parsingFailure("EOF", tokens.next(), NodePathRoot, "json continue after end")
-                else
-                    it.asSuccess()
-            }
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { checkForJsonTail(tokens, it) }
+
+    fun checkForJsonTail(
+        tokens: TokensStream,
+        it: T
+    ) = if (tokens.hasNext())
+        parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+    else
+        it.asSuccess()
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
@@ -85,9 +98,12 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 fun <T, JN : JsonNode> JsonConverter<T, JN>.toJson(value: T, renderer: JsonStyle): String =
     appendValue(ChunkedStringWriter(), renderer, 0, value).toString()
 
-fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(value: T, outputStream: OutputStream, renderer: JsonStyle = jsonStyle) =
+fun <T, JN : JsonNode> JsonConverter<T, JN>.toJsonStream(
+    value: T,
+    outputStream: OutputStream,
+    renderer: JsonStyle = jsonStyle
+) =
     appendValue(OutputStreamCharWriter(outputStream), renderer, 0, value)
-
 
 //deprecated methods
 @Deprecated("Use JsonStyle specification", replaceWith = ReplaceWith("toJson(value, pretty)"))

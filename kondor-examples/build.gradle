@@ -14,6 +14,11 @@ jmh {
 //    Unable to load async-profiler. Ensure asyncProfiler library is on LD_LIBRARY_PATH (Linux), DYLD_LIBRARY_PATH (Mac OS), or -Djava.library.path. Alternatively, point to explicit library location with -prof async:libPath=<path>.
 }
 
+task runBenchmark(type: JavaExec) {
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.ubertob.kondor.json.jmh.BenchmarkKondorKt'
+}
+
 kotlin {
     jvmToolchain(8)
 }

@@ -1,7 +1,9 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.schema.sealedSchema
 
 abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {
@@ -20,25 +22,25 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
     open val defaultConverter: ObjectNodeConverter<out T>? = null
 
-    private fun discriminatorFieldNode(obj: T, path: NodePath) =
-        JsonNodeString(extractTypeName(obj), NodePathSegment(discriminatorFieldName, path))
+    private fun discriminatorFieldNode(obj: T) =
+        JsonNodeString(extractTypeName(obj))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-
-        val discriminatorNode =
-            _fieldMap[discriminatorFieldName] ?: defaultConverter?.let { return it.fromJsonNode(this).orThrow() }
+        val discriminatorNode = _fieldMap[discriminatorFieldName]
+            ?: defaultConverter?.let { return it.fromFieldMap(_fieldMap, _path).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
-        val typeName = JString.fromJsonNodeBase(discriminatorNode).orThrow()
+        val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
         val converter = subConverters[typeName] ?: error("subtype not known $typeName")
-        return converter.fromJsonNode(this).orThrow()
+        return converter.fromFieldMap(_fieldMap, _path).orThrow()
     }
 
-    override fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode> =
+    override fun convertFields(valueObject: T): Map<String, JsonNode> =
         extractTypeName(valueObject).let { typeName ->
-            findSubTypeConverter(typeName)?.toJsonNode(valueObject, path)
+            findSubTypeConverter(typeName)
+                ?.toJsonNode(valueObject)
                 ?._fieldMap
-                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject, path) }
+                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
                 ?: error("subtype not known $typeName")
         }
 

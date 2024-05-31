@@ -4,7 +4,6 @@ import com.ubertob.kondor.json.ChunkedStringWriter
 import com.ubertob.kondor.json.ChunkedWriter
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
-import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.json.parser.LexerState.*
 import com.ubertob.kondor.outcome.asSuccess
 import java.io.InputStream
@@ -35,37 +34,37 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                 ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
                                 '{' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(OpeningCurly, currPos))
+                                    yield(OpeningCurlySep)
                                 }
 
                                 '}' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(ClosingCurly, currPos))
+                                    yield(ClosingCurlySep)
                                 }
 
                                 '[' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(OpeningBracket, currPos))
+                                    yield(OpeningBracketSep)
                                 }
 
                                 ']' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(ClosingBracket, currPos))
+                                    yield(ClosingBracketSep)
                                 }
 
                                 ',' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(Comma, currPos))
+                                    yield(CommaSep)
                                 }
 
                                 ':' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(Colon, currPos))
+                                    yield(ColonSep)
                                 }
 
                                 '"' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(Separator(OpeningQuotes, currPos))
+                                    yield(OpeningQuotesSep)
                                     state = InString
                                 }
 
@@ -79,7 +78,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
                             '"' -> {
                                 yieldValue(currToken, currPos)
-                                yield(Separator(ClosingQuotes, currPos))
+                                yield(ClosingQuotesSep)
                                 state = OutString
                             }
 
@@ -150,37 +149,37 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                             tokens.addValue(charWriter, pos)
                         '{' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(OpeningCurly, pos))
+                            tokens.add(OpeningCurlySep)
                         }
 
                         '}' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(ClosingCurly, pos))
+                            tokens.add(ClosingCurlySep)
                         }
 
                         '[' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(OpeningBracket, pos))
+                            tokens.add(OpeningBracketSep)
                         }
 
                         ']' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(ClosingBracket, pos))
+                            tokens.add(ClosingBracketSep)
                         }
 
                         ',' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(Comma, pos))
+                            tokens.add(CommaSep)
                         }
 
                         ':' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(Colon, pos))
+                            tokens.add(ColonSep)
                         }
 
                         '"' -> {
                             tokens.addValue(charWriter, pos)
-                            tokens.add(Separator(OpeningQuotes, pos))
+                            tokens.add(OpeningQuotesSep)
                             state = InString
                         }
 
@@ -194,7 +193,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
 
                     '"' -> {
                         tokens.addValue(charWriter, pos)
-                        tokens.add(Separator(ClosingQuotes, pos))
+                        tokens.add(ClosingQuotesSep)
                         state = OutString
                     }
 
@@ -235,5 +234,3 @@ object KondorTokenizer {
     //a bit slower but consuming as little memory as possible
     fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStream> = JsonLexerLazy(jsonStream).tokenize()
 }
-
-

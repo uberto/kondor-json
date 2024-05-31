@@ -3,11 +3,18 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
+import com.ubertob.kondor.outcome.Outcome
 import java.util.concurrent.atomic.AtomicReference
+
+
+//TODO !!!!
+// add a JAny replacement without parseOrThrow()
+// add direct parsing without JsonNode
+// add code generation for performance
 
 typealias NamedNode = Pair<String, JsonNode>
 
-typealias NodeWriter<T> = (MutableFieldMap, T, NodePath) -> MutableFieldMap
+typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap
 
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
@@ -17,23 +24,31 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
+
+    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+        fromFieldMap(node._fieldMap, path)
+
+
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
-    abstract fun JsonNodeObject.deserializeOrThrow(): T?
+    abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
-    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<T> =
-        tryFromNode(node) {
-            node.deserializeOrThrow() ?: throw JsonParsingException(
-                ConverterJsonError(node._path, "deserializeOrThrow returned null!")
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+        tryFromNode(path) {
+            JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
+                ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
 
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeObject =
-        JsonNodeObject(convertFields(value, path), path)
 
-    abstract fun convertFields(valueObject: T, path: NodePath): Map<String, JsonNode>
+    override fun toJsonNode(value: T): JsonNodeObject =
+        JsonNodeObject(convertFields(value))
+
+    abstract fun convertFields(valueObject: T): Map<String, JsonNode>
 
 }
 
@@ -41,9 +56,9 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
     abstract val writers: List<NodeWriter<T>>
 
-    override fun convertFields(valueObject: T, path: NodePath): FieldMap =
+    override fun convertFields(valueObject: T): FieldMap =
         writers.fold(mutableMapOf()) { acc, writer ->
-            writer(acc, valueObject, path)
+            writer(acc, valueObject)
         }
 
 }
@@ -64,7 +79,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
 
     internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
-        registerWriter { mfm, obj, path -> jsonProperty.setter(binder(obj))(mfm, path) }
+        registerWriter { mfm, obj -> jsonProperty.setter(binder(obj))(mfm) }
         (appenders as MutableList).add { obj ->
             jsonProperty.appender(binder(obj))
         }

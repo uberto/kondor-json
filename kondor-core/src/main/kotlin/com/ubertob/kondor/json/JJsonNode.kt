@@ -6,20 +6,20 @@ import com.ubertob.kondor.outcome.asSuccess
 
 object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override val _nodeType = ObjectNode
-    override fun toJsonNode(value: JsonNodeObject, path: NodePath): JsonNodeObject =
+    override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromJsonNode(node: JsonNodeObject): JsonOutcome<JsonNodeObject> =
-        node.asSuccess()
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject>  =
+        JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
 
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap
             .map { (key, value) ->
-                key to valueAppender(key, value)
+                key to valueAppender(value)
             }
             .sortedBy { it.first }
 
-    private fun valueAppender(propName: String, node: JsonNode): ValueAppender? =
+    private fun valueAppender(node: JsonNode): ValueAppender? =
         if (node is JsonNodeNull)
             null
         else

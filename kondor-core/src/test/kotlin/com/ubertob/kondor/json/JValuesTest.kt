@@ -20,9 +20,9 @@ class JValuesTest {
         repeat(100) {
             val value = randomString(text, 0, 30)
 
-            val json = JString.toJsonNode(value, NodePathRoot)
+            val json = JString.toJsonNode(value)
 
-            val actual = JString.fromJsonNode(json).expectSuccess()
+            val actual = JString.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -37,9 +37,9 @@ class JValuesTest {
 
         val value = "Pre \u263A Post"
 
-        val json = JString.toJsonNode(value, NodePathRoot)
+        val json = JString.toJsonNode(value)
 
-        val actual = JString.fromJsonNode(json).expectSuccess()
+        val actual = JString.fromJsonNode(json, NodePathRoot).expectSuccess()
 
         expectThat(actual).isEqualTo(value)
 
@@ -54,8 +54,8 @@ class JValuesTest {
         listOf("\\", "\n", "\b", "\r", "\t", "\"")
             .map { "foo${it}bar" }
             .forEach { value ->
-                val json = JString.toJsonNode(value, NodePathRoot)
-                val actual = JString.fromJsonNode(json).expectSuccess()
+                val json = JString.toJsonNode(value)
+                val actual = JString.fromJsonNode(json, NodePathRoot).expectSuccess()
                 expectThat(actual).isEqualTo(value)
                 val jsonStr = JString.toJson(value)
                 expectThat(JString.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
@@ -67,9 +67,9 @@ class JValuesTest {
         repeat(10) {
 
             val value = Random.nextDouble()
-            val json = JDouble.toJsonNode(value, NodePathRoot)
+            val json = JDouble.toJsonNode(value)
 
-            val actual = JDouble.fromJsonNode(json).expectSuccess()
+            val actual = JDouble.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -85,9 +85,9 @@ class JValuesTest {
         repeat(10) {
 
             val value = Random.nextInt()
-            val json = JInt.toJsonNode(value, NodePathRoot)
+            val json = JInt.toJsonNode(value)
 
-            val actual = JInt.fromJsonNode(json).expectSuccess()
+            val actual = JInt.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -103,9 +103,9 @@ class JValuesTest {
         repeat(50) {
 
             val value = Random.nextLong()
-            val json = JLong.toJsonNode(value, NodePathRoot)
+            val json = JLong.toJsonNode(value)
 
-            val actual = JLong.fromJsonNode(json).expectSuccess()
+            val actual = JLong.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -121,9 +121,9 @@ class JValuesTest {
         repeat(3) {
 
             val value = Random.nextBoolean()
-            val json = JBoolean.toJsonNode(value, NodePathRoot)
+            val json = JBoolean.toJsonNode(value)
 
-            val actual = JBoolean.fromJsonNode(json).expectSuccess()
+            val actual = JBoolean.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -141,9 +141,9 @@ class JValuesTest {
         repeat(10) {
 
             val value = TaxType.values().random()
-            val json = jTaxType.toJsonNode(value, NodePathRoot)
+            val json = jTaxType.toJsonNode(value)
 
-            val actual = jTaxType.fromJsonNode(json).expectSuccess()
+            val actual = jTaxType.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -160,9 +160,9 @@ class JValuesTest {
 
             val value = randomList(0, 5) { randomString(text, 1, 10) }
 
-            val node = JStringList.toJsonNode(value, NodePathRoot)
+            val node = JStringList.toJsonNode(value)
 
-            val actual = JStringList.fromJsonNode(node).expectSuccess()
+            val actual = JStringList.fromJsonNode(node, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -178,9 +178,9 @@ class JValuesTest {
 
         repeat(10) {
             val value = randomPerson()
-            val json = JPerson.toJsonNode(value, NodePathRoot)
+            val json = JPerson.toJsonNode(value)
 
-            val actual = JPerson.fromJsonNode(json).expectSuccess()
+            val actual = JPerson.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -199,9 +199,9 @@ class JValuesTest {
 
             val value = randomList(0, 10) { randomPerson() }.toSet()
 
-            val node = jsonUserArray.toJsonNode(value, NodePathRoot)
+            val node = jsonUserArray.toJsonNode(value)
 
-            val actual = jsonUserArray.fromJsonNode(node).expectSuccess()
+            val actual = jsonUserArray.fromJsonNode(node, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
@@ -217,9 +217,9 @@ class JValuesTest {
 
         repeat(100) {
             val product = randomProduct()
-            val json = JProduct.toJsonNode(product, NodePathRoot)
+            val json = JProduct.toJsonNode(product)
 
-            val actual = JProduct.fromJsonNode(json).expectSuccess()
+            val actual = JProduct.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(product)
 
@@ -241,9 +241,9 @@ class JValuesTest {
 
         repeat(100) {
             val invoice = randomInvoice()
-            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
+            val json = JInvoice.toJsonNode(invoice)
 
-            val actual = JInvoice.fromJsonNode(json).expectSuccess()
+            val actual = JInvoice.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(invoice)
 
@@ -258,9 +258,9 @@ class JValuesTest {
 
         repeat(100) {
             val invoice = randomInvoice()
-            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
+            val json = JInvoice.toJsonNode(invoice)
 
-            val actual = JInvoice.fromJsonNode(json).expectSuccess()
+            val actual = JInvoice.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(invoice)
 
@@ -275,9 +275,9 @@ class JValuesTest {
 
         repeat(100) {
             val invoice = randomInvoice()
-            val json = JInvoice.toJsonNode(invoice, NodePathRoot)
+            val json = JInvoice.toJsonNode(invoice)
 
-            val actual = JInvoice.fromJsonNode(json).expectSuccess()
+            val actual = JInvoice.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(invoice)
 

@@ -78,21 +78,26 @@ fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
     id = Random.nextInt(1, 1000),
     name = randomString(lowercase, 1, 10),
     attributes = JsonNodeObject(
-        randomNodeFields(), NodePathRoot
+        randomNodeFields()
     )
 )
 
 fun randomNodeFields(): FieldMap =
     mapOf(
-        "bool_f" to JsonNodeBoolean(Random.nextBoolean(), NodePathRoot + "bool_f"),
-        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal(), NodePathRoot + "double_f"),
-        "string_f" to JsonNodeString(randomString(uppercase, 1, 10), NodePathRoot + "string_f")
+        "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
+        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
+        "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
     )
 
 //------------
 
 sealed class Customer()
-data class Person(val id: Int, val name: String) : Customer()
+data class Person(val id: Int, val name: String) : Customer() {
+    object Json : JDataClass<Person>(Person::class) {
+        val id by num(Person::id)
+        val name by str(Person::name)
+    }
+}
 data class Company(val name: String, val taxType: TaxType) : Customer()
 object AnonymousCustomer : Customer()
 
@@ -130,7 +135,14 @@ object JPerson : JAny<Person>() {
 }
 
 
-data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?)
+data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?) {
+    object Json : JDataClass<Product>(Product::class) {
+        val id by num(Product::id)
+        val `short-desc` by str(Product::shortDesc)
+        val long_description by str(Product::longDesc)
+        val price by num(Product::price)
+    }
+}
 
 object JProduct : JAny<Product>() {
 
@@ -164,7 +176,17 @@ data class Invoice(
     val total: BigDecimal,
     val created: LocalDate,
     val paid: Instant?
-)
+) {
+    object Json : JDataClass<Invoice>(Invoice::class) {
+        val id by str(::InvoiceId, Invoice::id)
+        val `vat-to-pay` by bool(Invoice::vat)
+        val customer by obj(JCustomer, Invoice::customer)
+        val items by array(JProduct, Invoice::items)
+        val total by num(Invoice::total)
+        val created_date by str(Invoice::created)
+        val paid_datetime by num(Invoice::paid)
+    }
+}
 
 object JCompany : JAny<Company>() {
 
@@ -176,13 +198,6 @@ object JCompany : JAny<Company>() {
             name = +name,
             taxType = +tax_type
         )
-}
-
-object JCompanyAuto : JDataClass<Company>() {
-
-    private val name by str(Company::name)
-    private val tax_type by str(Company::taxType)
-    override val clazz: Class<Company> = Company::class.java
 }
 
 object JCustomer : JSealed<Customer>() {
@@ -305,8 +320,8 @@ class Products : ArrayList<Product>() {
 object JProducts : JArray<Product, Products> {
     override val converter = JProduct
 
-    override fun convertToCollection(from: Iterable<Product>) =
-        Products.fromIterable(from)
+    override fun convertToCollection(from: Iterable<Product?>) =
+        Products.fromIterable(from.filterNotNull())
 
     override val _nodeType = ArrayNode
 
@@ -507,3 +522,5 @@ object JOptionalAddress : JAny<OptionalAddress>() {
         +city
     )
 }
+
+

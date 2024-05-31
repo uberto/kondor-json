@@ -173,7 +173,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected a valid key but found Comma - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 10: expected a valid key but found Comma - key missing in object field")
     }
 
     @Test
@@ -200,7 +200,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 12: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 11: expected a new node but found Comma - Comma in wrong position")
 
     }
 
@@ -211,7 +211,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 2: expected a new node but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 1: expected a new node but found Comma - Comma in wrong position")
     }
 
     @Test
@@ -221,7 +221,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected ClosingBracket but found ClosingCurly - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
 
@@ -395,7 +395,7 @@ class ParserFailuresTest {
     }
 
     @Test
-    fun `array parsing error on value report correct path`() {
+    fun `array parsing error on numeric precision report correct path`() {
 
         val wrongjson = """
   [

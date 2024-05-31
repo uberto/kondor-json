@@ -1,7 +1,6 @@
 package com.ubertob.kondor.mongo.json
 
 import com.mongodb.client.MongoClients
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.core.*
 import com.ubertob.kondortools.chronoAndLog
 import com.ubertob.kondortools.expectSuccess
@@ -144,7 +143,7 @@ class AuditsTableTest {
             }
 
             val jsonNodes = chronoAndLog("to JsonNode") {
-                audits.map { JAuditMessage.toJsonNode(it, NodePathRoot) }
+                audits.map { JAuditMessage.toJsonNode(it) }
             }
 
             val bsonDocs = chronoAndLog("to BsonDoc") {

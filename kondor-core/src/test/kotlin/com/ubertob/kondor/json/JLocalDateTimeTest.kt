@@ -27,9 +27,9 @@ class JLocalDateTimeTest {
         val format = DateTimeFormatter.ofPattern("dd/MM/yyyy hh:mm:ss a").withLocale(Locale.ENGLISH)
         val jLocalDateTime = JLocalDateTime.withFormatter(format)
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
-        expectThat(jLocalDateTime.toJsonNode(date, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
-        expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(date)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm")
+        expectThat(jLocalDateTime.toJsonNode(date)).isEqualTo(dateTimeAsJsonNode)
+        expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode, NodePathRoot).expectSuccess()).isEqualTo(date)
 
         val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""
         expectThat(jLocalDateTime.toJson(date)).isEqualTo(dateTimeAsString)
@@ -41,9 +41,9 @@ class JLocalDateTimeTest {
         val dateTime = LocalDateTime.of(2020, 10, 15, 14, 1, 34)
         val jLocalDateTime = JLocalDateTime.withPattern("dd/MM/yyyy hh:mm:ss a")
 
-        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm", NodePathRoot)
-        expectThat(jLocalDateTime.toJsonNode(dateTime, NodePathRoot)).isEqualTo(dateTimeAsJsonNode)
-        expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode).expectSuccess()).isEqualTo(dateTime)
+        val dateTimeAsJsonNode = JsonNodeString("15/10/2020 02:01:34 $pm")
+        expectThat(jLocalDateTime.toJsonNode(dateTime)).isEqualTo(dateTimeAsJsonNode)
+        expectThat(jLocalDateTime.fromJsonNode(dateTimeAsJsonNode, NodePathRoot).expectSuccess()).isEqualTo(dateTime)
 
         val dateTimeAsString = "\"15/10/2020 02:01:34 $pm\""
         expectThat(jLocalDateTime.toJson(dateTime)).isEqualTo(dateTimeAsString)

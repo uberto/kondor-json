@@ -4,7 +4,6 @@ import com.mongodb.MongoCommandException
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.IndexOptions
 import com.ubertob.kondor.json.ObjectNodeConverter
-import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.mongo.json.toBsonDocument
 import com.ubertob.kondor.outcome.onFailure
 import org.bson.BsonDocument
@@ -39,7 +38,7 @@ abstract class TypedTable<T : Any>(val converter: ObjectNodeConverter<T>) : Mong
             error("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")
         } //!!! handle error with failure
 
-    override fun toBsonDoc(obj: T): BsonDocument = converter.toJsonNode(obj, NodePathRoot).toBsonDocument()
+    override fun toBsonDoc(obj: T): BsonDocument = converter.toJsonNode(obj).toBsonDocument()
 
     override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {}
 

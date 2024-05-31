@@ -15,9 +15,9 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
     abstract val cons: (Boolean) -> T
     abstract val render: (T) -> Boolean
 
-    override fun fromJsonNode(node: JsonNodeBoolean): JsonOutcome<T> = tryFromNode(node) { cons(node.boolean) }
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeBoolean =
-        JsonNodeBoolean(render(value), path)
+    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> = tryFromNode(path) { cons(node.boolean) }
+    override fun toJsonNode(value: T): JsonNodeBoolean =
+        JsonNodeBoolean(render(value))
 
     override val _nodeType = BooleanNode
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
@@ -72,15 +72,15 @@ object JLong : JNumRepresentable<Long>() {
         app.appendNumber(value)
 }
 
-fun <T> tryFromNode(node: JsonNode, f: () -> T): JsonOutcome<T> =
+fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val exception = throwableError.throwable) {
-                is ArithmeticException -> ConverterJsonError(node._path, "Wrong number format: ${exception.message}")
+                is ArithmeticException -> ConverterJsonError(path, "Wrong number format: ${exception.message}")
                 is JsonParsingException -> exception.error
-                is IllegalStateException -> ConverterJsonError(node._path, throwableError.msg)
-                is OutcomeException -> exception.toJsonError(node._path)
-                else -> ConverterJsonError(node._path, "Caught exception: $exception")
+                is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
+                is OutcomeException -> exception.toJsonError(path)
+                else -> ConverterJsonError(path, "Caught exception: $exception")
             }
         }
 
@@ -95,31 +95,33 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
 
-    override fun fromJsonNodeBase(node: JsonNode): JsonOutcome<T?> =
+    override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when (node) {
-            is JsonNodeNumber -> fromJsonNode(node)
-            is JsonNodeString -> tryNanNode(node)
+            is JsonNodeNumber -> fromJsonNode(node, path)
+            is JsonNodeString -> tryNanNode(node, path)
             is JsonNodeNull -> null.asSuccess()
             else -> ConverterJsonError(
-                node._path,
+                path,
                 "expected a Number or NaN but found ${node.nodeKind.desc}"
             ).asFailure()
         }
 
-    private fun tryNanNode(node: JsonNodeString): Outcome<JsonError, T?> =
+    private fun tryNanNode(node: JsonNodeString, path: NodePath): Outcome<JsonError, T?> =
         when (node.text) {
             "NaN" -> cons(Double.NaN).asSuccess()
             "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
             "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
             else -> ConverterJsonError(
-                node._path,
+                path,
                 "expected a Number or NaN but found '${node.text}'"
             ).asFailure()
         }
 
-    override fun fromJsonNode(node: JsonNodeNumber): JsonOutcome<T> = tryFromNode(node) { cons(node.num) }
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeNumber =
-        JsonNodeNumber(render(value), path)
+    override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { cons(node.num) }
+
+    override fun toJsonNode(value: T): JsonNodeNumber =
+        JsonNodeNumber(render(value))
 
     override val _nodeType = NumberNode
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
@@ -130,9 +132,11 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
 
-    override fun fromJsonNode(node: JsonNodeString): JsonOutcome<T> = tryFromNode(node) { cons(node.text) }
-    override fun toJsonNode(value: T, path: NodePath): JsonNodeString =
-        JsonNodeString(render(value), path)
+    override fun fromJsonNode(node: JsonNodeString, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { cons(node.text) }
+
+    override fun toJsonNode(value: T): JsonNodeString =
+        JsonNodeString(render(value))
 
     override val _nodeType = StringNode
 

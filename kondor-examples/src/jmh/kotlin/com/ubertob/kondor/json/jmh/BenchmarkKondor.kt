@@ -6,6 +6,7 @@ import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.infra.Blackhole
 
 //add Moshi, Gson, KotlinX comparison
+//add test with real world Json examples+schemas
 
 open class BenchmarkKondor {
 
@@ -31,10 +32,12 @@ fun main() {
     benchLoop(::toJson, ::fromJson)
 }
 
-private fun fromJson(it: String) = jDemoClasses.fromJson(it).orThrow()
-
-private fun toJson(it: List<DemoClass>) =
-    jDemoClasses.toJson(it, JsonStyle.compact)
+private fun fromJson(json: String) =
+    jDemoClasses.fromJson(json).orThrow()
+//    KondorTokenizer.tokenize(json.byteInputStream())  !!!compare speed
+//        .bind(jDemoClasses::parseAndConvert).orThrow()
+private fun toJson(objs: List<DemoClass>) =
+    jDemoClasses.toJson(objs, JsonStyle.compact)
 
 //serialization:
 // replace StringBuilder with better Writer with support to OutputStream

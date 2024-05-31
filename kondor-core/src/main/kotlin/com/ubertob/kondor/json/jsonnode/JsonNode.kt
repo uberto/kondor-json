@@ -14,29 +14,40 @@ import com.ubertob.kondor.outcome.onFailure
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 typealias FieldMap = Map<String, JsonNode>
 
-sealed class JsonNode(val nodeKind: NodeKind<*>) {
-    abstract val _path: NodePath
-}
+sealed class JsonNode(val nodeKind: NodeKind<*>)
 
-data class JsonNodeNull(override val _path: NodePath) : JsonNode(NullNode)
+object JsonNodeNull : JsonNode(NullNode)
 
-data class JsonNodeBoolean(val boolean: Boolean, override val _path: NodePath) : JsonNode(BooleanNode)
+data class JsonNodeBoolean(val boolean: Boolean) : JsonNode(BooleanNode)
 
-data class JsonNodeNumber(val num: Number, override val _path: NodePath) : JsonNode(NumberNode)
-data class JsonNodeString(val text: String, override val _path: NodePath) : JsonNode(StringNode)
-data class JsonNodeArray(val elements: Iterable<JsonNode>, override val _path: NodePath) : JsonNode(ArrayNode) {
+data class JsonNodeNumber(val num: Number) : JsonNode(NumberNode)
+data class JsonNodeString(val text: String) : JsonNode(StringNode)
+data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode) {
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val _fieldMap: FieldMap, override val _path: NodePath) : JsonNode(ObjectNode) {
+data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
+
+    companion object {
+        @Suppress("DEPRECATION")
+        internal  fun buildForParsing(fieldMap: FieldMap, path: NodePath): JsonNodeObject =
+            JsonNodeObject(fieldMap, path)
+    }
+
+    internal var _path: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
+
+    @Deprecated("Use the primary constructor without path instead")
+    constructor(_fieldMap: FieldMap, _path: NodePath): this(_fieldMap) {
+        this._path = _path
+    }
 
     val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
-        getter(this@JsonNodeObject)
+        getter(_fieldMap, path = _path)
             .onFailure { throw JsonParsingException(it) }
-
 }
+
 
 fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
     if (jsonString.isEmpty())
@@ -44,4 +55,4 @@ fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
     else
         JsonLexerEager(jsonString).tokenize()
 //    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray())).tokenize()
-            .bind { it.onRoot().parseNewNode() ?: JsonNodeNull(NodePathRoot).asSuccess() }
+            .bind { it.onRoot().parseNewNode() ?: JsonNodeNull.asSuccess() }

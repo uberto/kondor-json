@@ -1,9 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.parser.KondorSeparator.*
-import com.ubertob.kondor.json.parser.Separator
-import com.ubertob.kondor.json.parser.TokensStream
-import com.ubertob.kondor.json.parser.Value
+import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -45,26 +42,26 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                Separator(OpeningBracket, 1),
-                Separator(ClosingBracket, 2),
-                Separator(OpeningCurly, 3),
-                Separator(ClosingCurly, 4),
-                Separator(Colon, 5),
-                Separator(Comma, 6),
-                Separator(OpeningQuotes, 8),
-                Separator(ClosingQuotes, 9),
-                Separator(OpeningBracket, 11),
+                OpeningBracketSep,
+                ClosingBracketSep,
+                OpeningCurlySep,
+                ClosingCurlySep,
+                ColonSep,
+                CommaSep,
+                OpeningQuotesSep,
+                ClosingQuotesSep,
+                OpeningBracketSep,
                 Value("a", 12),
-                Separator(Comma, 13),
+                CommaSep,
                 Value("b", 14),
-                Separator(Comma, 15),
+                CommaSep,
                 Value("c", 16),
-                Separator(ClosingBracket, 17),
-                Separator(OpeningCurly, 20),
+                ClosingBracketSep,
+                OpeningCurlySep,
                 Value("d", 21),
-                Separator(Colon, 22),
+                ColonSep,
                 Value("e", 23),
-                Separator(ClosingCurly, 24)
+                ClosingCurlySep
             )
         )
     }
@@ -78,13 +75,13 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                Separator(OpeningCurly, 1),
-                Separator(OpeningQuotes, 3),
+                OpeningCurlySep,
+                OpeningQuotesSep,
                 Value("abc", 4),
-                Separator(ClosingQuotes, 7),
-                Separator(Colon, 8),
+                ClosingQuotesSep,
+                ColonSep,
                 Value("123", 10),
-                Separator(ClosingCurly, 13)
+                ClosingCurlySep
             )
         )
     }
@@ -98,15 +95,15 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                Separator(OpeningCurly, 1),
-                Separator(OpeningQuotes, 2),
+                OpeningCurlySep,
+                OpeningQuotesSep,
                 Value("abc", 3),
-                Separator(ClosingQuotes, 6),
-                Separator(Colon, 7),
-                Separator(OpeningQuotes, 8),
+                ClosingQuotesSep,
+                ColonSep,
+                OpeningQuotesSep,
                 Value("abc\"\\ \n}", 12),
-                Separator(ClosingQuotes, 20),
-                Separator(ClosingCurly, 21)
+                ClosingQuotesSep,
+                ClosingCurlySep
             )
         )
     }
@@ -121,9 +118,9 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                Separator(OpeningQuotes, 1),
+                OpeningQuotesSep,
                 Value("abc \\u263A", 2),
-                Separator(ClosingQuotes, 12),
+                ClosingQuotesSep,
             )
         )
     }

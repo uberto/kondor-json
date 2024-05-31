@@ -44,7 +44,7 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
         }
 
     }.toMap()
-    val propNode = JsonNodeObject(pmap, NodePathRoot)
+    val propNode = JsonNodeObject(pmap)
 
     val map = mapOf(
         "type" to "object".asNode(),
@@ -52,7 +52,7 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
         "required" to reqProp.asNode()
     )
 
-    return JsonNodeObject(map, NodePathRoot)
+    return JsonNodeObject(map)
 }
 
 fun sealedSchema(
@@ -79,7 +79,7 @@ fun sealedSchema(
         "oneOf" to subMaps.asNodes()
     )
 
-    return JsonNodeObject(map, NodePathRoot)
+    return JsonNodeObject(map)
 }
 
 
@@ -89,10 +89,10 @@ private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNod
 private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
     (schema()._fieldMap["required"] as JsonNodeArray).elements.map { (it as JsonNodeString).text }
 
-internal fun String.asNode() = JsonNodeString(this, NodePathRoot)
-internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() }, NodePathRoot)
-internal fun List<JsonNode>.asNodes() = JsonNodeArray(this, NodePathRoot)
-internal fun FieldMap.asNode() = JsonNodeObject(this, NodePathRoot)
+internal fun String.asNode() = JsonNodeString(this)
+internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() })
+internal fun List<JsonNode>.asNodes() = JsonNodeArray(this)
+internal fun FieldMap.asNode() = JsonNodeObject(this)
 internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
     map { it.first to it.second.asNode() }.toMap()
-, NodePathRoot)
+)
