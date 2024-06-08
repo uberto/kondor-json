@@ -6,12 +6,6 @@ import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.Outcome
 import java.util.concurrent.atomic.AtomicReference
 
-
-//TODO !!!!
-// add a JAny replacement without parseOrThrow()
-// add direct parsing without JsonNode
-// add code generation for performance
-
 typealias NamedNode = Pair<String, JsonNode>
 
 typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap

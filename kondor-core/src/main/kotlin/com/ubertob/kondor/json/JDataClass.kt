@@ -56,7 +56,6 @@ private fun <T> Constructor<T>.description(): String =
         .joinToString(prefix = "[", postfix = "]")
 
 fun <T : Any> JDataClass<T>.testParserAndRender(times: Int = 100, generator: (index: Int) -> T) {
-//add clear error on the fields that are not matching!!!!
     repeat(times) { index ->
         val value = generator(index)
 
