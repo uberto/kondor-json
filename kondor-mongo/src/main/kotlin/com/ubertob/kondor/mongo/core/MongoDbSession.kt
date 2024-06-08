@@ -85,6 +85,7 @@ class MongoDbSession(
     ): T? = internalRun { coll ->
         coll.findOneAndUpdate(bsonFilters, bsonSetter, options)
             ?.let(::fromBsonDoc)
+            ?.orThrow()
     }
 
     override fun <T : Any> MongoTable<T>.findOneAndReplace(
@@ -94,12 +95,14 @@ class MongoDbSession(
     ): T? = internalRun { coll ->
         coll.findOneAndReplace(bsonFilters, toBsonDoc(doc), options)
             ?.let(::fromBsonDoc)
+            ?.orThrow()
     }
 
     override fun <T : Any> MongoTable<T>.findOneAndDelete(bsonFilters: Bson, options: FindOneAndDeleteOptions): T? =
         internalRun { coll ->
             coll.findOneAndDelete(bsonFilters, options)
                 ?.let(::fromBsonDoc)
+                ?.orThrow()
         }
 
     override fun <T : Any> MongoTable<T>.findById(id: Any): T? =
@@ -107,6 +110,7 @@ class MongoDbSession(
             coll.find(Filters.eq("_id", id))
                 .singleOrNull()
                 ?.let(::fromBsonDoc)
+                ?.orThrow()
         }
 
     override fun <T : Any> MongoTable<T>.findByOid(id: ObjectId): T? =
@@ -114,29 +118,25 @@ class MongoDbSession(
             coll.find(Filters.eq("_id", id))
                 .singleOrNull()
                 ?.let(::fromBsonDoc)
+                ?.orThrow()
         }
 
     override fun <T : Any> MongoTable<T>.find(queryString: String): Sequence<T> =
-        internalRun {
+        internalRun { collection ->
             when (queryString) {
-                "" -> it.find()
+                "" -> collection.find()
                 else ->
-                    it.find(BsonDocument.parse(queryString))
+                    collection.find(BsonDocument.parse(queryString))
             }.asSequence()
-                .map(::fromBsonDoc)
-                .filterNotNull()
+                .map { fromBsonDoc(it).orThrow() }
         }
 
     override fun <T : Any> MongoTable<T>.find(bsonFilters: Bson): Sequence<T> =
         internalRun {
             it.find(bsonFilters)
-                .asSequence().map(::fromBsonDoc)
-                .filterNotNull()
+                .asSequence()
+                .map { fromBsonDoc(it).orThrow() }
         }
-
-//    override fun <T : Any, CONV: ObjectNodeConverter<T>> TypedTable<T, CONV>.find(filter: (CONV) -> Bson): Sequence<T> =
-//        find(filter(this.converter))
-
 
     override fun <T : Any> MongoTable<T>.aggregate(vararg pipeline: Bson): Sequence<BsonDocument> =
         internalRun {

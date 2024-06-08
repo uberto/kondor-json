@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.1.0 - 
+
+Kondor-mongo: fromBsonDoc return an Outcome error instead of nullable for better errors
+
 ### v.3.0.0 - 31 May 2024
 
 Kondor-core: removing the path from the JsonNode object and instead passing it during parsing phase for performance reasons

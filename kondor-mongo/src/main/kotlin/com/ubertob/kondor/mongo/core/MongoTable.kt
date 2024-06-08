@@ -5,38 +5,35 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.IndexOptions
 import com.ubertob.kondor.json.ObjectNodeConverter
 import com.ubertob.kondor.mongo.json.toBsonDocument
-import com.ubertob.kondor.outcome.onFailure
+import com.ubertob.kondor.outcome.asSuccess
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
 
-// todo: add new typedView to use mongo view (aggregate pipeline) as they were ReadOnly tables
 
 sealed interface MongoTable<T : Any> { //actual collections are objects
     val collectionName: String
     val onConnection: (MongoCollection<BsonDocument>) -> Unit
 
-    fun fromBsonDoc(doc: BsonDocument): T?
+    fun fromBsonDoc(doc: BsonDocument): MongoOutcome<T>
     fun toBsonDoc(obj: T): BsonDocument
 
 }
 
 abstract class BsonTable : MongoTable<BsonDocument> {
 
-    override fun fromBsonDoc(doc: BsonDocument): BsonDocument = doc
+    override fun fromBsonDoc(doc: BsonDocument): MongoOutcome<BsonDocument> = doc.asSuccess()
     override fun toBsonDoc(obj: BsonDocument): BsonDocument = obj
 
     override val onConnection: (MongoCollection<BsonDocument>) -> Unit = {}
 
 }
-
-//abstract class TypedTable<T : Any, CONV: ObjectNodeConverter<T>>(val converter: CONV) : MongoTable<T> {
 abstract class TypedTable<T : Any>(val converter: ObjectNodeConverter<T>) : MongoTable<T> {
-    override fun fromBsonDoc(doc: BsonDocument): T? =
+    override fun fromBsonDoc(doc: BsonDocument): MongoOutcome<T> =
         converter.fromJson(doc.toJson())
 //        converter.fromJsonNodeBase( convertBsonToJsonNode(doc))
-        .onFailure {
-            error("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")
-        } //!!! handle error with failure
+        .transformFailure {
+            MongoConversionError("Conversion failed in TypedTable \n--- $it \n--- with JSON ${doc.toJson()}")
+        }
 
     override fun toBsonDoc(obj: T): BsonDocument = converter.toJsonNode(obj).toBsonDocument()
 

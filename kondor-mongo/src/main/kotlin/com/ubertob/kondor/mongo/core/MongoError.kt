@@ -8,6 +8,8 @@ data class MongoErrorException(val clusterDesc: String, val databaseName: String
     override val msg: String = "$e - dbname:$databaseName instance:$clusterDesc"
 }
 
+data class MongoConversionError(override val msg: String) : MongoError()
+
 data class MongoErrorInternal(val connection: MongoConnection, val databaseName: String, val errorDesc: String) :
     MongoError() {
     override val msg: String = "$errorDesc - dbname:$databaseName instance:${connection.connString}"
