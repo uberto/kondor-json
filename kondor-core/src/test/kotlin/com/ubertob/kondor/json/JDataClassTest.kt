@@ -25,6 +25,7 @@ class JDataClassTest {
         val jsonStr = Person.Json.toJson(value, JsonStyle.prettyWithNulls)
 
         expectThat(Person.Json.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        expectThat(jsonStr).isEqualTo(expectedJson)
     }
 
     @Test
