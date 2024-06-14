@@ -12,7 +12,21 @@ import strikt.assertions.isEqualTo
 
 class JDataClassTest {
 
-    //!!! check on perf tests if it's slower
+    @Test
+    fun `Json Person pretty rendering`() {
+
+        val expectedJson = """
+            {
+              "id": 1234,
+              "name": "John Smith"
+            }
+        """.trimIndent()
+        val value = Person(1234, "John Smith")
+        val jsonStr = Person.Json.toJson(value, JsonStyle.prettyWithNulls)
+
+        expectThat(Person.Json.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+    }
+
     @Test
     fun `Json Person and back`() {
 
