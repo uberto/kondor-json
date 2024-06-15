@@ -79,6 +79,10 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
         }
     }
 
+    internal fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any)  =
+        registerProperty(jsonProperty, binder as (T) -> FT)
+
+
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =
         appenders.flatMap { it(valueObject) }
 

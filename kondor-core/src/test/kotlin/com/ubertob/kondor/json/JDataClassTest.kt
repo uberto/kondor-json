@@ -5,6 +5,7 @@ import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.printIt
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isA
@@ -128,5 +129,20 @@ class JDataClassTest {
         val error = (res as Failure<JsonError>).error
 
         expectThat(error.reason).isEqualTo("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
+    }
+
+
+    object PersonRefl : JDataClassReflect<Person>(Person::class)
+
+    @Disabled("Work in progress")
+    @Test
+    fun `JDataClassAuto doesn't need the fields declaration`() {
+
+        PersonRefl.registerAllProperties() //temp hack
+
+        PersonRefl.toJson(randomPerson(), JsonStyle.prettyWithNulls)
+
+        PersonRefl.testParserAndRender(100) { randomPerson() }
+
     }
 }
