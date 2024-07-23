@@ -16,6 +16,11 @@ data class JStringWrapper<T : StringWrapper>(override val cons: (String) -> T) :
     override val render: (T) -> String = { it.raw }
 }
 
+object JUUID : JStringRepresentable<UUID>() {
+    override val cons = UUID::fromString
+    override val render = UUID::toString
+}
+
 object JBigDecimal : JNumRepresentable<BigDecimal>() {
     override val cons: (Number) -> BigDecimal = { BigDecimal(it.toString()) }
     override val render: (BigDecimal) -> Number = { it }
