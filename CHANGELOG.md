@@ -6,6 +6,8 @@ rationale when appropriate:
 ### v.3.1.0 - 
 
 Kondor-mongo: fromBsonDoc return an Outcome error instead of nullable for better errors
+Kondor-core: added JFloat to support Float values
+Kondor-core: num accepts custom JNumRepresentable
 
 ### v.3.0.0 - 31 May 2024
 

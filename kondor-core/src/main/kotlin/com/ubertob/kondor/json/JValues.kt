@@ -36,8 +36,17 @@ object JString : JStringRepresentable<String>() {
         app.appendText(value)
 }
 
-object JDouble : JNumRepresentable<Double>() {
+object JFloat : JNumRepresentable<Float>() {
+    override val cons: (Number) -> Float = Number::toFloat
+    override val render: (Float) -> Number = { it }
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Float): CharWriter =
+        if (value.isFinite())
+            app.appendNumber(value)
+        else
+            app.appendText(value.toString())
+}
 
+object JDouble : JNumRepresentable<Double>() {
     override val cons: (Number) -> Double = Number::toDouble
     override val render: (Double) -> Number = Double::toBigDecimal
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Double): CharWriter =
@@ -46,7 +55,6 @@ object JDouble : JNumRepresentable<Double>() {
         else
             app.appendText(value.toString())
 }
-
 
 object JInt : JNumRepresentable<Int>() {
     override val cons: (Number) -> Int = { num ->
