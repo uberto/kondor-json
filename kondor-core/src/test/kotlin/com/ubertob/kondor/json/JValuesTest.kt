@@ -63,6 +63,20 @@ class JValuesTest {
     }
 
     @Test
+    fun `Json Float`() {
+        repeat(10) {
+            val value = Random.nextFloat()
+
+            val json = JFloat.toJsonNode(value)
+            val actual = JFloat.fromJsonNode(json, NodePathRoot).expectSuccess()
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JFloat.toJson(value)
+            expectThat(JFloat.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
     fun `Json Double`() {
         repeat(10) {
 
