@@ -99,9 +99,10 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
             println("-")
 
             val converter: JsonConverter<out Comparable<*>, out JsonNode> = when (fieldType) {
-               Int::class.java, Integer::class.java ->  JInt
+                Int::class.java, Integer::class.java ->  JInt
                 Long::class.java -> JLong
-                Float::class.java, Double::class.java -> JDouble
+                Float::class.java -> JFloat
+                Double::class.java -> JDouble
                 String::class.java -> JString
                 Boolean::class.java -> JBoolean
                 else -> fieldType.classLoader.loadClass("J${fieldType.simpleName}") as JsonConverter<out Comparable<*>, out JsonNode> //how to get the object from a javaclass or get a Koltin class by name??!!!
