@@ -8,6 +8,7 @@ rationale when appropriate:
 Kondor-mongo: fromBsonDoc return an Outcome error instead of nullable for better errors
 Kondor-core: added JFloat to support Float values
 Kondor-core: num accepts custom JNumRepresentable
+Kondor-core: added UUID converter
 
 ### v.3.0.0 - 31 May 2024
 
