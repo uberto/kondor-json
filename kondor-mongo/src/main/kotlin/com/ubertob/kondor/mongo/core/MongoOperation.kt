@@ -7,8 +7,6 @@ typealias MongoOutcome<T> = Outcome<MongoError, T>
 
 
 
-
-
 fun <U, T> mongoCalculation(calculation: MongoSession.(U) -> T): (U) -> MongoOperation<T> = //unit
     { input: U -> MongoOperation { session -> calculation(session, input) } }
 

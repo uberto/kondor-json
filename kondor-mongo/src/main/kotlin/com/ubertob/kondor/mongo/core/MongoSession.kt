@@ -57,6 +57,10 @@ interface MongoSession {
     fun <T : Any> MongoTable<T>.drop()
     fun <T : Any> MongoTable<T>.listIndexes(): Sequence<BsonDocument>
 
+
+    //Useful for getting access to all drivers methods
+    fun <T> MongoTable<*>.internalRun(block: (MongoCollection<BsonDocument>) -> T): T
+
     companion object {
         val RETURN_UPDATED = FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER)
         val RETURN_BEFORE = FindOneAndUpdateOptions().returnDocument(ReturnDocument.BEFORE)

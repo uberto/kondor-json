@@ -25,7 +25,7 @@ class MongoDbSession(
             }
         }
 
-    fun <T> MongoTable<*>.internalRun(block: (MongoCollection<BsonDocument>) -> T): T =
+    override fun <T> MongoTable<*>.internalRun(block: (MongoCollection<BsonDocument>) -> T): T =
         block(
             withCollection(this)
         )
