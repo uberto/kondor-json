@@ -31,6 +31,11 @@ fun <PT : Any> num(binder: PT.() -> Long) = JField(binder, JLong)
 @JvmName("bindLongNull")
 fun <PT : Any> num(binder: PT.() -> Long?) = JFieldMaybe(binder, JLong)
 
+@JvmName("bindFloat")
+fun <PT : Any> num(binder: PT.() -> Float) = JField(binder, JFloat)
+
+@JvmName("bindDFloatNull")
+fun <PT : Any> num(binder: PT.() -> Float?) = JFieldMaybe(binder, JFloat)
 
 @JvmName("bindDouble")
 fun <PT : Any> num(binder: PT.() -> Double) = JField(binder, JDouble)

@@ -41,13 +41,14 @@ object JacksonDsl {
     }
 
     private fun jsonNodeToDemoClass(node: JsonNode): DemoClass {
-        val text = node["text"].asText()
-        val boolean = node["boolean"].asBoolean()
-        val double = node["double"].asDouble()
+        val text = node["text"].textValue()
+        val boolean = node["boolean"].booleanValue()
+        val double = node["double"].doubleValue()
+        val float = node["float"].floatValue()
         val nullableInt = node["nullableInt"]?.asInt()
         val array = mutableListOf<String>()
         node["array"].forEach { item -> array.add(item.asText()) }
-        return DemoClass(text, boolean, double, nullableInt, array)
+        return DemoClass(text, boolean, float, double, nullableInt, array)
     }
 
     fun fromJson(json: String): List<DemoClass> {
