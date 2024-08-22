@@ -3,12 +3,13 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.3.1.0 - 
+### v.3.1.1 - 22 August 2024
 
-Kondor-mongo: fromBsonDoc return an Outcome error instead of nullable for better errors
-Kondor-core: added JFloat to support Float values
-Kondor-core: num accepts custom JNumRepresentable
+Kondor-core: added JFloat to support Float values (thanks @nilshelmig)
+Kondor-core: num accepts custom JNumRepresentable (thanks @nilshelmig)
 Kondor-core: added UUID converter
+Kondor-mongo: fromBsonDoc return an Outcome error instead of nullable for better errors
+Kondor-mongo: made internalRun visible on MongoSession for accessing Java driver features
 
 ### v.3.0.0 - 31 May 2024
 
