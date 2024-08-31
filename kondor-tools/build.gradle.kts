@@ -24,6 +24,35 @@ dependencies {
     implementation(libs.kotlinPoet)
 }
 
+@Suppress("UnstableApiUsage")
+testing {
+    suites {
+        getByName<JvmTestSuite>("test") {
+            useJUnitJupiter(libs.versions.jUnit.get())
+            dependencies {
+                implementation(libs.striKt)
+                implementation(project(":kondor-tools"))
+            }
+            targets {
+                all {
+                    testTask.configure {
+                        maxHeapSize = "2g"
+                        testLogging {
+//                            showStandardStreams = true
+                            events = setOf(
+                                TestLogEvent.SKIPPED,
+                                TestLogEvent.FAILED,
+                                TestLogEvent.PASSED
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {

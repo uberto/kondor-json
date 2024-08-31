@@ -137,7 +137,7 @@ class MongoTableTest {
     }
 
     @Test
-    fun `add and delete alternate syntax`() {
+    fun `add and delete alternative syntax`() {
 
         val res = write100Doc + delete3Docs(42) + readAll
 

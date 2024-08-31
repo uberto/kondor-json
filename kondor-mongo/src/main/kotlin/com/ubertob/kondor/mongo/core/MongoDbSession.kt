@@ -105,6 +105,17 @@ class MongoDbSession(
                 ?.orThrow()
         }
 
+    //!!! todo support bulkWrite
+//     override fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
+//        collection: List<U>,
+//        options: BulkWriteOptions,
+//        operation: (U) -> Bson
+//    ): BulkWriteResult =
+//        internalRun { coll ->
+//            val writes: List<WriteModel<BsonDocument>>  = collection.map { operation(it) as WriteModel<BsonDocument> }
+//            coll.bulkWrite(writes, options)
+//        }
+
     override fun <T : Any> MongoTable<T>.findById(id: Any): T? =
         internalRun { coll ->
             coll.find(Filters.eq("_id", id))

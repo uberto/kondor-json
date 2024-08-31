@@ -6,6 +6,12 @@ plugins {
     alias(libs.plugins.jmh)
 }
 
+//TODO add benchmark task
+//task runBenchmark(type: JavaExec) {
+//    classpath = sourceSets.main.runtimeClasspath
+//    mainClass = 'com.ubertob.kondor.json.jmh.BenchmarkKondorKt'
+//}
+
 configure<JmhParameters> {
     iterations = 10
     // Benchmark mode. Available modes are: [Throughput/thrpt, AverageTime/avgt, SampleTime/sample, SingleShotTime/ss, All/all]

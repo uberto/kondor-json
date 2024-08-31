@@ -254,6 +254,27 @@ class FlatDocTableTest {
         expectThat(missing).isEqualTo(null)
     }
 
+
+//TODO !!! add bulkWrite support to kmongo
+
+//    @Test
+//    fun `bulkUpdate execute multiple writes in a single go`() {
+//
+//        onMongo(cleanUp + hundredDocWriter).expectSuccess()
+//
+//        onMongo(mongoOperation {
+//            FlatDocs.bulkWrite()(
+//                JSimpleFlatDoc.index `in` setOf(43, 73),
+//                Updates.set("name", "updated doc")
+//            )
+//        }).expectSuccess()
+//
+//        val newDoc43 = onMongo(reader(43)).expectSuccess()
+//        expectThat(newDoc43?.name).isEqualTo("updated doc")
+//        val newDoc73 = onMongo(reader(73)).expectSuccess()
+//        expectThat(newDoc73?.name).isEqualTo("updated doc")
+//    }
+
     @Test
     fun `watch should report the changes`() {
 

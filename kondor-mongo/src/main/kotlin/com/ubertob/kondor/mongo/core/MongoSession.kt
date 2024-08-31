@@ -40,6 +40,13 @@ interface MongoSession {
         options: FindOneAndDeleteOptions = FindOneAndDeleteOptions()
     ): T?
 
+    //!!! todo
+//    fun <T : Any> MongoTable<T>.bulkWrite(
+//        collection: List<T>,
+//        options: BulkWriteOptions,
+//        operation: (T) -> WriteModel<BsonDocument>
+//    ): BulkWriteResult
+
     //Query Methods
     fun <T : Any> MongoTable<T>.findById(id: Any): T?
     fun <T : Any> MongoTable<T>.findByOid(id: ObjectId): T?
