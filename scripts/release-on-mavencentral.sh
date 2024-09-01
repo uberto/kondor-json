@@ -16,7 +16,7 @@ echo currrent: $ver
 
 echo updating to: $1
 # update=ing the README.md and gradle
-sed -i "s/$ver/$1/g" README.md build.gradle
+sed -i "s/$ver/$1/g" README.md build.gradle.kts
 
 # launch:
 ./gradlew publish -p kondor-core

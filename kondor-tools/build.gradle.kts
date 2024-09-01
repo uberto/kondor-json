@@ -91,10 +91,7 @@ publishing {
     repositories {
         maven {
             name = "OSSRH"
-            uri(
-                if (version.toString().endsWith("SNAPSHOT")) "https://oss.sonatype.org/content/repositories/snapshots/"
-                else "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
-            )
+            url = uri("https://oss.sonatype.org/service/local/staging/deploy/maven2/")
             credentials {
                 username = findProperty("nexusUsername").toString()
                 password = findProperty("nexusPassword").toString()

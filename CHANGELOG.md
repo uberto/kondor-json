@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+
+### v.3.1.2 - 31 August 2024
+all: switched to Kotlin scripts and version catalog (thanks André Martins)
+
 ### v.3.1.1 - 22 August 2024
 
 Kondor-core: added JFloat to support Float values (thanks @nilshelmig)
