@@ -1,7 +1,7 @@
 [versions]
 gradlew = "8.4"
 kotlin = "1.9.20"
-java = "17"
+java = "21"
 
 kotlinPoet = "1.8.0"
 mongo = "4.8.2"
