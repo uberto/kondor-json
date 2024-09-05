@@ -118,11 +118,8 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
                 String::class.java -> registerProperty( JsonPropMandatory(field.name, JString)){ o -> field.get(o) as String}
             }
 
-
-            registerPropertyHack(prop) {obj -> field. get(obj) } // !!!!!!!!
+            registerPropertyHack(prop) {obj -> field. get(obj) }
         }
 
-
-//
     }
 }
