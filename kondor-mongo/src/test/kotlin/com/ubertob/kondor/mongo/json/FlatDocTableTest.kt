@@ -280,6 +280,32 @@ class FlatDocTableTest {
     }
 
     @Test
+    fun `bulkWrite performs multiple operations in a single call`() {
+
+        val doc1 = createDoc(1001)
+        val doc2 = createDoc(1002)
+        val doc3 = createDoc(1003)
+
+        val operations = listOf(
+            WriteOperation.Insert(doc1),
+            WriteOperation.Insert(doc2),
+            WriteOperation.Insert(doc3),
+            WriteOperation.Update(Filters.eq("index", 1001), Updates.set("value", 1042)),
+            WriteOperation.Delete(Filters.eq("index", 1002))
+        )
+
+        val tot = onMongo(
+            mongoOperation {
+                FlatDocs.bulkWrite(operations)
+            }).expectSuccess()
+
+
+        expectThat(tot.insertedCount).isEqualTo(3)
+        expectThat(tot.deletedCount).isEqualTo(1)
+        expectThat(tot.modifiedCount).isEqualTo(1)
+    }
+
+    @Test
     fun `watch should report the changes`() {
 
         val watcher = onMongo.watch()
