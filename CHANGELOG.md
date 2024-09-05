@@ -3,6 +3,9 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.2.0 - 5 September 2024
+Kondor-mongo: added support for BulkWrite operations
+
 
 ### v.3.1.2 - 31 August 2024
 all: switched to Kotlin scripts and version catalog (thanks André Martins)

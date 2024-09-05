@@ -109,22 +109,22 @@ class MongoDbSession(
     override fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
         collection: List<U>,
         options: BulkWriteOptions,
-        operation: (U) -> MongoBulkOperation<T>
+        operation: (U) -> WriteOperation<T>
     ): BulkWriteResult =
         bulkWrite(collection.map(operation), options)
 
 
     override fun <T : Any> MongoTable<T>.bulkWrite(
-        operations: Iterable<MongoBulkOperation<T>>,
+        operations: Iterable<WriteOperation<T>>,
         options: BulkWriteOptions
     ): BulkWriteResult =
 
         internalRun { coll ->
             val bulkOperations = operations.map { operation ->
                 when (operation) {
-                    is MongoBulkOperation.Insert -> InsertOneModel(toBsonDoc(operation.document))
-                    is MongoBulkOperation.Update -> UpdateOneModel(operation.filter, operation.update)
-                    is MongoBulkOperation.Delete -> DeleteOneModel(operation.filter)
+                    is WriteOperation.Insert -> InsertOneModel(toBsonDoc(operation.document))
+                    is WriteOperation.Update -> UpdateOneModel(operation.filter, operation.update)
+                    is WriteOperation.Delete -> DeleteOneModel(operation.filter)
                 }
             }
             coll.bulkWrite(bulkOperations)

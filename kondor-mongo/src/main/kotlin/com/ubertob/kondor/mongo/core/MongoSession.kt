@@ -42,14 +42,14 @@ interface MongoSession {
     ): T?
 
     fun <T : Any> MongoTable<T>.bulkWrite(
-        operations: Iterable<MongoBulkOperation<T>>,
+        operations: Iterable<WriteOperation<T>>,
         options: BulkWriteOptions = BulkWriteOptions()
     ): BulkWriteResult
 
     fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
         collection: List<U>,
         options: BulkWriteOptions = BulkWriteOptions(),
-        operation: (U) -> MongoBulkOperation<T>
+        operation: (U) -> WriteOperation<T>
     ): BulkWriteResult
 
     //Query Methods

@@ -255,7 +255,7 @@ class FlatDocTableTest {
     }
 
     @Test
-    fun `bulkUpdate execute multiple writes in a single go`() {
+    fun `bulkWrite execute multiple write operations as a single command`() {
 
         onMongo(cleanUp).expectSuccess()
 
@@ -266,7 +266,7 @@ class FlatDocTableTest {
         val tot = onMongo(
             mongoOperation {
                 FlatDocs.bulkWrite(hundredDocs) { doc ->
-                    MongoBulkOperation.Insert(doc)
+                    WriteOperation.Insert(doc)
                 }.insertedCount
             }).expectSuccess()
 
