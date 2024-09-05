@@ -1,5 +1,6 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.bulk.BulkWriteResult
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.*
@@ -105,16 +106,29 @@ class MongoDbSession(
                 ?.orThrow()
         }
 
-    //!!! todo support bulkWrite
-//     override fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
-//        collection: List<U>,
-//        options: BulkWriteOptions,
-//        operation: (U) -> Bson
-//    ): BulkWriteResult =
-//        internalRun { coll ->
-//            val writes: List<WriteModel<BsonDocument>>  = collection.map { operation(it) as WriteModel<BsonDocument> }
-//            coll.bulkWrite(writes, options)
-//        }
+    override fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
+        collection: List<U>,
+        options: BulkWriteOptions,
+        operation: (U) -> MongoBulkOperation<T>
+    ): BulkWriteResult =
+        bulkWrite(collection.map(operation), options)
+
+
+    override fun <T : Any> MongoTable<T>.bulkWrite(
+        operations: Iterable<MongoBulkOperation<T>>,
+        options: BulkWriteOptions
+    ): BulkWriteResult =
+
+        internalRun { coll ->
+            val bulkOperations = operations.map { operation ->
+                when (operation) {
+                    is MongoBulkOperation.Insert -> InsertOneModel(toBsonDoc(operation.document))
+                    is MongoBulkOperation.Update -> UpdateOneModel(operation.filter, operation.update)
+                    is MongoBulkOperation.Delete -> DeleteOneModel(operation.filter)
+                }
+            }
+            coll.bulkWrite(bulkOperations)
+        }
 
     override fun <T : Any> MongoTable<T>.findById(id: Any): T? =
         internalRun { coll ->

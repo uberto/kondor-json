@@ -1,5 +1,6 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.bulk.BulkWriteResult
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.*
 import org.bson.BsonDocument
@@ -40,12 +41,16 @@ interface MongoSession {
         options: FindOneAndDeleteOptions = FindOneAndDeleteOptions()
     ): T?
 
-    //!!! todo
-//    fun <T : Any> MongoTable<T>.bulkWrite(
-//        collection: List<T>,
-//        options: BulkWriteOptions,
-//        operation: (T) -> WriteModel<BsonDocument>
-//    ): BulkWriteResult
+    fun <T : Any> MongoTable<T>.bulkWrite(
+        operations: Iterable<MongoBulkOperation<T>>,
+        options: BulkWriteOptions = BulkWriteOptions()
+    ): BulkWriteResult
+
+    fun <T : Any, U : Any> MongoTable<T>.bulkWrite(
+        collection: List<U>,
+        options: BulkWriteOptions = BulkWriteOptions(),
+        operation: (U) -> MongoBulkOperation<T>
+    ): BulkWriteResult
 
     //Query Methods
     fun <T : Any> MongoTable<T>.findById(id: Any): T?

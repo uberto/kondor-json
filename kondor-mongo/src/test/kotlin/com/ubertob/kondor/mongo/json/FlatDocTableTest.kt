@@ -254,26 +254,30 @@ class FlatDocTableTest {
         expectThat(missing).isEqualTo(null)
     }
 
+    @Test
+    fun `bulkUpdate execute multiple writes in a single go`() {
 
-//TODO !!! add bulkWrite support to kmongo
+        onMongo(cleanUp).expectSuccess()
 
-//    @Test
-//    fun `bulkUpdate execute multiple writes in a single go`() {
-//
-//        onMongo(cleanUp + hundredDocWriter).expectSuccess()
-//
-//        onMongo(mongoOperation {
-//            FlatDocs.bulkWrite()(
-//                JSimpleFlatDoc.index `in` setOf(43, 73),
-//                Updates.set("name", "updated doc")
-//            )
-//        }).expectSuccess()
-//
-//        val newDoc43 = onMongo(reader(43)).expectSuccess()
-//        expectThat(newDoc43?.name).isEqualTo("updated doc")
-//        val newDoc73 = onMongo(reader(73)).expectSuccess()
-//        expectThat(newDoc73?.name).isEqualTo("updated doc")
-//    }
+        val hundredDocs = (1..100).map {
+            createDoc(it)
+        }
+
+        val tot = onMongo(
+            mongoOperation {
+                FlatDocs.bulkWrite(hundredDocs) { doc ->
+                    MongoBulkOperation.Insert(doc)
+                }.insertedCount
+            }).expectSuccess()
+
+        expectThat(tot).isEqualTo(100)
+
+        val doc43 = onMongo(reader(43)).expectSuccess()
+        expectThat(doc43?.name).isEqualTo("mydoc 43")
+        val doc99 = onMongo(reader(99)).expectSuccess()
+        expectThat(doc99?.name).isEqualTo("mydoc 99")
+
+    }
 
     @Test
     fun `watch should report the changes`() {
@@ -292,7 +296,7 @@ class FlatDocTableTest {
 
         expectThat(docTot).isEqualTo(3)
 
-        // this is not working, not sure why
+        // this is not working, not sure why !!!
         watcher.asSequence().onEach {
             println("seq!!")
             println(it)
