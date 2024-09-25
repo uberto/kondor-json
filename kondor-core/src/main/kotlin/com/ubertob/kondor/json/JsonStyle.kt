@@ -13,7 +13,7 @@ data class JsonStyle(
 
     fun render(node: JsonNode): String = render(node, ChunkedStringWriter())
     fun render(node: JsonNode, writer: CharWriter): String =
-        writer.appendNode(node, this).toString()
+        writer.appendNode(node, this, 0).toString()
 
 
     companion object {
@@ -98,7 +98,7 @@ data class JsonStyle(
         @Suppress("UNUSED_PARAMETER")
         fun noNewLine(app: CharWriter, offset: Int): CharWriter = app
 
-        fun CharWriter.appendNode(node: JsonNode, style: JsonStyle, offset: Int = 0): CharWriter {
+        fun CharWriter.appendNode(node: JsonNode, style: JsonStyle, offset: Int): CharWriter {
             when (node) {
                 is JsonNodeNull -> appendNull()
                 is JsonNodeString -> appendText(node.text)
@@ -200,9 +200,9 @@ data class JsonStyle(
         ): CharWriter =
             apply {
                 write('{')
-                style.appendNewline(this, offset + 1)
+                style.appendNewline(this, offset +1)
                     .appendObjectFields(style, offset + 1, fields)
-                style.appendNewline(this, offset)
+                style.appendNewline(this, offset )
                     .write('}')
             }
 
@@ -224,7 +224,7 @@ data class JsonStyle(
                     if (appender == null)
                         appendNull()
                     else
-                        appender(style, offset + 1)
+                        appender(style, offset)
                 }
         }
 

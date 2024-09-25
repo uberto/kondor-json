@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.time.Instant
+import java.time.LocalDate
+import java.time.Month
 import kotlin.random.Random
 
 class JValuesExtraTest {
@@ -173,10 +175,57 @@ class JValuesExtraTest {
 
             val jsonStr = JProducts.toJson(value, pretty)
 
-//            println(jsonStr)
-
             expectThat(JProducts.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
+    }
+
+
+    @Test
+    fun `render pretty Json Invoice`() {
+
+        val invoice = Invoice(
+            InvoiceId("abc-1234"),
+            false,
+            Company("Acme", TaxType.US),
+            listOf(
+                Product(1, "xs", "looooog desc", 123.45),
+                Product(2, "xs2", "looooog desc2", null)
+            ),
+            125.toBigDecimal(),
+            LocalDate.of(2024, Month.SEPTEMBER, 25),
+            Instant.ofEpochSecond(1727257098)
+        )
+        val jsonPretty = JInvoice.toJson(invoice, pretty)
+
+        expectThat(JInvoice.fromJson(jsonPretty).expectSuccess()).isEqualTo(invoice)
+
+        expectThat(jsonPretty).isEqualTo(
+            """|{
+                |  "created_date": "2024-09-25",
+                |  "customer": {
+                |    "name": "Acme",
+                |    "tax_type": "US",
+                |    "type": "company"
+                |  },
+                |  "id": "abc-1234",
+                |  "items": [
+                |    {
+                |      "id": 1,
+                |      "long_description": "looooog desc",
+                |      "price": 123.45,
+                |      "short-desc": "xs"
+                |    },
+                |    {
+                |      "id": 2,
+                |      "long_description": "looooog desc2",
+                |      "short-desc": "xs2"
+                |    }
+                |  ],
+                |  "paid_datetime": 1727257098000,
+                |  "total": 125,
+                |  "vat-to-pay": false
+                |}""".trimMargin()
+        )
     }
 
 
