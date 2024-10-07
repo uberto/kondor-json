@@ -4,7 +4,7 @@ kotlin = "1.9.20"
 java = "21"
 
 kotlinPoet = "1.8.0"
-mongo = "4.8.2"
+mongo = "5.1.0"
 http4k = "5.29.0.0"
 jackson = "2.13.0"
 

@@ -62,11 +62,15 @@ class MongoTableTest {
             databaseName = "mongoCollTest"
         )
 
-        mongoOperation {
+      val op =  mongoOperation {
             testConnectionTable.drop()
             simpleDocTable.drop()
             complexDocTable.drop()
-        }.exec(cleanUpExecutor)
+        }
+
+
+
+          op.exec(cleanUpExecutor)
     }
 
     @Test
