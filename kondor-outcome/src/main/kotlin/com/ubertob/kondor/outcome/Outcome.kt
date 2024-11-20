@@ -47,7 +47,7 @@ value class Success<T> internal constructor(val value: T) : Outcome<Nothing, T>
 @JvmInline
 value class Failure<E : OutcomeError> internal constructor(val error: E) : Outcome<E, Nothing>
 
-inline fun <T, E : OutcomeError, reified U : @UnsafeVariance T> Outcome<E, T>.castOrFail(error: (T) -> @UnsafeVariance E): Outcome<E, U> =
+inline fun <T,  reified U : T> Outcome<*, T>.castOrFail(error: (T) -> OutcomeError): Outcome<OutcomeError, U> =
     when (this) {
         is Failure -> this
         is Success -> if (value is U) {
@@ -56,6 +56,21 @@ inline fun <T, E : OutcomeError, reified U : @UnsafeVariance T> Outcome<E, T>.ca
             error(value).asFailure()
         }
     }
+
+inline fun <reified U> Outcome<OutcomeError, *>.castOrFailDefault(): Outcome<OutcomeError, U> =
+    when (this) {
+        is Failure -> this
+        is Success -> if (value is U) {
+            value.asSuccess()
+        } else {
+            CastError(value).asFailure()
+        }
+    }
+
+
+data class CastError(val value: Any?) : OutcomeError {
+    override val msg: String = "Error! invalid cast $value"
+}
 
 inline fun <T, E : OutcomeError> Outcome<E, T>.recover(recoverError: (E) -> T): T =
     when (this) {
@@ -153,7 +168,6 @@ fun <T, ERR : OutcomeError, U> Iterable<T>.foldOutcomeIndexed(
     operation: (Int, acc: U, T) -> Outcome<ERR, U>
 ): Outcome<ERR, U> =
     foldIndexed(initial.asSuccess() as Outcome<ERR, U>) { index, acc, el -> acc.bind { operation(index, it, el) } }
-
 
 
 fun <E : OutcomeError, T, U> Iterable<T>.traverse(f: (T) -> Outcome<E, U>): Outcome<E, List<U>> =

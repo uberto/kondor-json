@@ -60,11 +60,21 @@ class ApplicativesTest {
 
         expectThat(result).isEqualTo(intFailure)
     }
+
     @Test
-    fun `castOrFail allow for subcasting`() {
+    fun `castOrFail allows for subcasting`() {
+        val person: Outcome<OutcomeError, Person> = getUser(12)
+
+        val user: User = person.castOrFail<Person, User> { value -> Err("Cannot cast $value to User") }.orThrow()
+
+        expectThat(user).isA<User>()
+    }
+
+    @Test
+    fun `castOrFailDefault allows for subcasting without needing a lambda`() {
         val person: BaseOutcome<Person> = getUser(12)
 
-        val user = person.castOrFail { value -> Err("Cannot cast $value to User") }.orThrow()
+        val user: User = person.castOrFailDefault<User>().expectSuccess()
 
         expectThat(user).isA<User>()
     }
