@@ -13,7 +13,6 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.isEqualTo
 import java.time.LocalDate
-import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 
@@ -309,8 +308,7 @@ class FlatDocTableTest {
     fun `watch should report the changes`() {
 
         val watcher = onMongo.watch()
-        watcher.maxAwaitTime(1, TimeUnit.MILLISECONDS)
-        watcher.batchSize(1)
+        val cursor = watcher.iterator()
 
         val docTot = onMongo(
             cleanUp +
@@ -319,15 +317,10 @@ class FlatDocTableTest {
                     docWriter(createDoc(3)) +
                     docCounter
         ).expectSuccess()
-
         expectThat(docTot).isEqualTo(3)
 
-        // this is not working, not sure why !!!
-        watcher.asSequence().onEach {
-            println("seq!!")
-            println(it)
-        }
-
+        val events = cursor.asSequence().take(4).map { it.operationType?.value }.toList()
+        expectThat(events).isEqualTo(listOf("drop", "insert", "insert", "insert"))
     }
 }
 
