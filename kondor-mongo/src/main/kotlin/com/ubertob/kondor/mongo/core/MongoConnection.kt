@@ -10,7 +10,7 @@ data class MongoConnection(val connString: String, val timeout: Duration = Durat
     fun toMongoClientSettings(): MongoClientSettings = MongoClientSettings.builder()
         .applyToSocketSettings { builder ->
             builder.applySettings(
-                builder.connectTimeout(timeout.toMillis().toInt(), TimeUnit.MILLISECONDS).build()
+                builder.connectTimeout(timeout.toMillis(), TimeUnit.MILLISECONDS).build()
             )
         }
         .applyToClusterSettings { builder: ClusterSettings.Builder ->
