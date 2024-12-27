@@ -3,6 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.3.0 - 27 December 2024
+
+Kondor-core: updated to Kotlin 2.1.0
+Kondor-mongo: updated Mongo driver to 5.1.0
+Kondor-mongo: added MongoExecutor.fromClientSettings constructor
+
 ### v.3.2.1 - 25 September 2024
 Kondor-core: fixed pretty rendering of arrays
 

@@ -23,14 +23,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>3.2.3</version>
+    <version>3.3.0</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:3.2.3'
+implementation 'com.ubertob.kondor:kondor-core:3.3.0'
 ```
 
 ## The Video Presentation
