@@ -523,4 +523,13 @@ object JOptionalAddress : JAny<OptionalAddress>() {
     )
 }
 
+data class TagsContainer(val tastes: List<String>, val colors: List<String>)
 
+object JTagsContainer : JAny<TagsContainer>() {
+    val taste_tags by array(JString, TagsContainer::tastes)
+    val color_tags by array(JString, TagsContainer::colors)
+    override fun JsonNodeObject.deserializeOrThrow() = TagsContainer(
+        +taste_tags,
+        +color_tags
+    )
+}
