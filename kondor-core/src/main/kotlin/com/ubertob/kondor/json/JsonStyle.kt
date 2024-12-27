@@ -106,16 +106,18 @@ data class JsonStyle(
                 is JsonNodeNumber -> appendNumber(node.num)
                 is JsonNodeArray -> {
                     write('[')
-                    style.appendNewline(this, offset + 1)
-                    node.values(style.explicitNulls)
-                        .forEachIndexed { index, each ->
+                    val values = node.values(style.explicitNulls)
+                    if (values.any()) {
+                        style.appendNewline(this, offset + 1)
+                        values.forEachIndexed { index, each ->
                             if (index > 0) {
                                 style.appendFieldSeparator(this)
                                 style.appendNewline(this, offset + 1)
                             }
-                            appendNode(each, style, offset + 2)
+                            appendNode(each, style, offset + 1)
                         }
-                    style.appendNewline(this, offset)
+                        style.appendNewline(this, offset)
+                    }
                     write(']')
                 }
 
@@ -176,20 +178,23 @@ data class JsonStyle(
             appender: CharWriter.(JsonStyle, Int, T) -> CharWriter
         ): CharWriter {
             write('[')
+            val values = values.nullFilter(style.explicitNulls)
+            if (values.any()) {
 
-            style.appendNewline(this, offset + 1)
-            values.nullFilter(style.explicitNulls).forEachIndexed { index, each ->
-                if (index > 0) {
-                    style.appendFieldSeparator(this)
-                    style.appendNewline(this, offset + 1)
+                style.appendNewline(this, offset + 1)
+                values.forEachIndexed { index, each ->
+                    if (index > 0) {
+                        style.appendFieldSeparator(this)
+                        style.appendNewline(this, offset + 1)
+                    }
+                    if (each == null) {
+                        appendNull()
+                    } else
+                        appender(style, offset + 1, each)
                 }
-                if (each == null) {
-                    appendNull()
-                } else
-                    appender(style, offset + 1, each)
+                style.appendNewline(this, offset)
             }
-            style.appendNewline(this, offset)
-                .write(']')
+            write(']')
             return this
         }
 
@@ -200,9 +205,9 @@ data class JsonStyle(
         ): CharWriter =
             apply {
                 write('{')
-                style.appendNewline(this, offset +1)
+                style.appendNewline(this, offset + 1)
                     .appendObjectFields(style, offset + 1, fields)
-                style.appendNewline(this, offset )
+                style.appendNewline(this, offset)
                     .write('}')
             }
 

@@ -188,7 +188,7 @@ class JsonRenderTest {
 
     @Test
     fun `pretty render array with nested arrays from node`() {
-        val nodeArray = JsonNodeArray( //!!! nested arrays not aligned, empty array space worng
+        val nodeArray = JsonNodeArray(
             listOf(
                 JsonNodeArray(
                     listOf(
@@ -204,12 +204,10 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo(
             """[
               |  [
-              |      "abc",
-              |      "def"
-              |    ],
-              |  [
-              |      
-              |    ]
+              |    "abc",
+              |    "def"
+              |  ],
+              |  []
               |]""".trimMargin()
         )
     }
@@ -225,11 +223,9 @@ class JsonRenderTest {
 
         val json = JTagsContainer.toJson(tags, pretty)
 
-        expectThat(json).isEqualTo( //!!! empty array space unnecessary new line
+        expectThat(json).isEqualTo(
             """{
-              |  "color_tags": [
-              |    
-              |  ],
+              |  "color_tags": [],
               |  "taste_tags": [
               |    "sweet",
               |    "salty",
