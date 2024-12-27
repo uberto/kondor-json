@@ -1,6 +1,9 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.ConnectionString
+import com.mongodb.MongoClientSettings
 import com.mongodb.MongoTimeoutException
+import com.mongodb.connection.ClusterSettings
 import com.mongodb.connection.ServerConnectionState
 import com.ubertob.kondor.outcome.MessageError
 import com.ubertob.kondor.outcome.Outcome
@@ -18,6 +21,7 @@ import strikt.assertions.isEqualTo
 import strikt.assertions.isGreaterThan
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 private object collForTest : BsonTable() {
     override val collectionName: String = "collForTest"
@@ -127,6 +131,25 @@ class MongoExecutorTest {
         val executor = buildExecutor()
 
         val dbNames = executor.listDatabaseNames() //.printIt("db names")
+        expectThat(dbNames.size).isGreaterThan(0)
+    }
+
+    @Test
+    fun `create executor from client settings`() {
+        val clientSettings = MongoClientSettings.builder()
+            .applyToSocketSettings { builder ->
+                builder.applySettings(
+                    builder.connectTimeout(200, TimeUnit.MILLISECONDS).build()
+                )
+            }
+            .applyToClusterSettings { builder: ClusterSettings.Builder ->
+                builder.serverSelectionTimeout(200, TimeUnit.MILLISECONDS).build()
+            }
+            .applyConnectionString(ConnectionString(mongoContainer.connection.connString))
+            .build()
+        val executor = MongoExecutorDbClient.fromClientSettings(dbName, clientSettings)
+
+        val dbNames = executor.listDatabaseNames()
         expectThat(dbNames.size).isGreaterThan(0)
     }
 

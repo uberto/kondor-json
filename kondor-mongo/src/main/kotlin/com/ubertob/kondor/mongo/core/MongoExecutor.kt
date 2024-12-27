@@ -1,5 +1,7 @@
 package com.ubertob.kondor.mongo.core
 
+import com.mongodb.MongoClientSettings
+import com.mongodb.MongoDriverInformation
 import com.mongodb.client.ChangeStreamIterable
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
@@ -48,7 +50,15 @@ class MongoExecutorDbClient(override val databaseName: String, clientProvider: (
 
     companion object {
         fun fromConnectionString(connection: MongoConnection, databaseName: String): MongoExecutorDbClient =
+            fromClientSettings(databaseName, connection.toMongoClientSettings())
+
+        fun fromClientSettings(
+            databaseName: String,
+            clientSettings: MongoClientSettings,
+            mongoDriverInformation: MongoDriverInformation? = null
+        ): MongoExecutorDbClient =
             MongoExecutorDbClient(databaseName)
-            { MongoClients.create(connection.toMongoClientSettings()) }
+            { MongoClients.create(clientSettings, mongoDriverInformation) }
+
     }
 }
