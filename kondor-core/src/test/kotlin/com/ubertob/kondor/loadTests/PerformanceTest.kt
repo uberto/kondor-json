@@ -4,6 +4,7 @@ import com.ubertob.kondor.all
 import com.ubertob.kondor.chronoAndLog
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.ArrayNode
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.randomString
@@ -127,7 +128,7 @@ class PerformanceTest {
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
-            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes) }
+            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes, NodePathRoot) }
 
 //            chronoAndLog("lazy parsing") {
 //                ByteArrayInputStream(jsonString.toByteArray()).use {
@@ -162,7 +163,7 @@ class PerformanceTest {
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
-            chronoAndLog("marshalling") { jFileInfos.fromJsonNode(nodes) }
+            chronoAndLog("marshalling") { jFileInfos.fromJsonNode(nodes, NodePathRoot) }
 
             chronoAndLog("lazy parsing") {
                 jFileInfos.fromJson(ByteArrayInputStream(jsonString.toByteArray())).expectSuccess()
@@ -194,7 +195,7 @@ class PerformanceTest {
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
-            chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes) }
+            chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes, NodePathRoot) }
 
             chronoAndLog("lazy parsing") {
                 jStrings.fromJson(ByteArrayInputStream(jsonString.toByteArray())).expectSuccess()
