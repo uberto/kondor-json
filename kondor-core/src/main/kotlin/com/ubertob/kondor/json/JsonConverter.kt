@@ -55,7 +55,10 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     fun toJsonNode(value: T): JN
 
     //those deprecated functions will be removed later in 3.x
-    @Deprecated("NodePath has to be passed now when parsing, since it's not in JsonNode anymore", ReplaceWith("toJsonNode(value, path)"))
+    @Deprecated(
+        "NodePath has to be passed now when parsing, since it's not in JsonNode anymore",
+        ReplaceWith("toJsonNode(value, path)")
+    )
     fun fromJsonNode(node: JN): JsonOutcome<T> = fromJsonNode(node, NodePathRoot)
 
     @Deprecated("NodePath is not in the JsonNode anymore", ReplaceWith("toJsonNode(value)"))
@@ -81,15 +84,13 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     fun parseAndConvert(tokens: TokensStream): Outcome<JsonError, T> =
         tokens.parseFromRoot()
             .bind { fromJsonNode(it, NodePathRoot) }
-            .bind { checkForJsonTail(tokens, it) }
+            .bind { it.checkForJsonTail(tokens) }
 
-    fun checkForJsonTail(
-        tokens: TokensStream,
-        it: T
-    ) = if (tokens.hasNext())
-        parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
-    else
-        it.asSuccess()
+    fun T.checkForJsonTail(tokens: TokensStream) =
+        if (tokens.hasNext())
+            parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+        else
+            asSuccess()
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)
