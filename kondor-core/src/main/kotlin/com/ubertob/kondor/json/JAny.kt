@@ -79,6 +79,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     internal fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any)  =
         registerProperty(jsonProperty, binder as (T) -> FT)
 

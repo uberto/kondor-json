@@ -52,6 +52,8 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     fun fromJsonNode(node: JN, path: NodePath): JsonOutcome<T>
 
+//    fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T>
+
     fun toJsonNode(value: T): JN
 
     //those deprecated functions will be removed later in 3.x
@@ -81,7 +83,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         KondorTokenizer.tokenize(jsonStream) //!!!look at ReaderBasedJsonParser, make the fromJson(String) call this one as well
             .bind(::parseAndConvert)
 
-    fun parseAndConvert(tokens: TokensStream): Outcome<JsonError, T> =
+    private fun parseAndConvert(tokens: TokensStream): JsonOutcome<T> =
         tokens.parseFromRoot()
             .bind { fromJsonNode(it, NodePathRoot) }
             .bind { it.checkForJsonTail(tokens) }

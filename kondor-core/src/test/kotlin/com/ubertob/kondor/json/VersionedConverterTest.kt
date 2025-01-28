@@ -96,7 +96,7 @@ class VersionedConverterTest {
             expectThat(parsed).isEqualTo(original)
 
             val jsonFromJsonNode =
-                JJsonNode.toJson(converter.toJsonNode(original, NodePathRoot), compactSorted)
+                JJsonNode.toJson(converter.toJsonNode(original), compactSorted)
 
             expectThat(directJson).isEqualTo(jsonFromJsonNode)
         }

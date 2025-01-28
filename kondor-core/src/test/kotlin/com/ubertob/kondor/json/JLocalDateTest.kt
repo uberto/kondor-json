@@ -4,6 +4,7 @@ import com.ubertob.kondor.json.datetime.JLocalDate
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -22,7 +23,7 @@ class JLocalDateTest {
 
         val dateAsdJsonNode = JsonNodeString("15/10/2020")
         expectThat(jLocalDate.toJsonNode(date)).isEqualTo(dateAsdJsonNode)
-        expectThat(jLocalDate.fromJsonNode(dateAsdJsonNode).expectSuccess()).isEqualTo(date)
+        expectThat(jLocalDate.fromJsonNode(dateAsdJsonNode, NodePathRoot).expectSuccess()).isEqualTo(date)
 
         val dateAsString = "\"15/10/2020\""
         expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
@@ -37,7 +38,7 @@ class JLocalDateTest {
 
         val dateAsJsonNode = JsonNodeString("06-01-2021")
         expectThat(jLocalDate.toJsonNode(date)).isEqualTo(dateAsJsonNode)
-        expectThat(jLocalDate.fromJsonNode(dateAsJsonNode).expectSuccess()).isEqualTo(date)
+        expectThat(jLocalDate.fromJsonNode(dateAsJsonNode, NodePathRoot).expectSuccess()).isEqualTo(date)
 
         val dateAsString = "\"06-01-2021\""
         expectThat(jLocalDate.toJson(date)).isEqualTo(dateAsString)
