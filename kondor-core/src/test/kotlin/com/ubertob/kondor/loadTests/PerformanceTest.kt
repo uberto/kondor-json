@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
 import java.io.ByteArrayInputStream
+import java.io.File
 
 /*
 On my laptop: 4/5/2023
@@ -98,13 +99,43 @@ tokenizing 367 ms
 parsing up to JsonNode 13 ms
 marshalling 3 ms
 lazy parsing 2947 ms
- */
 
+On my laptop: 28/01/2025
+
+JFileInfo
+serialization 89 ms
+serialization compact 74 ms
+total parsing 278 ms
+tokenizing 116 ms
+parsing up to JsonNode 208 ms
+marshalling 44 ms
+lazy parsing 885 ms
+
+JInvoice 50k
+serialization 424 ms
+serialization compact 433 ms
+total parsing 1292 ms
+tokenizing 527 ms
+parsing up to JsonNode 606 ms
+marshalling 198 ms
+
+array of strings
+
+serialization 741 ms
+serialization compact 754 ms
+total parsing 742 ms
+tokenizing 722 ms
+parsing up to JsonNode 14 ms
+marshalling 3 ms
+lazy parsing 4569 ms
+
+50k Invoices parsing from stream 3446 ms
+ */
 
 @Disabled
 class PerformanceTest {
 
-    val times = 20
+    val times = 10
 
     @Test
     fun `serialize and parse invoices`() {
@@ -211,20 +242,24 @@ class PerformanceTest {
 
         val JInvoices = JList(JInvoice)
 
-        val fixtureName = "/fixtures/invoices.json.ignoreme"
+        val fixtureName = "/fixtures/invoices.json.ignoreme" //delete this file if the format change
+        val fixtureFile = File("./src/test/resources/$fixtureName")
+        val inputStreamTotInvoices = 50_000
 
-//        val invoices = generateSequence(0) { it + 1 }.take(500_000).map {
-//            randomInvoice().copy(id = InvoiceId(it.toString()))
-//        }.toList()
-//
-//        File("./src/test/resources/$fixtureName").writeText(JInvoices.toJson(invoices))
+        if (!fixtureFile.exists()) {
+            println("creating ${fixtureFile.absolutePath}")
+            val invoices = generateSequence(0) { it + 1 }.take(inputStreamTotInvoices).map {
+                randomInvoice().copy(id = InvoiceId(it.toString()))
+            }.toList()
 
+            fixtureFile.writeText(JInvoices.toJson(invoices))
+        }
 
         val inputStream = javaClass.getResourceAsStream(fixtureName) ?: error("resource $fixtureName not found!")
 
         chronoAndLog("parsing from stream") {
             val invoices = JInvoices.fromJson(inputStream).expectSuccess()
-            expectThat(invoices.size).isEqualTo(500_000)
+            expectThat(invoices.size).isEqualTo(inputStreamTotInvoices)
         }
 
     }

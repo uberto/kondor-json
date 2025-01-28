@@ -52,7 +52,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     fun fromJsonNode(node: JN, path: NodePath): JsonOutcome<T>
 
-//    fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T>
+    fun fromTokens(tokens: TokensStream, path: NodePath = NodePathRoot): JsonOutcome<T>
 
     fun toJsonNode(value: T): JN
 
@@ -66,7 +66,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     @Deprecated("NodePath is not in the JsonNode anymore", ReplaceWith("toJsonNode(value)"))
     fun toJsonNode(value: T, path: NodePath): JN = toJsonNode(value)
 
-    private fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
+    fun TokensStream.parseFromRoot(): JsonOutcome<JN> =
         _nodeType.parse(onRoot())
 
     val jsonStyle: JsonStyle
@@ -77,16 +77,11 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)
-            .bind(::parseAndConvert)
+            .bind(::fromTokens)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonStream) //!!!look at ReaderBasedJsonParser, make the fromJson(String) call this one as well
-            .bind(::parseAndConvert)
-
-    private fun parseAndConvert(tokens: TokensStream): JsonOutcome<T> =
-        tokens.parseFromRoot()
-            .bind { fromJsonNode(it, NodePathRoot) }
-            .bind { it.checkForJsonTail(tokens) }
+        KondorTokenizer.tokenize(jsonStream) //!!!look at Jacksons ReaderBasedJsonParser, make the fromJson(String) call this one as well
+            .bind(::fromTokens)
 
     fun T.checkForJsonTail(tokens: TokensStream) =
         if (tokens.hasNext())

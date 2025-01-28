@@ -4,10 +4,8 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendBoolean
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.OutcomeException
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
 
 
@@ -22,6 +20,11 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
     override val _nodeType = BooleanNode
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendBoolean(render(value))
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 
 object JBoolean : JBooleanRepresentable<Boolean>() {
@@ -39,6 +42,7 @@ object JString : JStringRepresentable<String>() {
 object JFloat : JNumRepresentable<Float>() {
     override val cons: (Number) -> Float = Number::toFloat
     override val render: (Float) -> Number = { it }
+
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Float): CharWriter =
         if (value.isFinite())
             app.appendNumber(value)
@@ -49,6 +53,7 @@ object JFloat : JNumRepresentable<Float>() {
 object JDouble : JNumRepresentable<Double>() {
     override val cons: (Number) -> Double = Number::toDouble
     override val render: (Double) -> Number = Double::toBigDecimal
+
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Double): CharWriter =
         if (value.isFinite())
             app.appendNumber(value)
@@ -64,6 +69,7 @@ object JInt : JNumRepresentable<Int>() {
         }
     }
     override val render: (Int) -> Number = { it }
+
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Int): CharWriter =
         app.appendNumber(value)
 }
@@ -76,6 +82,7 @@ object JLong : JNumRepresentable<Long>() {
         }
     }
     override val render: (Long) -> Number = { it }
+
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Long): CharWriter =
         app.appendNumber(value)
 }
@@ -102,6 +109,12 @@ private fun OutcomeException.toJsonError(path: NodePath): JsonError =
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
+
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { it.checkForJsonTail(tokens) } //!!!
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when (node) {
@@ -150,5 +163,10 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendText(render(value))
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 

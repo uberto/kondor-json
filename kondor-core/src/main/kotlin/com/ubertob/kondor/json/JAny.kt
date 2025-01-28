@@ -2,8 +2,10 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.bind
 import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
@@ -24,7 +26,10 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldMap(node._fieldMap, path)
 
-
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {

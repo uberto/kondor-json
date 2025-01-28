@@ -2,8 +2,10 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendArrayValues
 import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.traverseIndexed
 
 interface JArray<T : Any, CT : Iterable<T?>> : JArrayConverter<CT> {
@@ -37,6 +39,12 @@ interface JArray<T : Any, CT : Iterable<T?>> : JArrayConverter<CT> {
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: CT): CharWriter =
         app.appendArrayValues(style, offset, value, converter::appendValue)
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<CT> =
+        tokens.parseFromRoot()
+            .bind { fromJsonNode(it, NodePathRoot) }
+            .bind { it.checkForJsonTail(tokens) } //!!!
+
 }
 
 
