@@ -1,13 +1,14 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.ObjectFields
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.onFailure
 import java.lang.reflect.Constructor
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+
+typealias ObjectFields = Map<String, Any?>
 
 abstract class JAnyAuto<T : Any>() : JAny<T>() {
 

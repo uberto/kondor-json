@@ -5,6 +5,8 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.parseNumber
+import com.ubertob.kondor.json.parser.parsingError
 import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
 
@@ -13,7 +15,9 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
     abstract val cons: (Boolean) -> T
     abstract val render: (T) -> Boolean
 
-    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> = tryFromNode(path) { cons(node.boolean) }
+    override fun fromJsonNode(node: JsonNodeBoolean, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) { cons(node.boolean) }
+
     override fun toJsonNode(value: T): JsonNodeBoolean =
         JsonNodeBoolean(render(value))
 
@@ -112,9 +116,11 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
 
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        tokens.parseFromRoot()
-            .bind { fromJsonNode(it, NodePathRoot) }
-            .bind { it.checkForJsonTail(tokens) } //!!!
+        parseNumber(tokens, NodePathRoot)
+            .failIf({ tokens.hasNext() }) {
+                parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+            }
+            .transform { cons(it) }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when (node) {

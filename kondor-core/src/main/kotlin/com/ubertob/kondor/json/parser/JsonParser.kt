@@ -19,7 +19,7 @@ private fun parsingError(expected: String, actual: String, position: Int, path: 
         path, "at position $position: expected $expected but found $actual - $details"
     )
 
-private fun parsingError(
+fun parsingError(
     expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
 ): JsonError = parsingError(expected, actual.desc, tokenPos(actual, lastPosRead), path, details)
 
@@ -89,20 +89,8 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 }.transform { JsonNodeBoolean(it) }
 
 
-fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = when (val token = tokens.next()) {
-    is Value -> stringToNumber(token, path)
-    else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
-}.transform { JsonNodeNumber(it) }
+fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = parseNumber(tokens, path).transform { JsonNodeNumber(it) }
 
-private fun TokensPath.stringToNumber(token: Value, nodePath: NodePath): Outcome<JsonError, Number> = try {
-    BigDecimal(token.text).asSuccess()
-} catch (e: NumberFormatException) {
-    try {
-        token.text.toDouble().asSuccess()
-    } catch (t: NumberFormatException) {
-        parsingFailure("a Number", token, tokens.lastPosRead(), nodePath, t.message.orEmpty())
-    }
-}
 
 
 fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> = when (val token = tokens.peek()) {
@@ -205,8 +193,6 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
             }
         }
 
-private fun string(token: Value) = token.text
-
 
 fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>): Outcome<E, T> = when (this) {
     is Failure -> this
@@ -214,10 +200,16 @@ fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>
 }
 
 
-typealias ObjectFields = Map<String, Any?>
-
-fun TokensPath.toObjectFields(): JsonOutcome<ObjectFields> = commaSepared(withParentNode {
-    keyValue {
-        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.last()?.pos ?: 0, path, "invalid Json")
+fun parseNumber(tokens: TokensStream, path: NodePath): JsonOutcome<Number> = when (val token = tokens.next()) {
+    is Value -> try {
+        BigDecimal(token.text).asSuccess() //no need of BigDecimal for JLong, JDouble etc. !!!
+    } catch (e: NumberFormatException) {
+        try {
+            token.text.toDouble().asSuccess()
+        } catch (t: NumberFormatException) {
+            parsingFailure("a Number or NaN", token, tokens.lastPosRead(), path, t.message.orEmpty())
+        }
     }
-}).transform(::checkForDuplicateKeys).transform { it.toMap() }
+
+    else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
+}
