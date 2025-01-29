@@ -2,6 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.Outcome
@@ -27,8 +28,8 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
         fromFieldMap(node._fieldMap, path)
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        tokens.parseFromRoot()
-            .bind { fromJsonNode(it, NodePathRoot) }
+        _nodeType.parse(TokensPath(tokens, path))
+            .bind { fromJsonNode(it, path) }
             .bind { it.checkForJsonTail(tokens) } //!!!
 }
 

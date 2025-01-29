@@ -4,9 +4,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendBoolean
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.TokensStream
-import com.ubertob.kondor.json.parser.parseNumber
-import com.ubertob.kondor.json.parser.parsingError
+import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
 
@@ -26,8 +24,8 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
         app.appendBoolean(render(value))
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        tokens.parseFromRoot()
-            .bind { fromJsonNode(it, NodePathRoot) }
+        _nodeType.parse(TokensPath(tokens, path))
+            .bind { fromJsonNode(it, path) }
             .bind { it.checkForJsonTail(tokens) } //!!!
 }
 
@@ -116,9 +114,9 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
 
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        parseNumber(tokens, NodePathRoot)
+        parseNumber(tokens, path)
             .failIf({ tokens.hasNext() }) {
-                parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
             }
             .transform { cons(it) }
 
@@ -155,6 +153,7 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
         app.appendNumber(render(value))
 }
 
+
 abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
@@ -171,8 +170,14 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
         app.appendText(render(value))
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        tokens.parseFromRoot()
-            .bind { fromJsonNode(it, NodePathRoot) }
-            .bind { it.checkForJsonTail(tokens) } //!!!
+        parseString(tokens, path, true)
+            .failIf({ tokens.hasNext() }) {
+                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
+            }
+            .transform { cons(it) }
+
+//        tokens.parseFromRoot()
+//            .bind { fromJsonNode(it, NodePathRoot) }
+//            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 

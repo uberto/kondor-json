@@ -11,7 +11,7 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
-import java.util.UUID
+import java.util.*
 import kotlin.random.Random
 
 class JValuesTest {
@@ -197,6 +197,7 @@ class JValuesTest {
 
             val jsonStr = JStringList.toJson(value)
 
+            println(jsonStr)
             expectThat(JStringList.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }

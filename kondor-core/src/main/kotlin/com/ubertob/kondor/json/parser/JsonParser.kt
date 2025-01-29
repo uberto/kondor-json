@@ -40,7 +40,7 @@ fun TokensPath.parseJsonNodeNull(): Outcome<JsonError, JsonNodeNull> = TokensPat
 
 
 fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
-    surrounded(OpeningQuotes, TokensPath::string, ClosingQuotes)()
+    parseString(tokens, path).transform { JsonNodeString(it) }
 
 
 fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> = surrounded(
@@ -54,7 +54,7 @@ fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> = surrounded(
 
 
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
-
+typealias JsonParser2<T> = (TokensStream, NodePath) -> JsonOutcome<T> //!!!
 
 fun <T> surrounded(
     openingToken: KondorSeparator, takeContent: JsonParser<T>, closingToken: KondorSeparator
@@ -62,6 +62,16 @@ fun <T> surrounded(
     val middle = { _: KondorToken, middle: T, _: KondorToken -> middle }
 
     middle `!` take(openingToken) `*` takeContent() `*` take(closingToken)
+}
+
+fun <T> surrounded2(
+    openingToken: KondorSeparator, takeContent: JsonParser2<T>, closingToken: KondorSeparator
+): JsonParser2<T> = { tokens, path ->  //!!!
+    take2(openingToken, tokens, path)
+        .bind { takeContent(tokens, path) }
+        .bindAndIgnore {
+            take2(closingToken, tokens, path)
+        }
 }
 
 
@@ -92,17 +102,6 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = parseNumber(tokens, path).transform { JsonNodeNumber(it) }
 
 
-
-fun TokensPath.string(allowEmpty: Boolean = true): JsonOutcome<JsonNodeString> = when (val token = tokens.peek()) {
-    is Value -> token.text.asSuccess().also { tokens.next() }
-    else -> if (allowEmpty) "".asSuccess() else parsingFailure(
-        "a non empty String",
-        token,
-        tokens.lastPosRead(),
-        path,
-        "invalid Json"
-    )
-}.transform { JsonNodeString(it) }
 
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
@@ -153,6 +152,9 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
 
 
 fun TokensPath.take(separator: KondorSeparator): JsonOutcome<KondorToken> =
+    take2(separator, tokens, path)
+
+fun take2(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> = //!!!
     if (tokens.hasNext()) {
         tokens.next().let { token ->
             if (token.sameAs(separator))
@@ -164,11 +166,11 @@ fun TokensPath.take(separator: KondorSeparator): JsonOutcome<KondorToken> =
         parsingFailure(separator.name, "end of file", tokens.last()?.pos ?: 0, path, "invalid Json")
     }
 
+
 private fun TokensPath.takeOrNull(separator: KondorSeparator): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
         if (currToken.sameAs(separator)) take(separator)
         else null
-
     }
 
 fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
@@ -181,7 +183,6 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
                 "false", "true" -> parseJsonNodeBoolean()
                 else -> parseJsonNodeNum()
             }
-
             is Separator -> when (t.sep) {
                 OpeningQuotes -> parseJsonNodeString()
                 OpeningBracket -> parseJsonNodeArray()
@@ -200,16 +201,31 @@ fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>
 }
 
 
-fun parseNumber(tokens: TokensStream, path: NodePath): JsonOutcome<Number> = when (val token = tokens.next()) {
-    is Value -> try {
-        BigDecimal(token.text).asSuccess() //no need of BigDecimal for JLong, JDouble etc. !!!
-    } catch (e: NumberFormatException) {
-        try {
-            token.text.toDouble().asSuccess()
-        } catch (t: NumberFormatException) {
-            parsingFailure("a Number or NaN", token, tokens.lastPosRead(), path, t.message.orEmpty())
+fun parseNumber(tokens: TokensStream, path: NodePath): JsonOutcome<Number> =
+    when (val token = tokens.next()) {
+        is Value -> try {
+            BigDecimal(token.text).asSuccess() //no need of BigDecimal for JLong, JDouble etc. !!!
+        } catch (e: NumberFormatException) {
+            try {
+                token.text.toDouble().asSuccess()
+            } catch (t: NumberFormatException) {
+                parsingFailure("a Number or NaN", token, tokens.lastPosRead(), path, t.message.orEmpty())
+            }
         }
+
+        else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
     }
 
-    else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
-}
+fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> =
+    surrounded2(
+        OpeningQuotes,
+        { tokens, path ->
+            when (val token = tokens.peek()) {
+                is Value -> token.text.asSuccess().also { tokens.next() }
+                else -> if (allowEmpty) "".asSuccess() else
+                    parsingFailure(
+                        "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
+                    )
+            }
+        }, ClosingQuotes
+    )(tokens, path)
