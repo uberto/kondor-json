@@ -30,7 +30,6 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         _nodeType.parse(TokensPath(tokens, path))
             .bind { fromJsonNode(it, path) }
-            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {

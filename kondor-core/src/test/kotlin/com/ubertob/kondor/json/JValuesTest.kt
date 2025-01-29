@@ -197,7 +197,6 @@ class JValuesTest {
 
             val jsonStr = JStringList.toJson(value)
 
-            println(jsonStr)
             expectThat(JStringList.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
@@ -237,7 +236,7 @@ class JValuesTest {
 
             val jsonStr = jsonUserArray.toJson(value)
 
-            expectThat(jsonUserArray.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(jsonUserArray.fromJson(jsonStr).expectSuccess()).containsExactly(value)
         }
     }
 
