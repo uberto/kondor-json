@@ -8,6 +8,7 @@ import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
@@ -63,7 +64,7 @@ class JDataClassTest {
 
             val jsonStr = jsonUserArray.toJson(value)
 
-            expectThat(jsonUserArray.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(jsonUserArray.fromJson(jsonStr).expectSuccess()).containsExactly(value)
         }
     }
 
