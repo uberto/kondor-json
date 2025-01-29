@@ -80,7 +80,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             .bind(::fromTokens)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonStream) //!!!look at Jacksons ReaderBasedJsonParser, make the fromJson(String) call this one as well
+        KondorTokenizer.tokenize(jsonStream)
             .bind(::fromTokens)
 
     fun T.checkForJsonTail(tokens: TokensStream) = //!!! remove it after replacing with FailIf everywhere

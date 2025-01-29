@@ -54,7 +54,7 @@ fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> = surrounded(
 
 
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
-typealias JsonParser2<T> = (TokensStream, NodePath) -> JsonOutcome<T> //!!!
+typealias JsonParser2<T> = (TokensStream, NodePath) -> JsonOutcome<T> //!!! remove it at the end
 
 fun <T> surrounded(
     openingToken: KondorSeparator, takeContent: JsonParser<T>, closingToken: KondorSeparator
@@ -78,15 +78,33 @@ fun <T> surrounded2(
 fun <T> TokensPath.extractNodesIndexed(f: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> {
     var arrayIndex = 0
     val nodes = ArrayList<T>(128)
-    while (true) { //is it possible to use recursion here?
+    while (true) {
         val nodeOutcome = f(subNodePath(arrayIndex++)) ?: break
         val node = nodeOutcome.onFailure { return it.asFailure() }
         nodes.add(node)
     }
     return nodes.asSuccess()
+} //!!! use the below
+
+fun <T> extractValues(
+    tokens: TokensStream,
+    path: NodePath,
+    f: (TokensStream, NodePath) -> JsonOutcome<T>?
+): JsonOutcome<List<T>> {
+    var arrayIndex = 0
+    val values = ArrayList<T>(128)
+    while (true) {
+        val valueOutcome = f(tokens, newSegment(path, arrayIndex++)) ?: break
+        val value = valueOutcome.onFailure { return it.asFailure() }
+        values.add(value)
+    }
+    return values.asSuccess()
 }
 
-private fun TokensPath.subNodePath(nodeNumber: Int) = copy(path = NodePathSegment("[$nodeNumber]", path))
+private fun TokensPath.subNodePath(nodeNumber: Int): TokensPath = copy(path = newSegment(path, nodeNumber))
+
+private fun newSegment(path: NodePath, nodeNumber: Int): NodePath =
+    NodePathSegment("[$nodeNumber]", path)
 
 fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = tokens.next()) {
     is Value -> when (token.text) {
@@ -137,9 +155,16 @@ private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> = when (k
 }
 
 fun <T> TokensPath.commaSepared(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
-    extractNodesIndexed {
-        contentParser()?.bindAndIgnore {
-            takeOrNull(Comma) ?: null.asSuccess()
+    commaSepared2(tokens, path) { t, p -> TokensPath(t, p).contentParser() }
+
+fun <T> commaSepared2(
+    tokens: TokensStream,
+    path: NodePath,
+    contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
+): JsonOutcome<List<T>> =
+    extractValues(tokens, path) { t, p ->
+        contentParser(t, p)?.bindAndIgnore {
+            takeOrNull(t, p, Comma) ?: null.asSuccess()
         }
     }
 
@@ -165,9 +190,9 @@ fun take2(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Jso
     }
 
 
-private fun TokensPath.takeOrNull(separator: KondorSeparator): JsonOutcome<KondorToken>? =
+private fun takeOrNull(tokens: TokensStream, path: NodePath, separator: KondorSeparator): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
-        if (currToken.sameAs(separator)) take(separator)
+        if (currToken.sameAs(separator)) take2(separator, tokens, path)
         else null
     }
 
@@ -239,3 +264,6 @@ fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true
             }
         }, ClosingQuotes
     )(tokens, path)
+
+fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>) =
+    commaSepared2(tokens, path) { t, p -> converter(t, p) }
