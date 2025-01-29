@@ -119,8 +119,7 @@ tokenizing 527 ms
 parsing up to JsonNode 606 ms
 marshalling 198 ms
 
-array of strings
-
+Array of strings
 serialization 741 ms
 serialization compact 754 ms
 total parsing 742 ms
@@ -228,8 +227,9 @@ class PerformanceTest {
 
             chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes, NodePathRoot) }
 
+            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
             chronoAndLog("lazy parsing") {
-                jStrings.fromJson(ByteArrayInputStream(jsonString.toByteArray())).expectSuccess()
+                jStrings.fromJson(jsonStream).expectSuccess()
             }
 
         }
