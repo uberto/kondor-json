@@ -102,8 +102,6 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = parseNumber(tokens, path).transform { JsonNodeNumber(it) }
 
 
-
-
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> =
     commaSepared { parseNewNode() }.transform { JsonNodeArray(it) }
 
@@ -183,6 +181,7 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
                 "false", "true" -> parseJsonNodeBoolean()
                 else -> parseJsonNodeNum()
             }
+
             is Separator -> when (t.sep) {
                 OpeningQuotes -> parseJsonNodeString()
                 OpeningBracket -> parseJsonNodeArray()
@@ -199,6 +198,17 @@ fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>
     is Failure -> this
     is Success -> f(value).transform { value }
 }
+
+fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> =
+    when (val token = tokens.next()) {
+        is Value -> when (token.text) {
+            "true" -> true.asSuccess()
+            "false" -> false.asSuccess()
+            else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
+        }
+
+        else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
+    }
 
 
 fun parseNumber(tokens: TokensStream, path: NodePath): JsonOutcome<Number> =

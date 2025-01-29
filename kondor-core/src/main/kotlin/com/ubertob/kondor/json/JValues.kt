@@ -24,9 +24,11 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
         app.appendBoolean(render(value))
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        _nodeType.parse(TokensPath(tokens, path))
-            .bind { fromJsonNode(it, path) }
-            .bind { it.checkForJsonTail(tokens) } //!!!
+        parseBoolean(tokens, path)
+            .failIf({ tokens.hasNext() }) {
+                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
+            }
+            .transform { cons(it) }
 }
 
 object JBoolean : JBooleanRepresentable<Boolean>() {
@@ -175,9 +177,5 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
                 parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
             }
             .transform { cons(it) }
-
-//        tokens.parseFromRoot()
-//            .bind { fromJsonNode(it, NodePathRoot) }
-//            .bind { it.checkForJsonTail(tokens) } //!!!
 }
 
