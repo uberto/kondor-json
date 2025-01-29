@@ -223,7 +223,14 @@ class PerformanceTest {
 
             val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
 
-            val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
+            val values = chronoAndLog("parsing from tokens to value") {
+                jStrings.fromTokens(tokens, NodePathRoot).expectSuccess()
+            }
+
+            val tokens2 = KondorTokenizer.tokenize(jsonString).expectSuccess()
+
+            val nodes =
+                chronoAndLog("parsing from tokens to JsonNode") { ArrayNode.parse(tokens2.onRoot()) }.expectSuccess()
 
             chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes, NodePathRoot) }
 
