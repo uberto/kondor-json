@@ -6,12 +6,10 @@ import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.parsingError
 import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
+import com.ubertob.kondor.outcome.*
 import java.io.InputStream
 import java.io.OutputStream
 
@@ -52,7 +50,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     fun fromJsonNode(node: JN, path: NodePath): JsonOutcome<T>
 
-    fun fromTokens(tokens: TokensStream, path: NodePath = NodePathRoot): JsonOutcome<T>
+    fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T>
 
     fun toJsonNode(value: T): JN
 
@@ -77,11 +75,17 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
 
     override fun fromJson(json: String): JsonOutcome<T> =
         KondorTokenizer.tokenize(json)
-            .bind(::fromTokens)
+            .bind(::fromTokensExhaustive)
 
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
         KondorTokenizer.tokenize(jsonStream)
-            .bind(::fromTokens)
+            .bind(::fromTokensExhaustive)
+
+    private fun fromTokensExhaustive(tokens: TokensStream): JsonOutcome<T> =
+        fromTokens(tokens, NodePathRoot)
+            .failIf({ tokens.hasNext() }) {
+                parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+            }
 
     fun T.checkForJsonTail(tokens: TokensStream) = //!!! remove it after replacing with FailIf everywhere
         if (tokens.hasNext())

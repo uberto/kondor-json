@@ -89,13 +89,17 @@ fun <T> TokensPath.extractNodesIndexed(f: TokensPath.() -> JsonOutcome<T>?): Jso
 fun <T> extractValues(
     tokens: TokensStream,
     path: NodePath,
-    f: (TokensStream, NodePath) -> JsonOutcome<T>?
+    extractFun: (TokensStream, NodePath) -> JsonOutcome<T>?
 ): JsonOutcome<List<T>> {
     var arrayIndex = 0
     val values = ArrayList<T>(128)
     while (true) {
-        val valueOutcome = f(tokens, newSegment(path, arrayIndex++)) ?: break
-        val value = valueOutcome.onFailure { return it.asFailure() }
+
+        val nullableValue = extractFun(tokens, newSegment(path, arrayIndex++))
+        println("Values $arrayIndex nullableValue $nullableValue")
+        val valueOutcome = nullableValue ?: break
+        val value =
+            valueOutcome.onFailure { return it.asFailure() } //!!! can we do something better? A fold maybe? or traverse
         values.add(value)
     }
     return values.asSuccess()
@@ -163,7 +167,8 @@ fun <T> commaSepared2(
     contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
 ): JsonOutcome<List<T>> =
     extractValues(tokens, path) { t, p ->
-        contentParser(t, p)?.bindAndIgnore {
+
+    contentParser(t, p)?.bindAndIgnore {
             takeOrNull(t, p, Comma) ?: null.asSuccess()
         }
     }

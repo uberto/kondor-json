@@ -4,8 +4,14 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendBoolean
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNumber
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.*
-import com.ubertob.kondor.outcome.*
+import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.parseBoolean
+import com.ubertob.kondor.json.parser.parseNumber
+import com.ubertob.kondor.json.parser.parseString
+import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.OutcomeException
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
 import java.math.BigDecimal
 
 
@@ -25,9 +31,6 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseBoolean(tokens, path)
-            .failIf({ tokens.hasNext() }) {
-                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
-            }
             .transform { cons(it) }
 }
 
@@ -117,9 +120,6 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseNumber(tokens, path)
-            .failIf({ tokens.hasNext() }) {
-                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
-            }
             .transform { cons(it) }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
@@ -173,9 +173,6 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseString(tokens, path, true)
-            .failIf({ tokens.hasNext() }) {
-                parsingError("EOF", tokens.next(), tokens.lastPosRead(), path, "json continue after end")
-            }
             .transform { cons(it) }
 }
 
