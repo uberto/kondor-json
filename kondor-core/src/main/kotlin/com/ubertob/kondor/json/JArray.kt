@@ -43,6 +43,7 @@ interface JArray<T : Any, IterT : Iterable<T?>> : JArrayConverter<IterT> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: IterT): CharWriter =
         app.appendArrayValues(style, offset, value, converter::appendValue)
 
+    @Suppress("UNCHECKED_CAST")
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<IterT> =
         surrounded2(
             OpeningBracket,

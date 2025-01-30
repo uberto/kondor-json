@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json.parser
 
 import com.ubertob.kondor.json.InvalidJsonError
+import com.ubertob.kondor.json.JDouble
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.*
@@ -68,8 +69,8 @@ fun <T> surrounded2(
     openingToken: KondorSeparator, takeContent: JsonParser2<T>, closingToken: KondorSeparator
 ): JsonParser2<T> = { tokens, path ->  //!!!
     take2(openingToken, tokens, path).bind { takeContent(tokens, path) }.bindAndIgnore {
-            take2(closingToken, tokens, path)
-        }
+        take2(closingToken, tokens, path)
+    }
 }
 
 fun <T> extractValues(
@@ -101,7 +102,15 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> = when (val token = token
 }.transform { JsonNodeBoolean(it) }
 
 
-fun TokensPath.number(): JsonOutcome<JsonNodeNumber> = parseNumber(tokens, path).transform { JsonNodeNumber(it) }
+fun bigDecimalParser(value: String): JsonOutcome<Number> =
+    try {
+        BigDecimal(value).asSuccess()
+    } catch (e: NumberFormatException) {
+        value.toDouble().asSuccess() //for NaN, Infinity etc that are valid Double but not BigDecimals
+    }
+
+fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
+    parseNumber(tokens, path, ::bigDecimalParser).transform { JsonNodeNumber(it) }
 
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSepared { parseNewNode() }.transform { JsonNodeArray(it) }
@@ -208,19 +217,31 @@ fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = w
     else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
 }
 
+inline fun <reified T : Number> parseNumber(
+    tokens: TokensStream,
+    path: NodePath,
+    converter: (String) -> JsonOutcome<T>
+): JsonOutcome<T> {
+    val position = tokens.lastPosRead()
+    return when (val token = tokens.peek()) {
+        is Value ->
+            try {
+                tokens.next()
+                converter(token.text)
+            } catch (t: Exception) {
+                println("!!! ${T::class.java} ex $t")
 
-fun parseNumber(tokens: TokensStream, path: NodePath): JsonOutcome<Number> = when (val token = tokens.next()) {
-    is Value -> try {
-        BigDecimal(token.text).asSuccess() //no need of BigDecimal for JLong, JDouble etc. !!!
-    } catch (e: NumberFormatException) {
-        try {
-            token.text.toDouble().asSuccess()
-        } catch (t: NumberFormatException) {
-            parsingFailure("a Number or NaN", token, tokens.lastPosRead(), path, t.message.orEmpty())
-        }
+
+                parsingFailure("a Number or NaN", token.desc, position, path, t.message.orEmpty())
+            }
+
+        is OpeningQuotesSep -> //case NaN Infinity
+            parseString(tokens, path)
+                .bind { JDouble.parser(it) }
+                .transform { it as T }
+
+        else -> parsingFailure("a Number value", token, position, path, "not a valid number")
     }
-
-    else -> parsingFailure("a Number", token, tokens.lastPosRead(), path, "not a valid number")
 }
 
 fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> = surrounded2(

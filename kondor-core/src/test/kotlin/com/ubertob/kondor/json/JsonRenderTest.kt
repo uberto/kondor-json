@@ -109,7 +109,7 @@ class JsonRenderTest {
     }
 
     @Test
-    fun `render double array with NaNs`() {
+    fun `render and parse double array with NaNs`() {
         val doubles = listOf(0.0, 1.0, -252.0, 3.14159, Double.NaN, Double.NEGATIVE_INFINITY, 16E+100)
 
         val jDoubles = JList(JDouble)

@@ -49,6 +49,7 @@ object JString : JStringRepresentable<String>() {
 object JFloat : JNumRepresentable<Float>() {
     override val cons: (Number) -> Float = Number::toFloat
     override val render: (Float) -> Number = { it }
+    override fun parser(value: String): JsonOutcome<Float> = value.toFloat().asSuccess()
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Float): CharWriter =
         if (value.isFinite())
@@ -60,6 +61,8 @@ object JFloat : JNumRepresentable<Float>() {
 object JDouble : JNumRepresentable<Double>() {
     override val cons: (Number) -> Double = Number::toDouble
     override val render: (Double) -> Number = Double::toBigDecimal
+
+    override fun parser(value: String): JsonOutcome<Double> = value.toDouble().asSuccess()
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Double): CharWriter =
         if (value.isFinite())
@@ -75,6 +78,8 @@ object JInt : JNumRepresentable<Int>() {
             else -> num.toInt()
         }
     }
+    override fun parser(value: String): JsonOutcome<Int> = value.toInt().asSuccess()
+
     override val render: (Int) -> Number = { it }
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Int): CharWriter =
@@ -88,6 +93,9 @@ object JLong : JNumRepresentable<Long>() {
             else -> num.toLong()
         }
     }
+
+    override fun parser(value: String): JsonOutcome<Long> = value.toLong().asSuccess()
+
     override val render: (Long) -> Number = { it }
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Long): CharWriter =
@@ -114,12 +122,15 @@ private fun OutcomeException.toJsonError(path: NodePath): JsonError =
 
 
 abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
+    //!!! add a second generic for the actual Number type and simplify
     abstract val cons: (Number) -> T
     abstract val render: (T) -> Number
 
+    abstract fun parser(value: String): JsonOutcome<Number>
+
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        parseNumber(tokens, path)
+        parseNumber(tokens, path, ::parser)
             .transform { cons(it) }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =

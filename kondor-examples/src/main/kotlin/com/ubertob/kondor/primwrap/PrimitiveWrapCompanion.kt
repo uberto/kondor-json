@@ -1,3 +1,5 @@
+@file:Suppress("UNCHECKED_CAST")
+
 package com.ubertob.kondor.primwrap
 
 import kotlin.reflect.KClass
