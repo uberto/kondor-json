@@ -6,7 +6,7 @@ import com.ubertob.kondor.json.parser.KondorSeparator.ClosingBracket
 import com.ubertob.kondor.json.parser.KondorSeparator.OpeningBracket
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parseArray
-import com.ubertob.kondor.json.parser.surrounded2
+import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.json.schema.arraySchema
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.traverseIndexed
@@ -45,7 +45,7 @@ interface JArray<T : Any, IterT : Iterable<T?>> : JArrayConverter<IterT> {
 
     @Suppress("UNCHECKED_CAST")
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<IterT> =
-        surrounded2(
+        surrounded(
             OpeningBracket,
             { t, p -> parseArray(t, p, converter::fromTokens).transform { it as IterT } },
             ClosingBracket
