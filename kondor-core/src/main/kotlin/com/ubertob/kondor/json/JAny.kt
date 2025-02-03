@@ -28,6 +28,12 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
         fromFieldMap(node._fieldMap, path)
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+//        surrounded2(
+//            KondorSeparator.OpeningCurly,
+//            { t, p -> parseFields(t, p, converters) },
+//            KondorSeparator.ClosingCurly,
+//        )(tokens, path) //from here!!!!!!!!!!
+
         _nodeType.parse(TokensPath(tokens, path))
             .bind { fromJsonNode(it, path) }
 }
@@ -85,7 +91,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
     }
 
     @Suppress("UNCHECKED_CAST")
-    internal fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any)  =
+    internal fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any) =
         registerProperty(jsonProperty, binder as (T) -> FT)
 
 

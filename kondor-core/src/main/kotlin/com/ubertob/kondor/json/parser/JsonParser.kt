@@ -44,14 +44,15 @@ fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
     parseString(tokens, path).transform { JsonNodeString(it) }
 
 
-fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> = surrounded(
-    OpeningBracket, TokensPath::array, ClosingBracket
-)()
+fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> =
+    surrounded(
+        OpeningBracket, TokensPath::array, ClosingBracket
+    )() //!!! switch to parseArray
 
 
 fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> = surrounded(
     OpeningCurly, TokensPath::jsonObject, ClosingCurly
-)()
+)()  //!!! switch to parseObject
 
 
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
@@ -67,19 +68,21 @@ fun <T> surrounded(
 
 fun <T> surrounded2(
     openingToken: KondorSeparator, takeContent: JsonParser2<T>, closingToken: KondorSeparator
-): JsonParser2<T> = { tokens, path ->  //!!!
-    take2(openingToken, tokens, path).bind { takeContent(tokens, path) }.bindAndIgnore {
-        take2(closingToken, tokens, path)
-    }
+): JsonParser2<T> = { tokens, path ->  //!!! add test for null object {}
+    take2(openingToken, tokens, path)
+        .bind { takeContent(tokens, path) }
+        .bindAndIgnore {
+            take2(closingToken, tokens, path)
+        }
 }
 
-fun <T> extractValues(
-    tokens: TokensStream, path: NodePath, extractFun: (TokensStream, NodePath) -> JsonOutcome<T>?
+fun <T> parseValues(
+    tokens: TokensStream, path: NodePath, parseFun: (TokensStream, NodePath) -> JsonOutcome<T>?
 ): JsonOutcome<List<T>> {
     var arrayIndex = 0
     val values = ArrayList<T>(128)
     while (true) {
-        val value = extractFun(tokens, newSegment(path, arrayIndex++))
+        val value = parseFun(tokens, newSegment(path, arrayIndex++))
             ?.onFailure { return it.asFailure() }
             ?: break //!!! maybe better with a fold or a traverse
         values.add(value)
@@ -150,8 +153,7 @@ fun <T> TokensPath.commaSepared(contentParser: TokensPath.() -> JsonOutcome<T>?)
 
 fun <T> commaSeparated(
     tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
-): JsonOutcome<List<T>> = extractValues(tokens, path) { t, p ->
-
+): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p ->
     contentParser(t, p)?.bindAndIgnore {
         takeOrNull(t, p, Comma) ?: null.asSuccess()
     }
@@ -244,19 +246,56 @@ inline fun <reified T : Number> parseNumber(
     }
 }
 
-fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> = surrounded2(
-    OpeningQuotes, { tokens, path ->
-        when (val token = tokens.peek()) {
-            is Value -> token.text.asSuccess().also { tokens.next() }
-            else -> if (allowEmpty) "".asSuccess() else parsingFailure(
-                "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
-            )
-        }
-    }, ClosingQuotes
-)(tokens, path)
+fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> =
+    surrounded2(
+        OpeningQuotes,
+        { tokens, path -> stringOrEmpty(tokens, allowEmpty, path) }, ClosingQuotes
+    )(tokens, path)
+
+private fun stringOrEmpty(
+    tokens: TokensStream,
+    allowEmpty: Boolean,
+    path: NodePath
+): JsonOutcome<String> =
+    when (val token = tokens.peek()) {
+        is Value -> token.text.asSuccess().also { tokens.next() }
+        else -> if (allowEmpty) "".asSuccess() else parsingFailure(
+            "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
+        )
+    }
+
+
+//fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> = surrounded2(
+//    OpeningQuotes, { tokens, path ->
+//        when (val token = tokens.peek()) {
+//            is Value -> token.text.asSuccess().also { tokens.next() }
+//            else -> if (allowEmpty) "".asSuccess() else parsingFailure(
+//                "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
+//            )
+//        }
+//    }, ClosingQuotes
+//)(tokens, path)
+
 
 fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>) =
     commaSeparated(tokens, path) { t, p -> parseNewValue(t, p, converter) }
+
+fun <T> parseFields(
+    tokens: TokensStream,
+    path: NodePath,
+    converters: Map<String, (TokensStream, NodePath) -> JsonOutcome<Any>>
+): JsonOutcome<Map<String, Any>> =
+    commaSeparated(tokens, path) { t, p ->
+        parseString(t, p)
+            .bindAndIgnore {
+                take2(Comma, t, p)
+            }.bind { key ->
+                converters[key]!!(t, p) // !!! remove !!
+                    .transform { key to it }
+            }
+    }.bind {
+        it.toMap().asSuccess()
+    }
 
 fun <T> parseNewValue(
     tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>
