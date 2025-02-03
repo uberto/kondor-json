@@ -11,7 +11,7 @@ import com.ubertob.kondor.outcome.failIfNull
 private const val defaultVersionProperty = "@version"
 
 
-abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
+abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> { //refactor it removing duplication with JAny todo
     open val versionProperty = defaultVersionProperty
     open val defaultVersion: String? = null
     

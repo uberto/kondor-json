@@ -26,7 +26,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
 ) : JsonProperty<T>() {
 
     override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
-        fieldMap[propName]
+        fieldMap[propName] //
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?.failIfNull { JsonPropertyError(NodePathSegment(propName, path), propName, "Found null for non-nullable") }
             ?: JsonPropertyError(

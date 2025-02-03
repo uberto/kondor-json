@@ -12,6 +12,9 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
         JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
 
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject> =
+        JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
+
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap
             .map { (key, value) ->

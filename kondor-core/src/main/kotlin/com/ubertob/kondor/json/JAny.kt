@@ -2,8 +2,10 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.TokensPath
+import com.ubertob.kondor.json.parser.KondorSeparator
 import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.parseFields
+import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.bind
@@ -22,20 +24,26 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
+    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+
     fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> //!!! implement it using fromFieldMap
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldNodeMap(node._fieldMap, path)
 
+    private fun converterByKey(fieldName: String, tokens: TokensStream, path: NodePath): JsonOutcome<Any> {
+        TODO()
+    }
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-//        surrounded2(
-//            KondorSeparator.OpeningCurly,
-//            { t, p -> parseFields(t, p, converters) },
-//            KondorSeparator.ClosingCurly,
-//        )(tokens, path) //from here!!!!!!!!!!
+        surrounded(
+            KondorSeparator.OpeningCurly,
+            { t, p -> parseFields(t, p, ::converterByKey) },
+            KondorSeparator.ClosingCurly,
+        )(tokens, path)
+            .bind { fromFieldMap(it, path) }
 
-        _nodeType.parse(TokensPath(tokens, path))
-            .bind { fromJsonNode(it, path) }
+//        _nodeType.parse(TokensPath(tokens, path))
+//            .bind { fromJsonNode(it, path) }
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -49,6 +57,16 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
             )
         }
 
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+        tryFromNode(path) {
+            JsonNodeObject.buildForParsing(fieldMap, path)
+                .deserializeOrThrow()
+        }
+
+    to make it work it will require either changing deserializeOrThrow to use map of values instead of map of jsonnodes,
+    or to get rid of deserializeOrThrow and just use test time reflection. Then I need to use it for fromJsonNode.
+    Better to leave JAny as it is and do it on JDataClass instead??
+
 
     override fun toJsonNode(value: T): JsonNodeObject =
         JsonNodeObject(convertFields(value))
@@ -60,8 +78,6 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
 
     abstract val writers: List<NodeWriter<T>>
-
-    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> = TODO() //!!!
 
     override fun convertFields(valueObject: T): FieldNodeMap =
         writers.fold(mutableMapOf()) { acc, writer ->
