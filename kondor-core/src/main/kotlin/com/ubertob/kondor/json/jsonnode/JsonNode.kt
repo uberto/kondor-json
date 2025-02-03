@@ -12,7 +12,8 @@ import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
-typealias FieldMap = Map<String, JsonNode>
+typealias FieldNodeMap = Map<String, JsonNode>
+typealias FieldMap = Map<String, Any>
 
 sealed class JsonNode(val nodeKind: NodeKind<*>)
 
@@ -26,19 +27,19 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode)
     val notNullValues: List<JsonNode> = elements.filter { it.nodeKind != NullNode }
 }
 
-data class JsonNodeObject(val _fieldMap: FieldMap) : JsonNode(ObjectNode) {
+data class JsonNodeObject(val _fieldMap: FieldNodeMap) : JsonNode(ObjectNode) {
 
     companion object {
         @Suppress("DEPRECATION")
-        internal  fun buildForParsing(fieldMap: FieldMap, path: NodePath): JsonNodeObject =
-            JsonNodeObject(fieldMap, path) //we are forced to use the deprecated method
+        internal fun buildForParsing(fieldMap: FieldNodeMap, path: NodePath): JsonNodeObject =
+            JsonNodeObject(fieldMap, path) //we are forced to use the deprecated constructor
     }
 
     internal var _path: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
 
     @Suppress("LocalVariableName")
     @Deprecated("Use the primary constructor without path instead")
-    constructor(_fieldMap: FieldMap, _path: NodePath): this(_fieldMap) {
+    constructor(_fieldMap: FieldNodeMap, _path: NodePath) : this(_fieldMap) {
         this._path = _path
     }
 

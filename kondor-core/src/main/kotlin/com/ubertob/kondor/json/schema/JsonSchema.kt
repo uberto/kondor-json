@@ -92,7 +92,7 @@ private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
 internal fun String.asNode() = JsonNodeString(this)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() })
 internal fun List<JsonNode>.asNodes() = JsonNodeArray(this)
-internal fun FieldMap.asNode() = JsonNodeObject(this)
+internal fun FieldNodeMap.asNode() = JsonNodeObject(this)
 internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
     map { it.first to it.second.asNode() }.toMap()
 )

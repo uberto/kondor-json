@@ -15,7 +15,7 @@ sealed class JsonProperty<T> {
     abstract val propName: String
     abstract fun setter(value: T): PropertySetter
     abstract fun appender(value: T): List<NamedAppender>
-    abstract fun getter(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+    abstract fun getter(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T>
 }
 
 data class JsonParsingException(val error: JsonError) : RuntimeException()
@@ -25,7 +25,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T>() {
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+    override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
         fieldMap[propName]
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?.failIfNull { JsonPropertyError(NodePathSegment(propName, path), propName, "Found null for non-nullable") }
@@ -56,7 +56,7 @@ data class JsonPropOptional<T, JN : JsonNode>(
     val converter: JsonConverter<T, JN>
 ) : JsonProperty<T?>() {
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T?> =
+    override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T?> =
         fieldMap[propName]
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?: null.asSuccess()
@@ -92,11 +92,11 @@ data class JsonPropMandatoryFlatten<T : Any>(
 
     override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 
-    override fun getter(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
-        converter.fromFieldMap(fieldMap.removeFieldsFromParent(), path)
+    override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
+        converter.fromFieldNodeMap(fieldMap.removeFieldsFromParent(), path)
             .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
 
-    private fun FieldMap.removeFieldsFromParent() =
+    private fun FieldNodeMap.removeFieldsFromParent() =
         filterKeys { key -> !parentProperties.contains(key) }
 
     override fun setter(value: T): PropertySetter = { fm ->

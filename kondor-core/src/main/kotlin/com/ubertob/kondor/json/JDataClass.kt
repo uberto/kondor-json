@@ -17,7 +17,7 @@ abstract class JAnyAuto<T : Any>() : JAny<T>() {
     override fun JsonNodeObject.deserializeOrThrow(): T? =
         error("Deprecated method! Override fromFieldMap if necessary.")
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
+    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
         val args = _jsonProperties.associate { prop ->
             val propValue = prop.getter(fieldMap, path)
                 .onFailure { return it.asFailure() }

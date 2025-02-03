@@ -5,7 +5,7 @@ import com.ubertob.kondor.json.NamedNode
 infix fun String.toNode(fieldValuesMap: Map<String, String?>): NamedNode =
     this to JsonNodeObject(fieldValuesMap.toNodes())
 
-fun Map<String, String?>.toNodes(): FieldMap =
+fun Map<String, String?>.toNodes(): FieldNodeMap =
     mapValues { (_, str) -> str?.let { JsonNodeString(str) } ?: JsonNodeNull }
 
 infix fun String.toNode(fieldValue: String): NamedNode =
@@ -55,6 +55,6 @@ fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.boolean
 
 fun JsonNode?.asNumValue(): Number? = (this as? JsonNodeNumber)?.num
 
-fun JsonNode?.asObjFieldMap(): FieldMap? = (this as? JsonNodeObject)?._fieldMap
+fun JsonNode?.asObjFieldMap(): FieldNodeMap? = (this as? JsonNodeObject)?._fieldMap
 
 

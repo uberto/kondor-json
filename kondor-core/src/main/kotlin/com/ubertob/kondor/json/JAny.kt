@@ -22,10 +22,10 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
-    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+    fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> //!!! implement it using fromFieldMap
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
-        fromFieldMap(node._fieldMap, path)
+        fromFieldNodeMap(node._fieldMap, path)
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
 //        surrounded2(
@@ -42,7 +42,7 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): Outcome<JsonError, T> =
+    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
         tryFromNode(path) {
             JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
                 ConverterJsonError(path, "deserializeOrThrow returned null!")
@@ -61,7 +61,9 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
     abstract val writers: List<NodeWriter<T>>
 
-    override fun convertFields(valueObject: T): FieldMap =
+    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> = TODO() //!!!
+
+    override fun convertFields(valueObject: T): FieldNodeMap =
         writers.fold(mutableMapOf()) { acc, writer ->
             writer(acc, valueObject)
         }
