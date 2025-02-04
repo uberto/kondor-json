@@ -14,10 +14,14 @@ typealias ObjectFields = Map<String, Any?>
 
 abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
 
+    //!!! this class can be the new JAny, parsing from tokens directly in a new deser() method that replace deserializeOrThrow()
+    //there still be a way to deserialize from JsonNodes too.
+
     protected val _jsonProperties by lazy { getProperties() }
 
     override fun JsonNodeObject.deserializeOrThrow(): T? =
         error("Deprecated method! Override fromFieldMap if necessary.")
+
 
     override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
         val args = _jsonProperties.associate { prop ->
@@ -87,7 +91,7 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
 //assuming the declared fields are always in the construtor order we can fix the order problem in JDataClass
 
 
-        klazz.members.filterIsInstance<KProperty1<Any,*>>() .forEach { property ->
+        klazz.members.filterIsInstance<KProperty1<Any, *>>().forEach { property ->
             println(property.name)
             println(property.returnType)
             println("#")
@@ -102,7 +106,7 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
             println("-")
 
             val converter: JsonConverter<out Comparable<*>, out JsonNode> = when (fieldType) {
-                Int::class.java, Integer::class.java ->  JInt
+                Int::class.java, Integer::class.java -> JInt
                 Long::class.java -> JLong
                 Float::class.java -> JFloat
                 Double::class.java -> JDouble
@@ -113,16 +117,220 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
 
             //is there a way to detect nullable fields?
 
-            val prop= JsonPropMandatory(field.name, converter)
+            val prop = JsonPropMandatory(field.name, converter)
 
 
             when (fieldType) {
-                Int::class.java -> registerProperty( JsonPropMandatory(field.name, JInt)){ o -> field.getInt(o)}
-                String::class.java -> registerProperty( JsonPropMandatory(field.name, JString)){ o -> field.get(o) as String}
+                Int::class.java -> registerProperty(JsonPropMandatory(field.name, JInt)) { o -> field.getInt(o) }
+                String::class.java -> registerProperty(
+                    JsonPropMandatory(
+                        field.name,
+                        JString
+                    )
+                ) { o -> field.get(o) as String }
             }
 
-            registerPropertyHack(prop) {obj -> field. get(obj) }
+            registerPropertyHack(prop) { obj -> field.get(obj) }
         }
 
     }
 }
+
+/*
+Strategy to generate metadata needed to call constructor on Person using
+annotation on Kondor converter.
+
+Yes, it's possible! Instead of placing `@ConstructorMetadata` on `Person`,
+you can annotate another class that **contains** a field of type `Person`,
+and the annotation processor will generate metadata for `Person`.
+
+---
+
+## **Approach**
+1. Annotate a **container class** that has a field of type `Person`.
+2. The annotation processor scans the fields in this container class.
+3. If a field's type is a **custom class** (like `Person`), extract its constructor metadata.
+4. Generate metadata for that field's class (`Person`) instead of the container.
+
+---
+
+### **Step 1: Annotate a Container Class**
+```java
+@ConstructorMetadata
+public class DataHolder {
+    public Person person;
+}
+```
+Here, we annotate `DataHolder`, **not** `Person`.
+
+---
+
+### **Step 2: Modify the Annotation Processor**
+We update the processor to:
+- Look for fields in annotated classes.
+- Identify custom types (e.g., `Person`).
+- Extract the constructor parameters of those types.
+- Generate metadata for those types.
+
+```java
+import com.google.auto.service.AutoService;
+import javax.annotation.processing.*;
+import javax.lang.model.SourceVersion;
+import javax.lang.model.element.*;
+import javax.lang.model.util.Elements;
+import javax.lang.model.util.Types;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.List;
+import java.util.Set;
+
+@AutoService(Processor.class)
+@SupportedAnnotationTypes("ConstructorMetadata")
+@SupportedSourceVersion(SourceVersion.RELEASE_17)  // Change to your Java version
+public class ConstructorMetadataProcessor extends AbstractProcessor {
+
+    private Elements elementUtils;
+    private Types typeUtils;
+
+    @Override
+    public synchronized void init(ProcessingEnvironment processingEnv) {
+        super.init(processingEnv);
+        elementUtils = processingEnv.getElementUtils();
+        typeUtils = processingEnv.getTypeUtils();
+    }
+
+    @Override
+    public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
+        for (Element element : roundEnv.getElementsAnnotatedWith(ConstructorMetadata.class)) {
+            if (element.getKind() == ElementKind.CLASS) {
+                TypeElement classElement = (TypeElement) element;
+
+                for (Element enclosed : classElement.getEnclosedElements()) {
+                    if (enclosed.getKind() == ElementKind.FIELD) {
+                        VariableElement field = (VariableElement) enclosed;
+                        TypeElement fieldType = (TypeElement) typeUtils.asElement(field.asType());
+
+                        if (fieldType != null && fieldType.getKind() == ElementKind.CLASS) {
+                            generateMetadataForClass(fieldType);
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    private void generateMetadataForClass(TypeElement classElement) {
+        String className = classElement.getSimpleName().toString();
+        String packageName = elementUtils.getPackageOf(classElement).toString();
+        String metadataClassName = className + "Metadata";
+
+        try {
+            Writer writer = processingEnv.getFiler().createSourceFile(packageName + "." + metadataClassName).openWriter();
+            writer.write("package " + packageName + ";\n\n");
+            writer.write("import java.util.LinkedHashMap;\nimport java.util.Map;\n\n");
+            writer.write("public class " + metadataClassName + " {\n");
+
+            // Generate a map for constructor parameters
+            writer.write("    public static final Map<String, Class<?>> CONSTRUCTOR_PARAMS = new LinkedHashMap<>();\n\n");
+            writer.write("    static {\n");
+
+            // Get the primary constructor (assumption: first constructor found)
+            List<? extends Element> members = classElement.getEnclosedElements();
+            for (Element member : members) {
+                if (member.getKind() == ElementKind.CONSTRUCTOR) {
+                    ExecutableElement constructor = (ExecutableElement) member;
+                    for (VariableElement param : constructor.getParameters()) {
+                        String paramName = param.getSimpleName().toString();
+                        String paramType = param.asType().toString();
+                        writer.write("        CONSTRUCTOR_PARAMS.put(\"" + paramName + "\", " + paramType + ".class);\n");
+                    }
+                    break; // Stop after first constructor
+                }
+            }
+
+            writer.write("    }\n}");
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+---
+
+### **Step 3: Define the `Person` Class**
+```java
+public class Person {
+    public String name;
+    public int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+---
+
+### **Step 4: Use the Generated Metadata**
+After compilation, the processor will generate `PersonMetadata.java`:
+```java
+package mypackage;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public class PersonMetadata {
+    public static final Map<String, Class<?>> CONSTRUCTOR_PARAMS = new LinkedHashMap<>();
+
+    static {
+        CONSTRUCTOR_PARAMS.put("name", String.class);
+        CONSTRUCTOR_PARAMS.put("age", int.class);
+    }
+}
+```
+
+Now, we can dynamically create `Person` instances using this metadata.
+
+```java
+import java.lang.reflect.Constructor;
+import java.util.Map;
+
+public class DynamicInstanceCreator {
+    public static <T> T createInstance(Class<T> clazz, Map<String, Object> paramMap) throws Exception {
+        // Load metadata dynamically
+        Class<?> metadataClass = Class.forName(clazz.getName() + "Metadata");
+        Map<String, Class<?>> constructorParams = (Map<String, Class<?>>) metadataClass.getDeclaredField("CONSTRUCTOR_PARAMS").get(null);
+
+        Constructor<?> constructor = clazz.getConstructors()[0];
+        Object[] args = new Object[constructor.getParameterCount()];
+
+        int i = 0;
+        for (String paramName : constructorParams.keySet()) {
+            args[i++] = paramMap.getOrDefault(paramName, null);
+        }
+
+        return (T) constructor.newInstance(args);
+    }
+
+    public static void main(String[] args) throws Exception {
+        Map<String, Object> paramMap = Map.of("name", "Alice", "age", 30);
+        Person person = createInstance(Person.class, paramMap);
+        System.out.println(person);
+    }
+}
+```
+
+---
+
+## **Summary**
+✔ **Annotation is placed on a container class (`DataHolder`)**
+✔ **The annotation processor scans its fields**
+✔ **If a field is a custom class (`Person`), metadata is generated for it**
+✔ **Metadata is used at runtime to dynamically instantiate the object**
+
+Would this work for your needs? 🚀
+ */
