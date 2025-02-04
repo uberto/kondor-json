@@ -57,7 +57,7 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
 }
 
-sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
+abstract class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
 
     abstract val writers: List<NodeWriter<T>>
 
@@ -70,7 +70,7 @@ sealed class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() 
 
 }
 
-abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
+abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWriters<T>() {
 
     private val nodeWriters: AtomicReference<List<NodeWriter<T>>> = AtomicReference(emptyList())
     private val properties: AtomicReference<List<JsonProperty<*>>> = AtomicReference(emptyList())
@@ -101,4 +101,11 @@ abstract class JAny<T : Any> : ObjectNodeConverterWriters<T>() {
         appenders.flatMap { it(valueObject) }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
+}
+
+abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
+
+    //the idea is to leave this class with the deserializeOrThrow() method and create a new one with a different
+    //way to invoke the constructor with all properties
+
 }

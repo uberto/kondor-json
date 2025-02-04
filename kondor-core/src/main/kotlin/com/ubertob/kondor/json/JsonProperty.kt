@@ -85,7 +85,7 @@ data class JsonPropOptional<T, JN : JsonNode>(
 data class JsonPropMandatoryFlatten<T : Any>(
     override val propName: String,
     val converter: ObjectNodeConverter<T>,
-    val parent: JAny<*>
+    val parent: ObjectNodeConverterProperties<*>
 ) : JsonProperty<T>() {
 
     private val parentProperties = parent.getProperties().map { it.propName }

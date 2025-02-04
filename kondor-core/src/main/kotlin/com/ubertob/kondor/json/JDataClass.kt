@@ -10,7 +10,9 @@ import kotlin.reflect.KProperty1
 
 typealias ObjectFields = Map<String, Any?>
 
-abstract class JAnyAuto<T : Any>() : JAny<T>() {
+//!!! move everything that need reflection to a new module Kondor-reflection to simplify imports
+
+abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
 
     protected val _jsonProperties by lazy { getProperties() }
 

@@ -4,19 +4,19 @@ import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
 sealed class JFieldBase<T, PT : Any>
-    : ReadOnlyProperty<JAny<PT>, JsonProperty<T>> {
+    : ReadOnlyProperty<ObjectNodeConverterProperties<PT>, JsonProperty<T>> {
 
     protected abstract val binder: (PT) -> T //TODO having a special field that store a method ref with the name of the method?
 
     protected abstract fun buildJsonProperty(property: KProperty<*>): JsonProperty<T>
 
-    operator fun provideDelegate(thisRef: JAny<PT>, prop: KProperty<*>): JFieldBase<T, PT> {
+    operator fun provideDelegate(thisRef: ObjectNodeConverterProperties<PT>, prop: KProperty<*>): JFieldBase<T, PT> {
         val jp = buildJsonProperty(prop)
         thisRef.registerProperty(jp, binder)
         return this
     }
 
-    override fun getValue(thisRef: JAny<PT>, property: KProperty<*>): JsonProperty<T> =
+    override fun getValue(thisRef: ObjectNodeConverterProperties<PT>, property: KProperty<*>): JsonProperty<T> =
         buildJsonProperty(property)
 }
 
@@ -33,7 +33,7 @@ class JField<T : Any, PT : Any>(
 class JFieldFlatten<T : Any, PT : Any>(
     override val binder: (PT) -> T,
     private val converter: ObjectNodeConverter<T>,
-    private val parent: JAny<PT>
+    private val parent: ObjectNodeConverterProperties<PT>
 ) : JFieldBase<T, PT>() {
 
     override fun buildJsonProperty(property: KProperty<*>): JsonProperty<T> =
