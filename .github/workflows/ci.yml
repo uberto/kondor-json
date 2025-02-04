@@ -30,12 +30,15 @@ jobs:
         id: tests
         run: ./gradlew test --info
 
+      - name: Debug Test Reports Path
+        run: ls -R ./kondor-*/build/reports/tests/ || echo "No test reports found"
+
       - name: Upload Test Results
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: ./kondor-*/build/reports/tests/
+          path: ./kondor-*/build/reports/tests/**/*
 
       - name: Build with Gradle
         if: steps.tests.outcome == 'success'
