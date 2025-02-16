@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
+import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondor.validateJsonAgainstSchema
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -32,14 +33,12 @@ class JsonSchemaTest {
               |      "name"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
-
-
+    
     @Test
     fun `schema for object with optional fields`() {
-
         val schema = pretty.render(JProduct.schema())
 
         expectThat(schema).isEqualTo(
@@ -64,7 +63,7 @@ class JsonSchemaTest {
               |      "short-desc"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -94,7 +93,7 @@ class JsonSchemaTest {
               |      "tax_type"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -128,7 +127,7 @@ class JsonSchemaTest {
               |      "type": "object"
               |    },
               |  "type": "array"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -153,7 +152,7 @@ class JsonSchemaTest {
               |      "things_to_do"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -164,7 +163,7 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -205,7 +204,7 @@ class JsonSchemaTest {
               |      "folder_path"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -269,7 +268,7 @@ class JsonSchemaTest {
               |      }
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -281,9 +280,9 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "created_date": {
-              |          "type": "string"
-              |        },
+              |    "created_date": {
+              |      "type": "string"
+              |    },
               |      "customer": {
               |          "description": "discriminant field: type",
               |          "oneOf": [
@@ -387,7 +386,7 @@ class JsonSchemaTest {
               |      "created_date"
               |    ],
               |  "type": "object"
-              |}""".trimMargin()
+              |}""".trimMargin().normalised()
         )
     }
 
@@ -414,5 +413,6 @@ class JsonSchemaTest {
             .get { message.orEmpty() }.contains("The object must have a property whose name is \"id\"")
     }
 
-
+    fun String.normalised() =
+        parseJsonNode(this).orThrow().render(pretty)
 }
