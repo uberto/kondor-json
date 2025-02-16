@@ -306,11 +306,74 @@ class JsonRenderTest {
                 )
             ).render(style)
 
-            val internal = " ".repeat(indent)
+            val lineIndent = " ".repeat(indent)
             val expected = """{
-                |$internal"id": 123,
-                |$internal"name": "Ann"
+                |$lineIndent"id": 123,
+                |$lineIndent"name": "Ann"
                 |}""".trimMargin()
+            expectThat(jsonString).isEqualTo(expected)
+        }
+    }
+    
+    @Test
+    fun `pretty render array with nested objects and arrays`() {
+        repeat(5) {
+            val tree = JsonNodeArray(listOf(
+                JsonNodeObject(mapOf(
+                    "@id" to JsonNodeString("1"),
+                    "children" to JsonNodeArray(listOf(
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("1.1")
+                        ))
+                    ))
+                )),
+                JsonNodeObject(mapOf(
+                    "@id" to JsonNodeString("2"),
+                    "children" to JsonNodeArray(listOf(
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("2.1"),
+                            "children" to JsonNodeArray(listOf(
+                                JsonNodeObject(mapOf(
+                                    "@id" to JsonNodeString("2.1.1")
+                                ))
+                            ))
+                        )),
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("2.2")
+                        ))
+                    ))
+                ))
+            ))
+            
+            val jsonString = tree.render(pretty)
+
+            val expected = """[
+                |  {
+                |    "@id": "1",
+                |    "children": [
+                |      {
+                |        "@id": "1.1"
+                |      }
+                |    ]
+                |  },
+                |  {
+                |    "@id": "2",
+                |    "children": [
+                |      {
+                |        "@id": "2.1",
+                |        "children": [
+                |           {
+                |             "@id": "2.1.1"
+                |           }
+                |        ]
+                |      },
+                |      {
+                |        "@id": "2.2"
+                |      }
+                |    ]
+                |  }
+                |]""".trimMargin()
+            
             expectThat(jsonString).isEqualTo(expected)
         }
     }
