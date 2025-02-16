@@ -377,6 +377,69 @@ class JsonRenderTest {
             expectThat(jsonString).isEqualTo(expected)
         }
     }
+    
+    @Test
+    fun `pretty render object with nested objects and arrays`() {
+        repeat(5) {
+            val tree = JsonNodeObject(mapOf(
+                "a" to JsonNodeObject(mapOf(
+                    "@id" to JsonNodeString("1"),
+                    "children" to JsonNodeArray(listOf(
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("1.1")
+                        ))
+                    ))
+                )),
+                "b" to JsonNodeObject(mapOf(
+                    "@id" to JsonNodeString("2"),
+                    "children" to JsonNodeArray(listOf(
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("2.1"),
+                            "children" to JsonNodeArray(listOf(
+                                JsonNodeObject(mapOf(
+                                    "@id" to JsonNodeString("2.1.1")
+                                ))
+                            ))
+                        )),
+                        JsonNodeObject(mapOf(
+                            "@id" to JsonNodeString("2.2")
+                        ))
+                    ))
+                ))
+            ))
+            
+            val jsonString = tree.render(pretty)
+
+            val expected = """{
+                |  "a": {
+                |    "@id": "1",
+                |    "children": [
+                |      {
+                |        "@id": "1.1"
+                |      }
+                |    ]
+                |  },
+                |  "b": {
+                |    "@id": "2",
+                |    "children": [
+                |      {
+                |        "@id": "2.1",
+                |        "children": [
+                |           {
+                |             "@id": "2.1.1"
+                |           }
+                |        ]
+                |      },
+                |      {
+                |        "@id": "2.2"
+                |      }
+                |    ]
+                |  }
+                |}""".trimMargin()
+            
+            expectThat(jsonString).isEqualTo(expected)
+        }
+    }
 
     @Test
     fun `render object with null explicit`() {
