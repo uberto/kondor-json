@@ -13,7 +13,7 @@ import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 typealias FieldNodeMap = Map<String, JsonNode>
-typealias FieldMap = Map<String, Any>
+typealias FieldMap = Map<String, Any?>
 
 sealed class JsonNode(val nodeKind: NodeKind<*>)
 
