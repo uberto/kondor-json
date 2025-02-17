@@ -261,14 +261,14 @@ fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStrea
 fun parseFields(
     tokens: TokensStream,
     path: NodePath,
-    converterByKey: (String, TokensStream, NodePath) -> JsonOutcome<Any>
+    fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any>
 ): JsonOutcome<Map<String, Any>> =
     commaSeparated(tokens, path) { t, p ->
         parseString(t, p)
             .bindAndIgnore {
                 take(Comma, t, p)
             }.bind { key ->
-                converterByKey(key, t, p)
+                fieldParser(key, t, p)
                     .transform { key to it }
             }
     }.bind {

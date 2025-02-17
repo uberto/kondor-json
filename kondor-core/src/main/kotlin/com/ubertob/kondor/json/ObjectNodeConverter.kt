@@ -29,14 +29,8 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
         fromFieldNodeMap(node._fieldMap, path)
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-//        surrounded2(
-//            KondorSeparator.OpeningCurly,
-//            { t, p -> parseFields(t, p, converters) },
-//            KondorSeparator.ClosingCurly,
-//        )(tokens, path) //from here!!!!!!!!!!
-
         _nodeType.parse(TokensPath(tokens, path))
-            .bind { fromJsonNode(it, path) }
+            .bind { fromJsonNode(it, path) } // this will be moved to JAny alone when the rest have moved to new parsing
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -102,4 +96,8 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
         appenders.flatMap { it(valueObject) }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
+
+    protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any> {
+        TODO("!!! start implement this")
+    }
 }
