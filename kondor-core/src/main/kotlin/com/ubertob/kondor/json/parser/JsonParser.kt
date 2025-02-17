@@ -45,20 +45,21 @@ fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
 
 
 fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> =
-    surroundedOld(
+    surroundedForNodes(
         OpeningBracket, TokensPath::array, ClosingBracket
     )() //!!! switch to parseArray
 
 
-fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> = surroundedOld(
-    OpeningCurly, TokensPath::jsonObject, ClosingCurly
-)()  //!!! switch to parseObject
+fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> =
+    surroundedForNodes(
+        OpeningCurly, TokensPath::jsonObject, ClosingCurly
+    )()  //!!! switch to parseObject
 
 
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
-typealias JsonParser2<T> = (TokensStream, NodePath) -> JsonOutcome<T> //!!! remove it at the end
+typealias JsonParserFromTokens<T> = (TokensStream, NodePath) -> JsonOutcome<T>
 
-fun <T> surroundedOld( //remove once fixed fun TokensPath.parseJsonNodeObject()
+fun <T> surroundedForNodes(
     openingToken: KondorSeparator, takeContent: JsonParser<T>, closingToken: KondorSeparator
 ): JsonParser<T> = {
     val middle = { _: KondorToken, middle: T, _: KondorToken -> middle }
@@ -67,8 +68,8 @@ fun <T> surroundedOld( //remove once fixed fun TokensPath.parseJsonNodeObject()
 }
 
 fun <T> surrounded(
-    openingToken: KondorSeparator, takeContent: JsonParser2<T>, closingToken: KondorSeparator
-): JsonParser2<T> = { tokens, path ->  //!!! add test for null object {}
+    openingToken: KondorSeparator, takeContent: JsonParserFromTokens<T>, closingToken: KondorSeparator
+): JsonParserFromTokens<T> = { tokens, path ->  //!!! add test for null object {}
     take(openingToken, tokens, path)
         .bind { takeContent(tokens, path) }
         .bindAndIgnore {
@@ -158,8 +159,7 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
     else parsingFailure("a Null", token, tokens.lastPosRead(), path, "valid values: null")
 }
 
-
-fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> = //!!!
+fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
     if (tokens.hasNext()) {
         tokens.next().let { token ->
             if (token.sameAs(separator)) token.asSuccess()
