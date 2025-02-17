@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
-import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondor.validateJsonAgainstSchema
 import org.junit.jupiter.api.Test
 import strikt.api.expectCatching
@@ -21,22 +20,21 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "id": {
-              |          "type": "number"
-              |        },
-              |      "name": {
-              |          "type": "string"
-              |        }
+              |    "id": {
+              |      "type": "number"
               |    },
+              |    "name": {
+              |      "type": "string"
+              |    }
+              |  },
               |  "required": [
-              |      "id",
-              |      "name"
-              |    ],
+              |    "id",
+              |    "name"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
-    
     @Test
     fun `schema for object with optional fields`() {
         val schema = pretty.render(JProduct.schema())
@@ -44,26 +42,26 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "id": {
-              |          "type": "number"
-              |        },
-              |      "long_description": {
-              |          "type": "string"
-              |        },
-              |      "price": {
-              |          "type": "number"
-              |        },
-              |      "short-desc": {
-              |          "type": "string"
-              |        }
+              |    "id": {
+              |      "type": "number"
               |    },
+              |    "long_description": {
+              |      "type": "string"
+              |    },
+              |    "price": {
+              |      "type": "number"
+              |    },
+              |    "short-desc": {
+              |      "type": "string"
+              |    }
+              |  },
               |  "required": [
-              |      "id",
-              |      "long_description",
-              |      "short-desc"
-              |    ],
+              |    "id",
+              |    "long_description",
+              |    "short-desc"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -75,25 +73,25 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "name": {
-              |          "type": "string"
-              |        },
-              |      "tax_type": {
-              |          "enum": [
-              |              "Domestic",
-              |              "Exempt",
-              |              "EU",
-              |              "US",
-              |              "Other"
-              |            ]
-              |        }
+              |    "name": {
+              |      "type": "string"
               |    },
+              |    "tax_type": {
+              |      "enum": [
+              |        "Domestic",
+              |        "Exempt",
+              |        "EU",
+              |        "US",
+              |        "Other"
+              |      ]
+              |    }
+              |  },
               |  "required": [
-              |      "name",
-              |      "tax_type"
-              |    ],
+              |    "name",
+              |    "tax_type"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -105,29 +103,29 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "items": {
-              |      "properties": {
-              |          "id": {
-              |              "type": "number"
-              |            },
-              |          "long_description": {
-              |              "type": "string"
-              |            },
-              |          "price": {
-              |              "type": "number"
-              |            },
-              |          "short-desc": {
-              |              "type": "string"
-              |            }
-              |        },
-              |      "required": [
-              |          "id",
-              |          "long_description",
-              |          "short-desc"
-              |        ],
-              |      "type": "object"
+              |    "properties": {
+              |      "id": {
+              |        "type": "number"
+              |      },
+              |      "long_description": {
+              |        "type": "string"
+              |      },
+              |      "price": {
+              |        "type": "number"
+              |      },
+              |      "short-desc": {
+              |        "type": "string"
+              |      }
               |    },
+              |    "required": [
+              |      "id",
+              |      "long_description",
+              |      "short-desc"
+              |    ],
+              |    "type": "object"
+              |  },
               |  "type": "array"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -140,19 +138,19 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "things_to_do": {
-              |          "type": "object"
-              |        },
-              |      "updated": {
-              |          "type": "string"
-              |        }
+              |    "things_to_do": {
+              |      "type": "object"
               |    },
+              |    "updated": {
+              |      "type": "string"
+              |    }
+              |  },
               |  "required": [
-              |      "updated",
-              |      "things_to_do"
-              |    ],
+              |    "updated",
+              |    "things_to_do"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -163,7 +161,7 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -176,35 +174,35 @@ class JsonSchemaTest {
         expectThat(schema).isEqualTo(
             """{
               |  "properties": {
-              |      "creation_date": {
-              |          "type": "number"
-              |        },
-              |      "file_name": {
-              |          "type": "string"
-              |        },
-              |      "folder_path": {
-              |          "type": "string"
-              |        },
-              |      "is_dir": {
-              |          "type": "boolean"
-              |        },
-              |      "selected": {
-              |          "type": "boolean"
-              |        },
-              |      "size": {
-              |          "type": "number"
-              |        }
+              |    "creation_date": {
+              |      "type": "number"
               |    },
+              |    "file_name": {
+              |      "type": "string"
+              |    },
+              |    "folder_path": {
+              |      "type": "string"
+              |    },
+              |    "is_dir": {
+              |      "type": "boolean"
+              |    },
+              |    "selected": {
+              |      "type": "boolean"
+              |    },
+              |    "size": {
+              |      "type": "number"
+              |    }
+              |  },
               |  "required": [
-              |      "selected",
-              |      "file_name",
-              |      "creation_date",
-              |      "is_dir",
-              |      "size",
-              |      "folder_path"
-              |    ],
+              |    "selected",
+              |    "file_name",
+              |    "creation_date",
+              |    "is_dir",
+              |    "size",
+              |    "folder_path"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -216,59 +214,59 @@ class JsonSchemaTest {
             """{
               |  "description": "discriminant field: type",
               |  "oneOf": [
-              |      {
-              |        "properties": {
-              |            "id": {
-              |                "type": "number"
-              |              },
-              |            "name": {
-              |                "type": "string"
-              |              },
-              |            "type": {
-              |                "const": "private",
-              |                "type": "string"
-              |              }
-              |          },
-              |        "required": [
-              |            "id",
-              |            "name"
-              |          ]
+              |    {
+              |      "properties": {
+              |        "id": {
+              |          "type": "number"
+              |        },
+              |        "name": {
+              |          "type": "string"
+              |        },
+              |        "type": {
+              |          "const": "private",
+              |          "type": "string"
+              |        }
               |      },
-              |      {
-              |        "properties": {
-              |            "name": {
-              |                "type": "string"
-              |              },
-              |            "tax_type": {
-              |                "enum": [
-              |                    "Domestic",
-              |                    "Exempt",
-              |                    "EU",
-              |                    "US",
-              |                    "Other"
-              |                  ]
-              |              },
-              |            "type": {
-              |                "const": "company",
-              |                "type": "string"
-              |              }
-              |          },
-              |        "required": [
-              |            "name",
-              |            "tax_type"
+              |      "required": [
+              |        "id",
+              |        "name"
+              |      ]
+              |    },
+              |    {
+              |      "properties": {
+              |        "name": {
+              |          "type": "string"
+              |        },
+              |        "tax_type": {
+              |          "enum": [
+              |            "Domestic",
+              |            "Exempt",
+              |            "EU",
+              |            "US",
+              |            "Other"
               |          ]
+              |        },
+              |        "type": {
+              |          "const": "company",
+              |          "type": "string"
+              |        }
               |      },
-              |      {
-              |        "properties": {
-              |            "type": {
-              |                "const": "anonymous",
-              |                "type": "string"
-              |              }
-              |          }
+              |      "required": [
+              |        "name",
+              |        "tax_type"
+              |      ]
+              |    },
+              |    {
+              |      "properties": {
+              |        "type": {
+              |          "const": "anonymous",
+              |          "type": "string"
+              |        }
               |      }
-              |    ],
+              |    }
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -283,110 +281,110 @@ class JsonSchemaTest {
               |    "created_date": {
               |      "type": "string"
               |    },
-              |      "customer": {
-              |          "description": "discriminant field: type",
-              |          "oneOf": [
-              |              {
-              |                "properties": {
-              |                    "id": {
-              |                        "type": "number"
-              |                      },
-              |                    "name": {
-              |                        "type": "string"
-              |                      },
-              |                    "type": {
-              |                        "const": "private",
-              |                        "type": "string"
-              |                      }
-              |                  },
-              |                "required": [
-              |                    "id",
-              |                    "name"
-              |                  ]
-              |              },
-              |              {
-              |                "properties": {
-              |                    "name": {
-              |                        "type": "string"
-              |                      },
-              |                    "tax_type": {
-              |                        "enum": [
-              |                            "Domestic",
-              |                            "Exempt",
-              |                            "EU",
-              |                            "US",
-              |                            "Other"
-              |                          ]
-              |                      },
-              |                    "type": {
-              |                        "const": "company",
-              |                        "type": "string"
-              |                      }
-              |                  },
-              |                "required": [
-              |                    "name",
-              |                    "tax_type"
-              |                  ]
-              |              },
-              |              {
-              |                "properties": {
-              |                    "type": {
-              |                        "const": "anonymous",
-              |                        "type": "string"
-              |                      }
-              |                  }
-              |              }
-              |            ],
-              |          "type": "object"
-              |        },
-              |      "id": {
-              |          "type": "string"
-              |        },
-              |      "items": {
-              |          "items": {
-              |              "properties": {
-              |                  "id": {
-              |                      "type": "number"
-              |                    },
-              |                  "long_description": {
-              |                      "type": "string"
-              |                    },
-              |                  "price": {
-              |                      "type": "number"
-              |                    },
-              |                  "short-desc": {
-              |                      "type": "string"
-              |                    }
-              |                },
-              |              "required": [
-              |                  "id",
-              |                  "long_description",
-              |                  "short-desc"
-              |                ],
-              |              "type": "object"
+              |    "customer": {
+              |      "description": "discriminant field: type",
+              |      "oneOf": [
+              |        {
+              |          "properties": {
+              |            "id": {
+              |              "type": "number"
               |            },
-              |          "type": "array"
+              |            "name": {
+              |              "type": "string"
+              |            },
+              |            "type": {
+              |              "const": "private",
+              |              "type": "string"
+              |            }
+              |          },
+              |          "required": [
+              |            "id",
+              |            "name"
+              |          ]
               |        },
-              |      "paid_datetime": {
-              |          "type": "number"
+              |        {
+              |          "properties": {
+              |            "name": {
+              |              "type": "string"
+              |            },
+              |            "tax_type": {
+              |              "enum": [
+              |                "Domestic",
+              |                "Exempt",
+              |                "EU",
+              |                "US",
+              |                "Other"
+              |              ]
+              |            },
+              |            "type": {
+              |              "const": "company",
+              |              "type": "string"
+              |            }
+              |          },
+              |          "required": [
+              |            "name",
+              |            "tax_type"
+              |          ]
               |        },
-              |      "total": {
-              |          "type": "number"
-              |        },
-              |      "vat-to-pay": {
-              |          "type": "boolean"
+              |        {
+              |          "properties": {
+              |            "type": {
+              |              "const": "anonymous",
+              |              "type": "string"
+              |            }
+              |          }
               |        }
+              |      ],
+              |      "type": "object"
               |    },
+              |    "id": {
+              |      "type": "string"
+              |    },
+              |    "items": {
+              |      "items": {
+              |        "properties": {
+              |          "id": {
+              |            "type": "number"
+              |          },
+              |          "long_description": {
+              |            "type": "string"
+              |          },
+              |          "price": {
+              |            "type": "number"
+              |          },
+              |          "short-desc": {
+              |            "type": "string"
+              |          }
+              |        },
+              |        "required": [
+              |          "id",
+              |          "long_description",
+              |          "short-desc"
+              |        ],
+              |        "type": "object"
+              |      },
+              |      "type": "array"
+              |    },
+              |    "paid_datetime": {
+              |      "type": "number"
+              |    },
+              |    "total": {
+              |      "type": "number"
+              |    },
+              |    "vat-to-pay": {
+              |      "type": "boolean"
+              |    }
+              |  },
               |  "required": [
-              |      "id",
-              |      "vat-to-pay",
-              |      "customer",
-              |      "items",
-              |      "total",
-              |      "created_date"
-              |    ],
+              |    "id",
+              |    "vat-to-pay",
+              |    "customer",
+              |    "items",
+              |    "total",
+              |    "created_date"
+              |  ],
               |  "type": "object"
-              |}""".trimMargin().normalised()
+              |}""".trimMargin()
         )
     }
 
@@ -413,6 +411,5 @@ class JsonSchemaTest {
             .get { message.orEmpty() }.contains("The object must have a property whose name is \"id\"")
     }
 
-    fun String.normalised() =
-        parseJsonNode(this).orThrow().render(pretty)
+
 }
