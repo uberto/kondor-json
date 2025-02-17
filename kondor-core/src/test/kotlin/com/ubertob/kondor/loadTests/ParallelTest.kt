@@ -11,6 +11,7 @@ import strikt.assertions.isEqualTo
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 
+@Suppress("UNCHECKED_CAST")
 class ParallelTest {
 
     @Test

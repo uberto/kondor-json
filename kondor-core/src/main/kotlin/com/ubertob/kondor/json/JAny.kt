@@ -84,7 +84,7 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
         nodeWriters.getAndUpdate { list -> list + writer }
     }
 
-    internal fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
+    fun <FT> registerProperty(jsonProperty: JsonProperty<FT>, binder: (T) -> FT) {
         properties.getAndUpdate { list -> list + jsonProperty }
         registerWriter { mfm, obj -> jsonProperty.setter(binder(obj))(mfm) }
         (appenders as MutableList).add { obj ->
@@ -93,8 +93,8 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
     }
 
     @Suppress("UNCHECKED_CAST")
-    internal fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any) =
-        registerProperty(jsonProperty, binder as (T) -> FT)
+    fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any) =
+        registerProperty(jsonProperty, binder as (T) -> FT) //!!! do we really need it?
 
 
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =

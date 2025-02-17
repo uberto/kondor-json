@@ -93,9 +93,13 @@ fun randomNodeFields(): FieldNodeMap =
 
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer() {
-    object Json : JDataClass<Person>(Person::class) {
+    object Json : JAny<Person>() {
         val id by num(Person::id)
         val name by str(Person::name)
+        override fun JsonNodeObject.deserializeOrThrow() = Person(
+            id = +id,
+            name = +name
+        )
     }
 }
 data class Company(val name: String, val taxType: TaxType) : Customer()
@@ -136,11 +140,17 @@ object JPerson : JAny<Person>() {
 
 
 data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?) {
-    object Json : JDataClass<Product>(Product::class) {
+    object Json : JAny<Product>() {
         val id by num(Product::id)
         val `short-desc` by str(Product::shortDesc)
         val long_description by str(Product::longDesc)
         val price by num(Product::price)
+        override fun JsonNodeObject.deserializeOrThrow() = Product(
+            id = +id,
+            shortDesc = +`short-desc`,
+            longDesc = +long_description,
+            price = +price
+        )
     }
 }
 
@@ -177,7 +187,7 @@ data class Invoice(
     val created: LocalDate,
     val paid: Instant?
 ) {
-    object Json : JDataClass<Invoice>(Invoice::class) {
+    object Json : JAny<Invoice>() {
         val id by str(::InvoiceId, Invoice::id)
         val `vat-to-pay` by bool(Invoice::vat)
         val customer by obj(JCustomer, Invoice::customer)
@@ -185,6 +195,15 @@ data class Invoice(
         val total by num(Invoice::total)
         val created_date by str(Invoice::created)
         val paid_datetime by num(Invoice::paid)
+        override fun JsonNodeObject.deserializeOrThrow() = Invoice(
+            id = +id,
+            vat = +`vat-to-pay`,
+            customer = +customer,
+            items = +items,
+            total = +total,
+            created = +created_date,
+            paid = +paid_datetime
+        )
     }
 }
 
