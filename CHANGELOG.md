@@ -3,6 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.4.1 - 17 February 2025
+
+Kondor-auto: new module with converters using reflection at "test-time"
+Kondor-core: fixed pretty rendering issues (thanks Nat Pryce)
+Kondor-core: improved parsing performance on arrays
+
 ### v.3.3.0 - 27 December 2024
 
 Kondor-core: updated to Kotlin 2.1.0
