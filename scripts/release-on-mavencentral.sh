@@ -20,6 +20,7 @@ sed -i "s/$ver/$1/g" README.md build.gradle.kts
 
 # launch:
 ./gradlew publish -p kondor-core
+./gradlew publish -p kondor-auto
 ./gradlew publish -p kondor-tools
 ./gradlew publish -p kondor-outcome
 ./gradlew publish -p kondor-mongo
