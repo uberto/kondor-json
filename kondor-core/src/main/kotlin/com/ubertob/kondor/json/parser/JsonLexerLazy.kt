@@ -45,10 +45,11 @@ class JsonLexerLazy(private val text: String) {
                     savedState = TokenizerState.StringEndState(state.startPos)
                     return if (contentStart == currentIndex) {
                         // Empty string case
-                        ValueTokenEager("", state.startPos)
+                        ValueTokenEager("", state.startPos + 1)
                     } else {
-                        ValueTokenLazy(text, contentStart, currentIndex, state.startPos)
+                        ValueTokenLazy(text, contentStart, currentIndex, state.startPos + 1)
                     }
+                    11
                 }
 
                 is TokenizerState.StringEndState -> {
@@ -138,7 +139,7 @@ class JsonLexerLazy(private val text: String) {
             }
         }
 
-        return ValueTokenEager(text.substring(start, currentIndex), start)
+        return ValueTokenEager(text.substring(start, currentIndex), start + 1)
     }
 
     private fun readBoolean(): ValueToken {

@@ -18,7 +18,7 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokensStream.toDesc()).isEqualTo(
             listOf(
-                "'abc'@1"
+                "OpeningQuotes", "'abc'@2", "ClosingQuotes"
             )
         )
     }
@@ -67,7 +67,7 @@ abstract class JsonLexerTestAbstract {
     }
 
     @Test
-    fun `json strings`() {
+    fun `json object with number`() {
         val json = """
             { "abc": 123}
         """.trimIndent()
@@ -79,6 +79,33 @@ abstract class JsonLexerTestAbstract {
         )
     }
 
+    @Test
+    fun `json string array`() {
+        val json = """
+            [ "abc", "def", 
+            "g"]
+        """.trimIndent()
+        val tokens = tokenize(json).expectSuccess()
+
+        val kondorTokens = tokens.toDesc()
+        expectThat(kondorTokens).isEqualTo(
+            listOf(
+                "OpeningSquare",
+                "OpeningQuotes",
+                "'abc'@4",
+                "ClosingQuotes",
+                "Comma",
+                "OpeningQuotes",
+                "'def'@11",
+                "ClosingQuotes",
+                "Comma",
+                "OpeningQuotes",
+                "'g'@19",
+                "ClosingQuotes",
+                "ClosingSquare"
+            )
+        )
+    }
 
     @Test
     fun `json strings with escapes`() {
