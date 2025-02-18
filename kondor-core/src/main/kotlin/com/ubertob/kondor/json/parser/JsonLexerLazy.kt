@@ -49,7 +49,6 @@ class JsonLexerLazy(private val text: String) {
                     } else {
                         ValueTokenLazy(text, contentStart, currentIndex, state.startPos + 1)
                     }
-                    11
                 }
 
                 is TokenizerState.StringEndState -> {

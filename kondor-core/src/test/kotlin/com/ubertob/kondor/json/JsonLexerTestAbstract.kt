@@ -81,9 +81,8 @@ abstract class JsonLexerTestAbstract {
 
     @Test
     fun `json string array`() {
-        val json = """
-            [ "abc", "def", 
-            "g"]
+        val json = """["abc", "d e f ", 
+            " g"]
         """.trimIndent()
         val tokens = tokenize(json).expectSuccess()
 
@@ -92,15 +91,15 @@ abstract class JsonLexerTestAbstract {
             listOf(
                 "OpeningSquare",
                 "OpeningQuotes",
-                "'abc'@4",
+                "'abc'@3",
                 "ClosingQuotes",
                 "Comma",
                 "OpeningQuotes",
-                "'def'@11",
+                "'d e f '@10",
                 "ClosingQuotes",
                 "Comma",
                 "OpeningQuotes",
-                "'g'@19",
+                "' g'@33",
                 "ClosingQuotes",
                 "ClosingSquare"
             )

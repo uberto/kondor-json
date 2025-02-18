@@ -1,13 +1,12 @@
 package com.ubertob.kondor.loadTests
 
-import com.ubertob.kondor.all
 import com.ubertob.kondor.chronoAndLog
 import com.ubertob.kondor.json.*
 import com.ubertob.kondor.json.jsonnode.ArrayNode
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.jsonnode.onRoot
+import com.ubertob.kondor.json.parser.JsonLexerLazy
 import com.ubertob.kondor.json.parser.KondorTokenizer
-import com.ubertob.kondor.randomString
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -207,8 +206,12 @@ class PerformanceTest {
 
         val jStrings = JList(JString)
 
-        val strings = generateSequence(0) { it + 1 }.take(100_000).map {
-            "string $it " + randomString(all, 1000, 1000)
+//        val strings = generateSequence(0) { it + 1 }.take(100_000).map {
+//            "string $it " + randomString(all, 1000, 1000)
+//        }.toList()
+
+        val strings = generateSequence(0) { it + 1 }.take(10).map {
+            "string $it "
         }.toList()
 
         println("Strings Json String length ${jStrings.toJson(strings).length}")
@@ -216,6 +219,7 @@ class PerformanceTest {
 
             val jsonString = chronoAndLog("serialization") { jStrings.toJson(strings) }
 
+            println(jsonString)
             chronoAndLog("serialization compact") { jStrings.toJson(strings, JsonStyle.compact) }
 
             chronoAndLog("total parsing") { jStrings.fromJson(jsonString) }
@@ -233,9 +237,16 @@ class PerformanceTest {
 
             chronoAndLog("marshalling") { jStrings.fromJsonNode(nodes, NodePathRoot) }
 
-            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
-            chronoAndLog("lazy parsing") {
-                jStrings.fromJson(jsonStream).expectSuccess()
+//            val jsonStream = ByteArrayInputStream(jsonString.toByteArray())
+            val lazyTokens = chronoAndLog("lazy parsing") {
+                JsonLexerLazy(jsonString).tokenize().expectSuccess()
+//                jStrings.fromJson(jsonStream).expectSuccess()
+            }
+
+//            println(lazyTokens.toList().map { it.desc })
+
+            val lazyValues = chronoAndLog("parsing from lazy tokens to value") {
+                jStrings.fromTokens(lazyTokens, NodePathRoot).expectSuccess()
             }
 
         }
