@@ -282,7 +282,7 @@ class JsonParserTest {
         expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
-    private fun lastPosRead(tokens: TokensStreamIter): Int =
+    private fun lastPosRead(tokens: TokensStream): Int =
         tokens.lastPosRead()
 
     @Test

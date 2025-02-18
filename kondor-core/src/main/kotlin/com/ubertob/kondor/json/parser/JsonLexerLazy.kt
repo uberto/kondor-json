@@ -31,17 +31,24 @@ class JsonLexerLazy(private val text: String) {
                     while (currentIndex < text.length && text[currentIndex] != '"') {
                         if (text[currentIndex] == '\\') {
                             currentIndex++ // skip escape character
+                            if (currentIndex >= text.length) {
+                                error("!!!Unterminated escape sequence at position ${currentIndex - 1}")
+                            }
                         }
                         currentIndex++
                     }
 
                     if (currentIndex >= text.length) {
-                        error("!!!Unterminated string starting at position ${state.startPos}")
+                        error("!!!Unterminated string starting at position ${state.startPos - 1}")
                     }
 
-                    val contentEnd = currentIndex
                     savedState = TokenizerState.StringEndState(state.startPos)
-                    return ValueTokenLazy(text, contentStart, contentEnd, state.startPos)
+                    return if (contentStart == currentIndex) {
+                        // Empty string case
+                        ValueTokenEager("", state.startPos)
+                    } else {
+                        ValueTokenLazy(text, contentStart, currentIndex, state.startPos)
+                    }
                 }
 
                 is TokenizerState.StringEndState -> {
@@ -95,7 +102,7 @@ class JsonLexerLazy(private val text: String) {
         // First return the opening quote
         return OpeningQuotesSep.also {
             // Save the current state to continue on next call
-            savedState = TokenizerState.StringState(start)
+            savedState = TokenizerState.StringState(start + 1) // +1 to skip the opening quote
         }
     }
 

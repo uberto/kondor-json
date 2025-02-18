@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.ValueToken
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
@@ -8,14 +9,18 @@ import strikt.assertions.isEqualTo
 
 abstract class JsonLexerTestAbstract {
 
-    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStreamIter>
+    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStream>
 
     @Test
     fun `single word`() {
-        val json = "abc"
+        val json = """"abc""""
         val tokensStream = tokenize(json).expectSuccess()
 
-        expectThat(tokensStream.toList()).isEqualTo(listOf(ValueTokenEager(json, 1)))
+        expectThat(tokensStream.toDesc()).isEqualTo(
+            listOf(
+                "'abc'@1"
+            )
+        )
     }
 
     @Test
@@ -23,14 +28,9 @@ abstract class JsonLexerTestAbstract {
         val json = "  abc   def\ngh\tijk\r lmn \n\n opq"
         val tokens = tokenize(json).expectSuccess()
 
-        expectThat(tokens.toList()).isEqualTo(
+        expectThat(tokens.toDesc()).isEqualTo(
             listOf(
-                ValueTokenEager("abc", 3),
-                ValueTokenEager("def", 9),
-                ValueTokenEager("gh", 13),
-                ValueTokenEager("ijk", 16),
-                ValueTokenEager("lmn", 21),
-                ValueTokenEager("opq", 28)
+                "'abc'@3", "'def'@9", "'gh'@13", "'ijk'@16", "'lmn'@21", "'opq'@28"
             )
         )
     }
@@ -40,28 +40,28 @@ abstract class JsonLexerTestAbstract {
         val json = "[]{}:, \"\" [a,b,c]  {d:e}"
         val tokens = tokenize(json).expectSuccess()
 
-        expectThat(tokens.toList()).isEqualTo(
+        expectThat(tokens.toDesc()).isEqualTo(
             listOf(
-                OpeningSquareSep,
-                ClosingSquareSep,
-                OpeningCurlySep,
-                ClosingCurlySep,
-                ColonSep,
-                CommaSep,
-                OpeningQuotesSep,
-                ClosingQuotesSep,
-                OpeningSquareSep,
-                ValueTokenEager("a", 12),
-                CommaSep,
-                ValueTokenEager("b", 14),
-                CommaSep,
-                ValueTokenEager("c", 16),
-                ClosingSquareSep,
-                OpeningCurlySep,
-                ValueTokenEager("d", 21),
-                ColonSep,
-                ValueTokenEager("e", 23),
-                ClosingCurlySep
+                "OpeningSquare",
+                "ClosingSquare",
+                "OpeningCurly",
+                "ClosingCurly",
+                "Colon",
+                "Comma",
+                "OpeningQuotes",
+                "ClosingQuotes",
+                "OpeningSquare",
+                "'a'@12",
+                "Comma",
+                "'b'@14",
+                "Comma",
+                "'c'@16",
+                "ClosingSquare",
+                "OpeningCurly",
+                "'d'@21",
+                "Colon",
+                "'e'@23",
+                "ClosingCurly"
             )
         )
     }
@@ -73,18 +73,12 @@ abstract class JsonLexerTestAbstract {
         """.trimIndent()
         val tokens = tokenize(json).expectSuccess()
 
-        expectThat(tokens.toList()).isEqualTo(
-            listOf(
-                OpeningCurlySep,
-                OpeningQuotesSep,
-                ValueTokenEager("abc", 4),
-                ClosingQuotesSep,
-                ColonSep,
-                ValueTokenEager("123", 10),
-                ClosingCurlySep
-            )
+        val kondorTokens = tokens.toDesc()
+        expectThat(kondorTokens).isEqualTo(
+            listOf("OpeningCurly", "OpeningQuotes", "'abc'@4", "ClosingQuotes", "Colon", "'123'@10", "ClosingCurly")
         )
     }
+
 
     @Test
     fun `json strings with escapes`() {
@@ -93,17 +87,10 @@ abstract class JsonLexerTestAbstract {
         """.trimIndent()
         val tokens = tokenize(json).expectSuccess()
 
-        expectThat(tokens.toList()).isEqualTo(
+        expectThat(tokens.toDesc()).isEqualTo(
             listOf(
-                OpeningCurlySep,
-                OpeningQuotesSep,
-                ValueTokenEager("abc", 3),
-                ClosingQuotesSep,
-                ColonSep,
-                OpeningQuotesSep,
-                ValueTokenEager("abc\"\\ \n}", 12),
-                ClosingQuotesSep,
-                ClosingCurlySep
+                "OpeningCurly", "OpeningQuotes", "'abc'@3", "ClosingQuotes", "Colon", "OpeningQuotes", """'abc"\ 
+}'@12""", "ClosingQuotes", "ClosingCurly"
             )
         )
     }
@@ -116,13 +103,17 @@ abstract class JsonLexerTestAbstract {
         """.trimIndent()
         val tokens = tokenize(json).expectSuccess()
 
-        expectThat(tokens.toList()).isEqualTo(
+        expectThat(tokens.toDesc()).isEqualTo(
             listOf(
-                OpeningQuotesSep,
-                ValueTokenEager("abc \\u263A", 2),
-                ClosingQuotesSep,
+                "OpeningQuotes", "'abc \\u263A'@2", "ClosingQuotes"
             )
         )
     }
 
+    private fun TokensStream.toDesc() = toList().map {
+        when (it) {
+            is ValueToken -> "${it.desc}@${it.pos}"
+            else -> it.desc
+        }
+    }
 }

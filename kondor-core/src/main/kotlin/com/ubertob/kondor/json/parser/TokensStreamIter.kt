@@ -2,7 +2,7 @@ package com.ubertob.kondor.json.parser
 
 data class TokensStreamIter(private val iterator: PeekingIterator<KondorToken>) :
     TokensStream {
-    fun toList(): List<KondorToken> = iterator.asSequence().toList()
+    override fun toList(): List<KondorToken> = iterator.asSequence().toList()
 
     private var currPos = 0
 

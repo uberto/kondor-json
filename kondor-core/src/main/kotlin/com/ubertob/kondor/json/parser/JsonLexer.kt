@@ -229,9 +229,9 @@ object KondorTokenizer {
     //!!!look at Jacksons ReaderBasedJsonParser for a fast lazy tokenizer
 
     //faster but putting all in memory
-    fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStreamIter> = JsonLexerEager(jsonString).tokenize()
+    fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStream> = JsonLexerEager(jsonString).tokenize()
 
     //a bit slower but consuming as little memory as possible
-    fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStreamIter> =
+    fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStream> =
         JsonLexerLazy.fromInputStream(jsonStream).tokenize()
 }
