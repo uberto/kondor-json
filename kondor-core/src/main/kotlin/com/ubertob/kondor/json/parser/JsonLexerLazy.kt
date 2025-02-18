@@ -15,7 +15,43 @@ class JsonLexerLazy(private val text: String) {
             JsonLexerLazy(inputStream.bufferedReader().readText())
     }
 
+    private var savedState: TokenizerState? = null
+
+    private sealed class TokenizerState {
+        data class StringState(val startPos: Int) : TokenizerState()
+        data class StringEndState(val startPos: Int) : TokenizerState()
+    }
+
     private fun nextToken(): KondorToken? {
+        // Check if we have a saved state from previous token
+        savedState?.let { state ->
+            when (state) {
+                is TokenizerState.StringState -> {
+                    val contentStart = currentIndex
+                    while (currentIndex < text.length && text[currentIndex] != '"') {
+                        if (text[currentIndex] == '\\') {
+                            currentIndex++ // skip escape character
+                        }
+                        currentIndex++
+                    }
+
+                    if (currentIndex >= text.length) {
+                        error("!!!Unterminated string starting at position ${state.startPos}")
+                    }
+
+                    val contentEnd = currentIndex
+                    savedState = TokenizerState.StringEndState(state.startPos)
+                    return ValueTokenEager(text.substring(contentStart, contentEnd), state.startPos)
+                }
+
+                is TokenizerState.StringEndState -> {
+                    currentIndex++ // skip closing quote
+                    savedState = null
+                    return ClosingQuotesSep
+                }
+            }
+        }
+
         skipWhitespace()
 
         if (currentIndex >= text.length)
@@ -52,23 +88,15 @@ class JsonLexerLazy(private val text: String) {
         }
     }
 
-    private fun readString(): ValueToken {
+    private fun readString(): KondorToken {
         val start = currentIndex
         currentIndex++ // skip opening quote
 
-        while (currentIndex < text.length && text[currentIndex] != '"') {
-            if (text[currentIndex] == '\\') {
-                currentIndex++ // skip escape character
-            }
-            currentIndex++
+        // First return the opening quote
+        return OpeningQuotesSep.also {
+            // Save the current state to continue on next call
+            savedState = TokenizerState.StringState(start)
         }
-
-        if (currentIndex >= text.length) {
-            error("!!!Unterminated string starting at position $start")
-        }
-
-        currentIndex++ // skip closing quote
-        return ValueTokenEager(text.substring(start, currentIndex), start)
     }
 
     private fun readNumber(): ValueToken {

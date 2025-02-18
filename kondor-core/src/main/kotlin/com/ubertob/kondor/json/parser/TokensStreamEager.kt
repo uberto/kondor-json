@@ -23,6 +23,4 @@ data class TokensStreamEager(private val iterator: PeekingIterator<KondorToken>)
             }
         }
 
-    override fun getString(token: ValueToken): String = token.text
-
 }
