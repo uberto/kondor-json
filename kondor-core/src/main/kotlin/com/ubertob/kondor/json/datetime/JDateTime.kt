@@ -1,9 +1,7 @@
 package com.ubertob.kondor.json.datetime
 
-import com.ubertob.kondor.json.JNumRepresentable
+import com.ubertob.kondor.json.JLongRepresentable
 import com.ubertob.kondor.json.JStringRepresentable
-import com.ubertob.kondor.json.JsonOutcome
-import com.ubertob.kondor.outcome.asSuccess
 import java.time.*
 import java.time.format.DateTimeFormatter
 import java.util.*
@@ -70,8 +68,7 @@ object JInstant : JStringRepresentable<Instant>() {
 }
 
 //instant as epoch millis
-object JInstantEpoch : JNumRepresentable<Instant>() {
-    override val cons: (Number) -> Instant = { Instant.ofEpochMilli(it.toLong()) }
-    override val render: (Instant) -> Number = { it.toEpochMilli() }
-    override fun parser(value: String): JsonOutcome<Long> = value.toLong().asSuccess()
+object JInstantEpoch : JLongRepresentable<Instant>() {
+    override val cons: (Long) -> Instant = { Instant.ofEpochMilli(it) }
+    override val render: (Instant) -> Long = { it.toEpochMilli() }
 }

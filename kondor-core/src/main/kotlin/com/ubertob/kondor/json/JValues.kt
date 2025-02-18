@@ -13,6 +13,7 @@ import com.ubertob.kondor.outcome.OutcomeException
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import java.math.BigDecimal
+import java.math.BigInteger
 
 
 abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoolean> {
@@ -46,92 +47,67 @@ object JString : JStringRepresentable<String>() {
         app.appendText(value)
 }
 
-object JFloat : JNumRepresentable<Float>() {
-    override val cons: (Number) -> Float = Number::toFloat
-    override val render: (Float) -> Number = { it }
-    override fun parser(value: String): JsonOutcome<Float> = value.toFloat().asSuccess()
-
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Float): CharWriter =
-        if (value.isFinite())
-            app.appendNumber(value)
-        else
-            app.appendText(value.toString())
-}
-
-object JDouble : JNumRepresentable<Double>() {
-    override val cons: (Number) -> Double = Number::toDouble
-    override val render: (Double) -> Number = Double::toBigDecimal
-
-    override fun parser(value: String): JsonOutcome<Double> = value.toDouble().asSuccess()
-
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Double): CharWriter =
-        if (value.isFinite())
-            app.appendNumber(value)
-        else
-            app.appendText(value.toString())
-}
-
-object JInt : JNumRepresentable<Int>() {
-    override val cons: (Number) -> Int = { num ->
-        when (num) {
-            is BigDecimal -> num.intValueExact()
-            else -> num.toInt()
-        }
-    }
+abstract class JIntRepresentable<T : Any> : JNumRepresentable<Int, T>() {
     override fun parser(value: String): JsonOutcome<Int> = value.toInt().asSuccess()
 
-    override val render: (Int) -> Number = { it }
+    override fun toNumberSubtype(number: Number): Int =
+        when (number) {
+            is BigDecimal -> number.intValueExact()
+            else -> number.toInt()
+        }
 
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Int): CharWriter =
-        app.appendNumber(value)
 }
 
-object JLong : JNumRepresentable<Long>() {
-    override val cons: (Number) -> Long = { num ->
-        when (num) {
-            is BigDecimal -> num.longValueExact()
-            else -> num.toLong()
-        }
-    }
+object JInt : JIntRepresentable<Int>() {
+    override val cons: (Int) -> Int = { it }
+    override val render: (Int) -> Int = { it }
+}
 
+abstract class JLongRepresentable<T : Any> : JNumRepresentable<Long, T>() {
     override fun parser(value: String): JsonOutcome<Long> = value.toLong().asSuccess()
 
-    override val render: (Long) -> Number = { it }
-
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: Long): CharWriter =
-        app.appendNumber(value)
+    override fun toNumberSubtype(number: Number): Long =
+        when (number) {
+            is BigDecimal -> number.longValueExact()
+            else -> number.toLong()
+        }
 }
 
-fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
-    Outcome.tryOrFail { f() }
-        .transformFailure { throwableError ->
-            when (val exception = throwableError.throwable) {
-                is ArithmeticException -> ConverterJsonError(path, "Wrong number format: ${exception.message}")
-                is JsonParsingException -> exception.error
-                is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
-                is OutcomeException -> exception.toJsonError(path)
-                else -> ConverterJsonError(path, "Caught exception: $exception")
-            }
+object JLong : JLongRepresentable<Long>() {
+    override val cons: (Long) -> Long = { it }
+    override val render: (Long) -> Long = { it }
+}
+
+abstract class JFloatRepresentable<T : Any> : JNumRepresentable<Float, T>() {
+    override fun parser(value: String): JsonOutcome<Float> = value.toFloat().asSuccess()
+    override fun toNumberSubtype(number: Number): Float = number.toFloat()
+
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
+        render(value).let { float ->
+            if (float.isFinite())
+                app.appendNumber(float)
+            else
+                app.appendText(float.toString())
         }
+}
 
-private fun OutcomeException.toJsonError(path: NodePath): JsonError =
-    when (val err = error) {
-        is JsonError -> err
-        else -> ConverterJsonError(path, "Nested exception: ${this}")
-    }
-
-
-abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
-    //!!! add a second generic for the actual Number type and simplify
-    abstract val cons: (Number) -> T
-    abstract val render: (T) -> Number
-
-    abstract fun parser(value: String): JsonOutcome<Number>
+object JFloat : JFloatRepresentable<Float>() {
+    override val cons: (Float) -> Float = { it }
+    override val render: (Float) -> Float = { it }
+}
 
 
-    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        parseNumber(tokens, path, ::parser)
-            .transform { cons(it) }
+abstract class JDoubleRepresentable<T : Any> : JNumRepresentable<Double, T>() {
+    override fun parser(value: String): JsonOutcome<Double> = value.toDouble().asSuccess()
+    override fun toNumberSubtype(number: Number): Double = number.toDouble()
+
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
+        render(value).let { double ->
+            if (double.isFinite())
+                app.appendNumber(double)
+            else
+                app.appendText(double.toString())
+        }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         when (node) {
@@ -155,15 +131,75 @@ abstract class JNumRepresentable<T : Any>() : JsonConverter<T, JsonNodeNumber> {
             ).asFailure()
         }
 
+}
+
+object JDouble : JDoubleRepresentable<Double>() {
+    override val cons: (Double) -> Double = { it }
+    override val render: (Double) -> Double = { it }
+}
+
+abstract class JBigDecimalRepresentable<T : Any> : JNumRepresentable<BigDecimal, T>() {
+    override fun parser(value: String): JsonOutcome<BigDecimal> = BigDecimal(value).asSuccess()
+    override fun toNumberSubtype(number: Number): BigDecimal = number.toString().toBigDecimal()
+}
+
+object JBigDecimal : JBigDecimalRepresentable<BigDecimal>() {
+    override val cons: (BigDecimal) -> BigDecimal = { it }
+    override val render: (BigDecimal) -> BigDecimal = { it }
+}
+
+abstract class JBigIntegerRepresentable<T : Any> : JNumRepresentable<BigInteger, T>() {
+    override fun parser(value: String): JsonOutcome<BigInteger> = BigInteger(value).asSuccess()
+    override fun toNumberSubtype(number: Number): BigInteger = number.toString().toBigInteger()
+}
+
+object JBigInteger : JBigIntegerRepresentable<BigInteger>() {
+    override val cons: (BigInteger) -> BigInteger = { it }
+    override val render: (BigInteger) -> BigInteger = { it }
+}
+
+
+fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
+    Outcome.tryOrFail { f() }
+        .transformFailure { throwableError ->
+            when (val exception = throwableError.throwable) {
+                is ArithmeticException -> ConverterJsonError(path, "Wrong number format: ${exception.message}")
+                is JsonParsingException -> exception.error
+                is IllegalStateException -> ConverterJsonError(path, throwableError.msg)
+                is OutcomeException -> exception.toJsonError(path)
+                else -> ConverterJsonError(path, "Caught exception: $exception")
+            }
+        }
+
+private fun OutcomeException.toJsonError(path: NodePath): JsonError =
+    when (val err = error) {
+        is JsonError -> err
+        else -> ConverterJsonError(path, "Nested exception: ${this}")
+    }
+
+
+abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, JsonNodeNumber> {
+    abstract val cons: (NUM) -> T
+    abstract val render: (T) -> NUM
+
+    abstract fun parser(value: String): JsonOutcome<NUM>
+    abstract fun toNumberSubtype(number: Number): NUM
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        parseNumber(tokens, path, ::parser)
+            .transform { cons(it) }
+
+    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
+        app.appendNumber(render(value))
+
     override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
-        tryFromNode(path) { cons(node.num) }
+        tryFromNode(path) { cons(toNumberSubtype(node.num)) }
 
     override fun toJsonNode(value: T): JsonNodeNumber =
         JsonNodeNumber(render(value))
 
     override val _nodeType = NumberNode
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
-        app.appendNumber(render(value))
+
 }
 
 

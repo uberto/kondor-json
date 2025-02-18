@@ -37,7 +37,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             _nodeType -> (node as JN).asSuccess()
             NullNode -> null.asSuccess()
             else -> ConverterJsonError(
-                path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc}"
+                path, "expected a ${_nodeType.desc} but found ${node.nodeKind.desc} '${node.asStringValue()?.take(10)}'"
             ).asFailure()
         }
 
@@ -87,7 +87,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
                 parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
             }
 
-    fun T.checkForJsonTail(tokens: TokensStream) = //!!! remove it after replacing with FailIf everywhere
+    fun T.checkForJsonTail(tokens: TokensStream) = //TODO remove it after replacing with FailIf everywhere
         if (tokens.hasNext())
             parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
         else

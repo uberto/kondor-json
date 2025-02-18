@@ -10,13 +10,9 @@ import kotlin.reflect.KProperty1
 
 typealias ObjectFields = Map<String, Any?>
 
-//!!! move everything that need reflection to a new module Kondor-reflection to simplify imports
-
 abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
 
-    //!!! this class can be the new JAny, parsing from tokens directly in a new deser() method that replace deserializeOrThrow()
-    //there still be a way to deserialize from JsonNodes too.
-
+    //this class should be replaced by the new JObj
     protected val _jsonProperties by lazy { getProperties() }
 
     override fun JsonNodeObject.deserializeOrThrow(): T? =
@@ -112,7 +108,7 @@ abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(
                 Double::class.java -> JDouble
                 String::class.java -> JString
                 Boolean::class.java -> JBoolean
-                else -> fieldType.classLoader.loadClass("J${fieldType.simpleName}") as JsonConverter<out Comparable<*>, out JsonNode> //how to get the object from a javaclass or get a Koltin class by name??!!!
+                else -> fieldType.classLoader.loadClass("J${fieldType.simpleName}") as JsonConverter<out Comparable<*>, out JsonNode> //how to get the object from a javaclass or get a Koltin class by name??
             }
 
             //is there a way to detect nullable fields?

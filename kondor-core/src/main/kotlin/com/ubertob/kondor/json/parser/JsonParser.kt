@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json.parser
 
 import com.ubertob.kondor.json.InvalidJsonError
-import com.ubertob.kondor.json.JDouble
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.*
@@ -213,7 +212,7 @@ fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = w
     else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
 }
 
-inline fun <reified T : Number> parseNumber(
+fun <T> parseNumber(
     tokens: TokensStream,
     path: NodePath,
     converter: (String) -> JsonOutcome<T>
@@ -224,14 +223,15 @@ inline fun <reified T : Number> parseNumber(
             try {
                 tokens.next()
                 converter(token.text)
-            } catch (t: Exception) {
-                parsingFailure("a Number or NaN", token.desc, position, path, t.message.orEmpty())
+            } catch (nfe: NumberFormatException) {
+                parsingFailure("a valid Number", token.desc, position, path, "NumberFormatException ${nfe.message}")
+            } catch (e: Exception) {
+                parsingFailure("a Number or NaN", token.desc, position, path, e.message.orEmpty())
             }
 
-        is OpeningQuotesSep -> //case NaN Infinity
+        is OpeningQuotesSep -> //case NaN Infinity -> letting the converter try
             parseString(tokens, path)
-                .bind { JDouble.parser(it) }
-                .transform { it as T }
+                .bind { converter(it) }
 
         else -> parsingFailure("a Number value", token, position, path, "not a valid number")
     }

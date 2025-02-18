@@ -1,21 +1,22 @@
 package com.ubertob.kondor.primwrap
 
-import com.ubertob.kondor.json.*
+import com.ubertob.kondor.json.JField
+import com.ubertob.kondor.json.JIntRepresentable
+import com.ubertob.kondor.json.JLongRepresentable
+import com.ubertob.kondor.json.JStringRepresentable
 
 data class JStringWrap<T : StringWrap>(override val cons: (String) -> T) : JStringRepresentable<T>() {
     override val render: (T) -> String = { it.raw }
 }
 
-data class JIntWrap<T : IntWrap>(val fromInt: (Int) -> T) : JNumRepresentable<T>() {
-    override val cons: (Number) -> T = { fromInt(it.toInt()) }
-    override val render: (T) -> Number = { it.raw }
-    override fun parser(value: String): JsonOutcome<Number> = JInt.parser(value)
+data class JIntWrap<T : IntWrap>(val fromInt: (Int) -> T) : JIntRepresentable<T>() {
+    override val cons: (Int) -> T = { fromInt(it) }
+    override val render: (T) -> Int = { it.raw }
 }
 
-data class JLongWrap<T : LongWrap>(val fromLong: (Long) -> T) : JNumRepresentable<T>() {
-    override val cons: (Number) -> T = { fromLong(it.toLong()) }
-    override val render: (T) -> Number = { it.raw }
-    override fun parser(value: String): JsonOutcome<Number> = JLong.parser(value)
+data class JLongWrap<T : LongWrap>(val fromLong: (Long) -> T) : JLongRepresentable<T>() {
+    override val cons: (Long) -> T = { fromLong(it) }
+    override val render: (T) -> Long = { it.raw }
 }
 
 inline fun <PT : Any, reified PRIMWRAP : StringWrap> strW(noinline binder: PT.() -> PRIMWRAP): JField<PRIMWRAP, PT> =

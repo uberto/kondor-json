@@ -2,9 +2,6 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.schema.enumSchema
-import com.ubertob.kondor.outcome.asSuccess
-import java.math.BigDecimal
-import java.math.BigInteger
 import java.util.*
 import kotlin.reflect.KClass
 
@@ -22,19 +19,6 @@ object JUUID : JStringRepresentable<UUID>() {
     override val render = UUID::toString
 }
 
-object JBigDecimal : JNumRepresentable<BigDecimal>() {
-    override val cons: (Number) -> BigDecimal = { BigDecimal(it.toString()) }
-    override val render: (BigDecimal) -> Number = { it }
-    override fun parser(value: String): JsonOutcome<BigDecimal> = BigDecimal(value).asSuccess()
-
-}
-
-object JBigInteger : JNumRepresentable<BigInteger>() {
-    override val cons: (Number) -> BigInteger = { BigInteger(it.toString()) }
-    override val render: (BigInteger) -> Number = BigInteger::toBigDecimal
-    override fun parser(value: String): JsonOutcome<BigInteger> = BigInteger(value).asSuccess()
-
-}
 
 
 object JCurrency : JStringRepresentable<Currency>() {
