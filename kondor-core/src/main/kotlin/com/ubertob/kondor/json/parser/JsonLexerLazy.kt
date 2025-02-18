@@ -7,8 +7,8 @@ import java.io.InputStream
 class JsonLexerLazy(private val text: String) {
     private var currentIndex = 0
 
-    fun tokenize(): JsonOutcome<TokensStreamEager> =
-        TokensStreamEager(PeekingIteratorWrapper(LazyTokenStream(this::nextToken))).asSuccess() //!!! handle failure
+    fun tokenize(): JsonOutcome<TokensStream> =
+        TokensStreamIter(PeekingIteratorWrapper(LazyTokenStream(this::nextToken))).asSuccess() //!!! handle failure
 
     companion object {
         fun fromInputStream(inputStream: InputStream): JsonLexerLazy =
@@ -41,7 +41,7 @@ class JsonLexerLazy(private val text: String) {
 
                     val contentEnd = currentIndex
                     savedState = TokenizerState.StringEndState(state.startPos)
-                    return ValueTokenEager(text.substring(contentStart, contentEnd), state.startPos)
+                    return ValueTokenLazy(text, contentStart, contentEnd, state.startPos)
                 }
 
                 is TokenizerState.StringEndState -> {

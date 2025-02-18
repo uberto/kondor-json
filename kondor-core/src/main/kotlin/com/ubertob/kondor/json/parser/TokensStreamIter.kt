@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json.parser
 
-data class TokensStreamEager(private val iterator: PeekingIterator<KondorToken>) :
+data class TokensStreamIter(private val iterator: PeekingIterator<KondorToken>) :
     TokensStream {
     fun toList(): List<KondorToken> = iterator.asSequence().toList()
 

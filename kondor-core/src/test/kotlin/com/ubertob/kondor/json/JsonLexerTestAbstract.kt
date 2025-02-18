@@ -8,7 +8,7 @@ import strikt.assertions.isEqualTo
 
 abstract class JsonLexerTestAbstract {
 
-    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStreamEager>
+    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStreamIter>
 
     @Test
     fun `single word`() {

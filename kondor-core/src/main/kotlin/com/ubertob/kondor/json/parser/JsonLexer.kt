@@ -135,7 +135,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
         }
     }
 
-    fun tokenize(): JsonOutcome<TokensStreamEager> {
+    fun tokenize(): JsonOutcome<TokensStreamIter> {
         var pos = 1
         val charWriter = ChunkedStringWriter(256)
         var state = OutString
@@ -221,7 +221,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
             pos++
         }
         tokens.addValue(charWriter, pos)
-        return TokensStreamEager(PeekingIteratorWrapper(tokens.iterator())).asSuccess()
+        return TokensStreamIter(PeekingIteratorWrapper(tokens.iterator())).asSuccess()
     }
 }
 
@@ -229,9 +229,9 @@ object KondorTokenizer {
     //!!!look at Jacksons ReaderBasedJsonParser for a fast lazy tokenizer
 
     //faster but putting all in memory
-    fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStreamEager> = JsonLexerEager(jsonString).tokenize()
+    fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStreamIter> = JsonLexerEager(jsonString).tokenize()
 
     //a bit slower but consuming as little memory as possible
-    fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStreamEager> =
+    fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStreamIter> =
         JsonLexerLazy.fromInputStream(jsonStream).tokenize()
 }

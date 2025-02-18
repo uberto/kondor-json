@@ -46,3 +46,18 @@ data class ValueTokenEager(override val text: String, override val pos: Int) : V
     override fun sameAs(separator: KondorSeparator): Boolean = false
     override val desc: String = "'$text'"
 }
+
+data class ValueTokenLazy(
+    private val textBuff: String,
+    private val start: Int,
+    private val end: Int,
+    override val pos: Int
+) : ValueToken {
+
+    override fun sameValueAs(text: String): Boolean = this.text == text
+
+    override fun sameAs(separator: KondorSeparator): Boolean = false
+    override val text: String by lazy { textBuff.substring(start, end) }
+
+    override val desc: String = "'$text'"
+}
