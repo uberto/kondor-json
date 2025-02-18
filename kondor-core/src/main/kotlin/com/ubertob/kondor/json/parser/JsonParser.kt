@@ -11,7 +11,7 @@ import java.math.BigDecimal
 
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
-fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
+fun TokensStream.lastToken(): KondorToken = this.last() ?: ValueTokenEager("Nothing", 0)
 
 
 private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
@@ -45,7 +45,7 @@ fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
 
 fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> =
     surroundedForNodes(
-        OpeningBracket, TokensPath::array, ClosingBracket
+        OpeningSquare, TokensPath::array, ClosingSquare
     )() //!!! switch to parseArray
 
 
@@ -180,21 +180,25 @@ private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: N
 
 fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? = if (!tokens.hasNext()) null
 else when (val t = tokens.peek()) {
-    is Value -> when (t.text) {
+    is ValueTokenEager -> when (t.text) {
         "null" -> parseJsonNodeNull()
         "false", "true" -> parseJsonNodeBoolean()
         else -> parseJsonNodeNum()
     }
 
-    is Separator -> when (t.sep) {
+    is SeparatorToken -> when (t.sep) {
         OpeningQuotes -> parseJsonNodeString()
-        OpeningBracket -> parseJsonNodeArray()
+        OpeningSquare -> parseJsonNodeArray()
         OpeningCurly -> parseJsonNodeObject()
-        ClosingBracket, ClosingCurly -> null //no more nodes
+        ClosingSquare, ClosingCurly -> null //no more nodes
         ClosingQuotes, Comma, Colon -> parsingError(
             "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
         ).asFailure()
     }
+
+    else -> parsingError(
+        "a valid token", t.toString(), tokens.lastPosRead(), path, "unexpected token type"
+    ).asFailure()
 }
 
 
@@ -204,7 +208,7 @@ fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>
 } //!!! this should go to Outcome core if not already there
 
 fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = when (val token = tokens.next()) {
-    is Value -> when (token.text) {
+    is ValueTokenEager -> when (token.text) {
         "true" -> true.asSuccess()
         "false" -> false.asSuccess()
         else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
@@ -220,7 +224,7 @@ fun <T> parseNumber(
 ): JsonOutcome<T> {
     val position = tokens.lastPosRead()
     return when (val token = tokens.peek()) {
-        is Value ->
+        is ValueTokenEager ->
             try {
                 tokens.next()
                 converter(token.text)
@@ -250,7 +254,7 @@ private fun stringOrEmpty(
     path: NodePath
 ): JsonOutcome<String> =
     when (val token = tokens.peek()) {
-        is Value -> token.text.asSuccess().also { tokens.next() }
+        is ValueTokenEager -> token.text.asSuccess().also { tokens.next() }
         else -> if (allowEmpty) "".asSuccess() else parsingFailure(
             "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
         )
@@ -280,12 +284,16 @@ fun <T> parseNewValue(
     tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>
 ): JsonOutcome<T>? = if (!tokens.hasNext()) null
 else when (val t = tokens.peek()) {
-    is Value -> converter(tokens, path)
-    is Separator -> when (t.sep) {
-        OpeningQuotes, OpeningBracket, OpeningCurly -> converter(tokens, path)
-        ClosingBracket, ClosingCurly -> null //no more nodes
+    is ValueTokenEager -> converter(tokens, path)
+    is SeparatorToken -> when (t.sep) {
+        OpeningQuotes, OpeningSquare, OpeningCurly -> converter(tokens, path)
+        ClosingSquare, ClosingCurly -> null //no more nodes
         ClosingQuotes, Comma, Colon -> parsingError(
             "a new json value", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
         ).asFailure()
     }
+
+    else -> parsingError(
+        "a valid token", t.toString(), tokens.lastPosRead(), path, "unexpected token type"
+    ).asFailure()
 }

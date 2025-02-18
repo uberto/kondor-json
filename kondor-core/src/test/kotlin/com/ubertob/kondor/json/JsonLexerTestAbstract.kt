@@ -8,14 +8,14 @@ import strikt.assertions.isEqualTo
 
 abstract class JsonLexerTestAbstract {
 
-    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStream>
+    abstract fun tokenize(jsonStr: String): JsonOutcome<TokensStreamEager>
 
     @Test
     fun `single word`() {
         val json = "abc"
         val tokensStream = tokenize(json).expectSuccess()
 
-        expectThat(tokensStream.toList()).isEqualTo(listOf(Value(json, 1)))
+        expectThat(tokensStream.toList()).isEqualTo(listOf(ValueTokenEager(json, 1)))
     }
 
     @Test
@@ -25,12 +25,12 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                Value("abc", 3),
-                Value("def", 9),
-                Value("gh", 13),
-                Value("ijk", 16),
-                Value("lmn", 21),
-                Value("opq", 28)
+                ValueTokenEager("abc", 3),
+                ValueTokenEager("def", 9),
+                ValueTokenEager("gh", 13),
+                ValueTokenEager("ijk", 16),
+                ValueTokenEager("lmn", 21),
+                ValueTokenEager("opq", 28)
             )
         )
     }
@@ -42,25 +42,25 @@ abstract class JsonLexerTestAbstract {
 
         expectThat(tokens.toList()).isEqualTo(
             listOf(
-                OpeningBracketSep,
-                ClosingBracketSep,
+                OpeningSquareSep,
+                ClosingSquareSep,
                 OpeningCurlySep,
                 ClosingCurlySep,
                 ColonSep,
                 CommaSep,
                 OpeningQuotesSep,
                 ClosingQuotesSep,
-                OpeningBracketSep,
-                Value("a", 12),
+                OpeningSquareSep,
+                ValueTokenEager("a", 12),
                 CommaSep,
-                Value("b", 14),
+                ValueTokenEager("b", 14),
                 CommaSep,
-                Value("c", 16),
-                ClosingBracketSep,
+                ValueTokenEager("c", 16),
+                ClosingSquareSep,
                 OpeningCurlySep,
-                Value("d", 21),
+                ValueTokenEager("d", 21),
                 ColonSep,
-                Value("e", 23),
+                ValueTokenEager("e", 23),
                 ClosingCurlySep
             )
         )
@@ -77,10 +77,10 @@ abstract class JsonLexerTestAbstract {
             listOf(
                 OpeningCurlySep,
                 OpeningQuotesSep,
-                Value("abc", 4),
+                ValueTokenEager("abc", 4),
                 ClosingQuotesSep,
                 ColonSep,
-                Value("123", 10),
+                ValueTokenEager("123", 10),
                 ClosingCurlySep
             )
         )
@@ -97,11 +97,11 @@ abstract class JsonLexerTestAbstract {
             listOf(
                 OpeningCurlySep,
                 OpeningQuotesSep,
-                Value("abc", 3),
+                ValueTokenEager("abc", 3),
                 ClosingQuotesSep,
                 ColonSep,
                 OpeningQuotesSep,
-                Value("abc\"\\ \n}", 12),
+                ValueTokenEager("abc\"\\ \n}", 12),
                 ClosingQuotesSep,
                 ClosingCurlySep
             )
@@ -119,7 +119,7 @@ abstract class JsonLexerTestAbstract {
         expectThat(tokens.toList()).isEqualTo(
             listOf(
                 OpeningQuotesSep,
-                Value("abc \\u263A", 2),
+                ValueTokenEager("abc \\u263A", 2),
                 ClosingQuotesSep,
             )
         )

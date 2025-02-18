@@ -2,8 +2,8 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendArrayValues
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.KondorSeparator.ClosingBracket
-import com.ubertob.kondor.json.parser.KondorSeparator.OpeningBracket
+import com.ubertob.kondor.json.parser.KondorSeparator.ClosingSquare
+import com.ubertob.kondor.json.parser.KondorSeparator.OpeningSquare
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parseArray
 import com.ubertob.kondor.json.parser.surrounded
@@ -46,9 +46,9 @@ interface JArray<T : Any, IterT : Iterable<T?>> : JArrayConverter<IterT> {
     @Suppress("UNCHECKED_CAST")
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<IterT> =
         surrounded(
-            OpeningBracket,
+            OpeningSquare,
             { t, p -> parseArray(t, p, converter::fromTokens).transform { it as IterT } },
-            ClosingBracket
+            ClosingSquare
         )(tokens, path)
 
 }

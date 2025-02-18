@@ -1,21 +1,28 @@
 package com.ubertob.kondor.json.parser
 
+
 enum class KondorSeparator(val sign: Char) {
-    Colon(':'), Comma(','), OpeningBracket('['), OpeningCurly('{'), OpeningQuotes('"'), ClosingBracket(']'), ClosingCurly(
+    Colon(':'), Comma(','), OpeningSquare('['), OpeningCurly('{'), OpeningQuotes('"'), ClosingSquare(']'), ClosingCurly(
         '}'
     ),
     ClosingQuotes('"')
 }
 
-sealed class KondorToken {
-    abstract fun sameValueAs(text: String): Boolean
-    abstract fun sameAs(separator: KondorSeparator): Boolean
+sealed interface KondorToken {
+    val pos: Int
+    val desc: String
 
-    abstract val pos: Int
-    abstract val desc: String
+    fun sameValueAs(text: String): Boolean
+    fun sameAs(separator: KondorSeparator): Boolean
+
+
 }
 
-sealed class Separator(val sep: KondorSeparator) : KondorToken() {
+sealed interface ValueToken : KondorToken {
+    val text: String
+}
+
+sealed class SeparatorToken(val sep: KondorSeparator) : KondorToken {
     override fun sameValueAs(text: String): Boolean = false
 
     override fun sameAs(separator: KondorSeparator): Boolean = sep == separator
@@ -23,37 +30,19 @@ sealed class Separator(val sep: KondorSeparator) : KondorToken() {
     override val desc: String = sep.name
 }
 
-object ColonSep : Separator(KondorSeparator.Colon)
-object CommaSep : Separator(KondorSeparator.Comma)
-object OpeningBracketSep : Separator(KondorSeparator.OpeningBracket)
-object OpeningCurlySep : Separator(KondorSeparator.OpeningCurly)
-object OpeningQuotesSep : Separator(KondorSeparator.OpeningQuotes)
-object ClosingBracketSep : Separator(KondorSeparator.ClosingBracket)
-object ClosingCurlySep : Separator(KondorSeparator.ClosingCurly)
-object ClosingQuotesSep : Separator(KondorSeparator.ClosingQuotes)
+object ColonSep : SeparatorToken(KondorSeparator.Colon)
+object CommaSep : SeparatorToken(KondorSeparator.Comma)
+object OpeningSquareSep : SeparatorToken(KondorSeparator.OpeningSquare)
+object OpeningCurlySep : SeparatorToken(KondorSeparator.OpeningCurly)
+object OpeningQuotesSep : SeparatorToken(KondorSeparator.OpeningQuotes)
+object ClosingSquareSep : SeparatorToken(KondorSeparator.ClosingSquare)
+object ClosingCurlySep : SeparatorToken(KondorSeparator.ClosingCurly)
+object ClosingQuotesSep : SeparatorToken(KondorSeparator.ClosingQuotes)
 
 
-data class Value(val text: String, override val pos: Int) : KondorToken() {
+data class ValueTokenEager(override val text: String, override val pos: Int) : ValueToken {
     override fun sameValueAs(text: String): Boolean = this.text == text
 
     override fun sameAs(separator: KondorSeparator): Boolean = false
     override val desc: String = "'$text'"
-}
-
-data class TokensStream(private val iterator: PeekingIterator<KondorToken>) :
-    PeekingIterator<KondorToken> by iterator {
-    fun toList(): List<KondorToken> = iterator.asSequence().toList()
-
-    private var currPos = 0
-
-    fun lastPosRead(): Int = currPos
-
-    override fun next(): KondorToken =
-        iterator.next().also {
-            currPos = when (it) {
-                is Separator -> currPos +1
-                is Value -> it.pos + it.text.length - 1
-            }
-        }
-
 }
