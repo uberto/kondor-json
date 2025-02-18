@@ -81,11 +81,12 @@ fun <T> parseValues(
 ): JsonOutcome<List<T>> {
     var arrayIndex = 0
     val values = ArrayList<T>(128)
+
     while (true) {
-        val value = parseFun(tokens, newSegment(path, arrayIndex++))
-            ?.onFailure { return it.asFailure() }
-            ?: break //!!! maybe better with a fold or a traverse
-        values.add(value)
+        parseFun(tokens, newSegment(path, arrayIndex++))?.let { outcome ->
+            val value = outcome.onFailure { return it.asFailure() }
+            values.add(value)
+        } ?: break
     }
     return values.asSuccess()
 }
