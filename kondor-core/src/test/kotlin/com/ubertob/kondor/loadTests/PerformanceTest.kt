@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.JsonLexerLazy
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondortools.expectSuccess
+import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -129,7 +130,7 @@ lazy parsing 4569 ms
 50k Invoices parsing from stream 3446 ms
  */
 
-//@Disabled
+@Disabled
 class PerformanceTest {
 
     val times = 10
