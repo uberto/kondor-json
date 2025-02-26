@@ -29,6 +29,9 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     override fun <D> rmap(g: (T) -> D): ProfunctorConverter<T, D> =
         ProfunctorConverter<T, T>(::fromJson, ::toJson).rmap(g)
 
+    fun <U> dinatural(contraMap: (U) -> T, coMap: (T) -> U): JsonConverter<U, JN> =
+        DinaturalConverter(this, contraMap, coMap)
+
     val _nodeType: NodeKind<JN>
 
     @Suppress("UNCHECKED_CAST") //but we are confident it's safe
