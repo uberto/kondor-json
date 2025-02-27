@@ -162,7 +162,7 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
 fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
     if (tokens.hasNext()) {
         tokens.next().let { token ->
-            if (token.sameAs(separator)) token.asSuccess()
+            if ((token as? Separator)?.sep == separator) token.asSuccess()
             else parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
         }
     } else {
@@ -172,7 +172,7 @@ fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Json
 
 private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
-        if (currToken.sameAs(separator))
+        if ((currToken as? Separator)?.sep == separator)
             take(separator, tokens, path)
         else
             null

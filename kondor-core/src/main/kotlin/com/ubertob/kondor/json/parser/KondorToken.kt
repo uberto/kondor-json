@@ -9,16 +9,14 @@ enum class KondorSeparator(val sign: Char) {
 
 sealed class KondorToken {
     abstract fun sameValueAs(text: String): Boolean
-    abstract fun sameAs(separator: KondorSeparator): Boolean
 
-    abstract val pos: Int
-    abstract val desc: String
+    abstract val pos: Int //we need this because original token pos (including spaces etc.)
+    abstract val desc: String //used for error messages
 }
 
 sealed class Separator(val sep: KondorSeparator) : KondorToken() {
     override fun sameValueAs(text: String): Boolean = false
 
-    override fun sameAs(separator: KondorSeparator): Boolean = sep == separator
     override val pos: Int = -1 //unused
     override val desc: String = sep.name
 }
@@ -36,7 +34,6 @@ object ClosingQuotesSep : Separator(KondorSeparator.ClosingQuotes)
 data class Value(val text: String, override val pos: Int) : KondorToken() {
     override fun sameValueAs(text: String): Boolean = this.text == text
 
-    override fun sameAs(separator: KondorSeparator): Boolean = false
     override val desc: String = "'$text'"
 }
 
