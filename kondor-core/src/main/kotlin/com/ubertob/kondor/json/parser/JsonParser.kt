@@ -8,6 +8,11 @@ import com.ubertob.kondor.json.parser.KondorSeparator.*
 import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
 
+fun KondorToken.sameValueAs(text: String): Boolean = when (this) {
+    is Separator -> false
+    is Value -> this.text == text
+}
+
 
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
