@@ -83,7 +83,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 2: expected ClosingQuotes but found end of file - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 16: expected ClosingQuotes but found end of file - invalid Json")
     }
 
     @Test

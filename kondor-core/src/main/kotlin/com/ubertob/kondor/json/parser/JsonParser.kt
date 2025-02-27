@@ -28,7 +28,7 @@ fun parsingError(
     expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
 ): JsonError = parsingError(expected, actual.desc, tokenPos(actual, lastPosRead), path, details)
 
-private fun tokenPos(token: KondorToken, lastPosRead: Int) = if (token.pos > 0) token.pos else lastPosRead
+private fun tokenPos(token: KondorToken, lastPosRead: Int) = if (token is Value) token.pos else lastPosRead
 
 fun parsingFailure(expected: String, actual: String, position: Int, path: NodePath, details: String) =
     parsingError(expected, actual, position, path, details).asFailure()
@@ -118,7 +118,7 @@ fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSeparated { parseNewNo
 
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated(withParentNode {
     keyValue {
-        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.last()?.pos ?: 0, path, "invalid Json")
+        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.lastPosRead(), path, "invalid Json")
     }
 }).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap()) }
 
@@ -145,7 +145,7 @@ private fun TokensPath.parseOptionalKeyNode(): JsonOutcome<String>? = parseNewNo
 
 private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> = when (keyNode) {
     is JsonNodeString -> keyNode.text.asSuccess()
-    else -> parsingFailure("not a key", keyNode.toString(), tokens.last()?.pos ?: 0, path, "invalid Json")
+    else -> parsingFailure("not a key", keyNode.toString(), tokens.lastPosRead(), path, "invalid Json")
 }
 
 fun <T> TokensPath.commaSeparated(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
@@ -171,7 +171,7 @@ fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Json
             else parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
         }
     } else {
-        parsingFailure(separator.name, "end of file", tokens.last()?.pos ?: 0, path, "invalid Json")
+        parsingFailure(separator.name, "end of file", tokens.lastPosRead(), path, "invalid Json")
     }
 
 

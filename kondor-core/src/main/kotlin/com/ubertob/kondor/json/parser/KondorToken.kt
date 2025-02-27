@@ -8,12 +8,10 @@ enum class KondorSeparator(val sign: Char) {
 }
 
 sealed class KondorToken {
-    abstract val pos: Int //we need this because original token pos (including spaces etc.)
     abstract val desc: String //used for error messages
 }
 
 sealed class Separator(val sep: KondorSeparator) : KondorToken() {
-    override val pos: Int = -1 //unused
     override val desc: String = sep.name
 }
 
@@ -27,7 +25,7 @@ object ClosingCurlySep : Separator(KondorSeparator.ClosingCurly)
 object ClosingQuotesSep : Separator(KondorSeparator.ClosingQuotes)
 
 
-data class Value(val text: String, override val pos: Int) : KondorToken() {
+data class Value(val text: String, val pos: Int) : KondorToken() {
     override val desc: String = "'$text'"
 }
 
