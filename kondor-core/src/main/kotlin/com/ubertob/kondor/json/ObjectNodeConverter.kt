@@ -37,6 +37,11 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
 
+    //   abstract fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+// !!! the plan is to use the above instead of deserializeOrThrow and leave deserializeOrThrow only on JAny as legacy
+    //the new JAny will use fromFieldMap directly with new unaryPlus operators
+
+
     override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
         tryFromNode(path) {
             JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
@@ -55,8 +60,6 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
 abstract class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>() {
 
     abstract val writers: List<NodeWriter<T>>
-
-    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> = TODO() //!!!
 
     override fun convertFields(valueObject: T): FieldNodeMap =
         writers.fold(mutableMapOf()) { acc, writer ->

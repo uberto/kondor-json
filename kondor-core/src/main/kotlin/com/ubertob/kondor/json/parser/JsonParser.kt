@@ -51,13 +51,12 @@ fun TokensPath.parseJsonNodeString(): JsonOutcome<JsonNodeString> =
 fun TokensPath.parseJsonNodeArray(): JsonOutcome<JsonNodeArray> =
     surroundedForNodes(
         OpeningBracket, TokensPath::array, ClosingBracket
-    )() //!!! switch to parseArray
-
+    )()
 
 fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> =
     surroundedForNodes(
         OpeningCurly, TokensPath::jsonObject, ClosingCurly
-    )()  //!!! switch to parseObject
+    )()
 
 
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
