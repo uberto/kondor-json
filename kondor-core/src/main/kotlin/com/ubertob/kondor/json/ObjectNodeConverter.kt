@@ -6,7 +6,6 @@ import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.schema.objectSchema
-import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.bind
 import java.util.concurrent.atomic.AtomicReference
 
@@ -23,7 +22,10 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
-    fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> //!!! implement it using fromFieldMap
+    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+
+    fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
+        fromFieldMap(fieldMap, path)
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldNodeMap(node._fieldMap, path)
@@ -34,20 +36,6 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
-
-    abstract fun JsonNodeObject.deserializeOrThrow(): T? //we need the receiver for the unaryPlus operator scope
-
-    //   abstract fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
-// !!! the plan is to use the above instead of deserializeOrThrow and leave deserializeOrThrow only on JAny as legacy
-    //the new JAny will use fromFieldMap directly with new unaryPlus operators
-
-
-    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
-        tryFromNode(path) {
-            JsonNodeObject.buildForParsing(fieldMap, path).deserializeOrThrow() ?: throw JsonParsingException(
-                ConverterJsonError(path, "deserializeOrThrow returned null!")
-            )
-        }
 
 
     override fun toJsonNode(value: T): JsonNodeObject =

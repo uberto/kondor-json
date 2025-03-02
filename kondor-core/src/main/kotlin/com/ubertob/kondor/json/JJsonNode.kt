@@ -9,6 +9,21 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject> =
+        tryFromNode(path) {
+            val nodeMap = fieldMap.mapValues { (_, value) ->
+                when (value) {
+                    null -> JsonNodeNull
+                    is String -> JsonNodeString(value)
+                    is Number -> JsonNodeNumber(value)
+                    is Boolean -> JsonNodeBoolean(value)
+                    is JsonNode -> value
+                    else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
+                }
+            }
+            JsonNodeObject.buildForParsing(nodeMap, path)
+        }
+
     override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
         JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
 

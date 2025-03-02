@@ -15,13 +15,22 @@ abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
     //this class should be replaced by the new JObj
     protected val _jsonProperties by lazy { getProperties() }
 
-    override fun JsonNodeObject.deserializeOrThrow(): T? =
-        error("Deprecated method! Override fromFieldMap if necessary.")
+    private fun convertToNodeMap(fieldMap: FieldMap, path: NodePath): FieldNodeMap =
+        fieldMap.mapValues { (_, value) ->
+            when (value) {
+                null -> JsonNodeNull
+                is String -> JsonNodeString(value)
+                is Number -> JsonNodeNumber(value)
+                is Boolean -> JsonNodeBoolean(value)
+                is JsonNode -> value
+                else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
+            }
+        }
 
-
-    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
+        val nodeMap = convertToNodeMap(fieldMap, path)
         val args = _jsonProperties.associate { prop ->
-            val propValue = prop.getter(fieldMap, path)
+            val propValue = prop.getter(nodeMap, path)
                 .onFailure { return it.asFailure() }
             prop.propName to propValue
         }

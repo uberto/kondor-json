@@ -9,7 +9,7 @@ import com.ubertob.kondor.json.parser.parseFields
 import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.outcome.bind
 
-abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
+abstract class JObj<T : Any> : JAny<T>() {
     //this is the new JAny
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
@@ -24,10 +24,13 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
                 }
             }
 
+    override fun fromFieldMap(fieldMap: Map<String, Any?>, path: NodePath): JsonOutcome<T> =
+        tryFromNode(path) {
+            deserFieldMapOrThrow(fieldMap)
+        }
 
-
-
-    override fun JsonNodeObject.deserializeOrThrow(): T? = error("Deprecated use the new deserFieldMapOrThrow")
+    override fun JsonNodeObject.deserializeOrThrow(): T =
+        deserFieldMapOrThrow(_fieldMap)
 
     abstract fun deserFieldMapOrThrow(fieldMap: FieldMap): T //this is the method that concrete converter will have to implement
 }
