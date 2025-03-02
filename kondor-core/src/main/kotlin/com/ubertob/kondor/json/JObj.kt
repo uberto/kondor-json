@@ -19,9 +19,7 @@ abstract class JObj<T : Any> : JAny<T>() {
             KondorSeparator.ClosingCurly,
         )(tokens, path)
             .bind { fieldMap ->
-                tryFromNode(path) {
-                    deserFieldMapOrThrow(fieldMap)
-                }
+                fromFieldMap(fieldMap, path)
             }
 
     override fun fromFieldMap(fieldMap: Map<String, Any?>, path: NodePath): JsonOutcome<T> =

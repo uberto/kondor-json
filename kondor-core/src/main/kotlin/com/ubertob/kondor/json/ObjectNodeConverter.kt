@@ -6,6 +6,8 @@ import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.schema.objectSchema
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
 import java.util.concurrent.atomic.AtomicReference
 
@@ -88,7 +90,19 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 
+    @Suppress("UNCHECKED_CAST")
     protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any> {
-        TODO("!!! start implement this")
+        val property = getProperties().find { it.propName == fieldName }
+            ?: return JsonPropertyError(nodePath, fieldName, "Unknown field").asFailure()
+//!!! clean this better
+        val fieldPath = NodePathSegment(fieldName, nodePath)
+        return when (property) {
+            is JsonPropMandatory<*, *> -> property.converter.fromTokens(tokensStream, fieldPath) as JsonOutcome<Any>
+            is JsonPropOptional<*, *> -> property.converter.fromTokens(tokensStream, fieldPath).bind {
+                (it as Any).asSuccess()
+            }
+
+            is JsonPropMandatoryFlatten<*> -> property.converter.fromTokens(tokensStream, fieldPath) as JsonOutcome<Any>
+        }
     }
 }
