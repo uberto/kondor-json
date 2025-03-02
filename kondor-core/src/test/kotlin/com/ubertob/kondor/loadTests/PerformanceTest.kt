@@ -175,6 +175,7 @@ class PerformanceTest {
     fun `serialize and parse FileInfo`() {
 
         val jFileInfos = JList(JFileInfo)
+        val jFileInfosNew = JList(JFileInfoNew)
 
         val fileInfos = generateSequence(0) { it + 1 }.take(100_000).map {
             randomFileInfo().copy(name = it.toString())
@@ -187,7 +188,10 @@ class PerformanceTest {
 
             chronoAndLog("serialization compact") { jFileInfos.toJson(fileInfos, JsonStyle.compact) }
 
-            chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
+            val olds = chronoAndLog("total parsing") { jFileInfos.fromJson(jsonString) }
+            val news = chronoAndLog("total parsing NEW") { jFileInfosNew.fromJson(jsonString) }
+
+            expectThat(olds).isEqualTo(news)
 
             val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
 

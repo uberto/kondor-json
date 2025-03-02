@@ -297,6 +297,28 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `Json SelectedFile old format`() {
+        repeat(10) {
+            val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
+            val jsonStr = JSelectedFile.toJson(value)
+            println("[DEBUG_LOG] JSelectedFile JSON (flattened): $jsonStr")
+            val result = JSelectedFile.fromJson(jsonStr).expectSuccess()
+            expectThat(result).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json SelectedFile new format`() {
+        repeat(10) {
+            val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
+            val jsonStr = JSelectedFileNew.toJson(value)
+            println("[DEBUG_LOG] JSelectedFileNew JSON (nested): $jsonStr")
+            val result = JSelectedFileNew.fromJson(jsonStr).expectSuccess()
+            expectThat(result).isEqualTo(value)
+        }
+    }
+
+    @Test
     fun `Json with flatten map is rendered and parsed correctly`() {
 
         repeat(10) {
@@ -411,6 +433,3 @@ class JValuesExtraTest {
         }
     }
 }
-
-
-

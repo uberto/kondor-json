@@ -102,6 +102,7 @@ data class Person(val id: Int, val name: String) : Customer() {
         )
     }
 }
+
 data class Company(val name: String, val taxType: TaxType) : Customer()
 object AnonymousCustomer : Customer()
 
@@ -365,6 +366,24 @@ object JFileInfo : JAny<FileInfo>() {
         )
 }
 
+object JFileInfoNew : JObj<FileInfo>() {
+    val file_name by str(FileInfo::name)
+    val creation_date by num(FileInfo::date)
+    val is_dir by bool(FileInfo::isDir)
+    val size by num(FileInfo::size)
+    val folder_path by str(FileInfo::folderPath)
+
+    override fun deserFieldMapOrThrow(fieldMap: FieldMap): FileInfo =
+        FileInfo( //!!! use some kind of DSL/operator here
+            name = fieldMap["file_name"] as String,
+            date = fieldMap["creation_date"] as Instant,
+            isDir = fieldMap["is_dir"] as Boolean,
+            size = fieldMap["size"] as Long,
+            folderPath = fieldMap["folder_path"] as String
+        )
+}
+
+
 data class MetadataFile(val filename: String, val metadata: Map<String, String>)
 
 object JMetadataFile : JAny<MetadataFile>() {
@@ -392,6 +411,18 @@ object JSelectedFile : JAny<SelectedFile>() {
             file = +file_info,
         )
 
+}
+
+object JSelectedFileNew : JObj<SelectedFile>() {
+
+    val selected by bool(SelectedFile::selected)
+    val file by obj(JFileInfoNew, SelectedFile::file)
+
+    override fun deserFieldMapOrThrow(fieldMap: FieldMap): SelectedFile =
+        SelectedFile(
+            selected = fieldMap["selected"] as Boolean,
+            file = fieldMap["file"] as FileInfo
+        )
 }
 
 
