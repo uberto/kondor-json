@@ -373,13 +373,13 @@ object JFileInfoNew : JObj<FileInfo>() {
     val size by num(FileInfo::size)
     val folder_path by str(FileInfo::folderPath)
 
-    override fun deserFieldMapOrThrow(fieldMap: FieldMap): FileInfo =
+    override fun FieldMap.deserializeOrThrow() =
         FileInfo( //!!! use some kind of DSL/operator here
-            name = fieldMap["file_name"] as String,
-            date = fieldMap["creation_date"] as Instant,
-            isDir = fieldMap["is_dir"] as Boolean,
-            size = fieldMap["size"] as Long,
-            folderPath = fieldMap["folder_path"] as String
+            name = this["file_name"] as String,
+            date = this["creation_date"] as Instant,
+            isDir = this["is_dir"] as Boolean,
+            size = this["size"] as Long,
+            folderPath = this["folder_path"] as String
         )
 }
 
@@ -415,13 +415,13 @@ object JSelectedFile : JAny<SelectedFile>() {
 
 object JSelectedFileNew : JObj<SelectedFile>() {
 
-    val selected by bool(SelectedFile::selected)
-    val file by obj(JFileInfoNew, SelectedFile::file)
+    private val selected by bool(SelectedFile::selected)
+    private val file by obj(JFileInfoNew, SelectedFile::file)
 
-    override fun deserFieldMapOrThrow(fieldMap: FieldMap): SelectedFile =
+    override fun FieldMap.deserializeOrThrow(): SelectedFile =
         SelectedFile(
-            selected = fieldMap["selected"] as Boolean,
-            file = fieldMap["file"] as FileInfo
+            selected = this["selected"] as Boolean,
+            file = this["file"] as FileInfo
         )
 }
 
