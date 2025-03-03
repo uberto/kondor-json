@@ -81,17 +81,22 @@ fun <T> surrounded(
 }
 
 fun <T> parseValues(
-    tokens: TokensStream, path: NodePath, parseFun: (TokensStream, NodePath) -> JsonOutcome<T>?
+    tokens: TokensStream, path: NodePath,
+    parseFun: (TokensStream, NodePath) -> JsonOutcome<Pair<T?, Boolean>>
 ): JsonOutcome<List<T>> {
-    var arrayIndex = 0
     val values = ArrayList<T>(128)
+    var index = 0
+    var shouldContinue: Boolean = true
 
-    while (true) {
-        parseFun(tokens, newSegment(path, arrayIndex++))?.let { outcome ->
-            val value = outcome.onFailure { return it.asFailure() }
-            values.add(value)
-        } ?: break
+    while (shouldContinue) {
+        shouldContinue = parseFun(tokens, newSegment(path, index++))
+            .transform { (value, continueParsing) ->
+                value?.let { values.add(it) }
+                continueParsing
+            }
+            .onFailure { return it.asFailure() }
     }
+
     return values.asSuccess()
 }
 
@@ -153,8 +158,11 @@ fun <T> TokensPath.commaSeparated(contentParser: TokensPath.() -> JsonOutcome<T>
 fun <T> commaSeparated(
     tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
 ): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p ->
-    contentParser(t, p)?.bindAndIgnore {
-        takeOrNull(Comma, t, p) ?: null.asSuccess()
+    val parsedValue = contentParser(t, p)
+        ?: return@parseValues (null to false).asSuccess()
+
+    parsedValue.transform { value ->
+        value to (takeOrNull(Comma, t, p) != null)
     }
 }
 
@@ -269,10 +277,15 @@ fun parseFields(
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any>
 ): JsonOutcome<Map<String, Any>> =
     commaSeparated(tokens, path) { t, p ->
+        //!!! PATH should be updated with field details
+        //how to exit where no more fields???
+        println("!!!path $p")
         parseString(t, p)
             .bindAndIgnore {
-                take(Comma, t, p)
+                println("!!!path in fieldname $p")
+                take(Colon, t, p)
             }.bind { key ->
+                println("!!!path in fielVal $p")
                 fieldParser(key, t, p)
                     .transform { key to it }
             }

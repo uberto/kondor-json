@@ -308,11 +308,28 @@ class JValuesExtraTest {
     }
 
     @Test
+    fun `Json FileInfo new format`() {
+
+        val fileInfo = FileInfo(
+            "file name",
+            Instant.parse("2021-07-01T10:15:30Z"),
+            false,
+            1234,
+            "/home/"
+        )
+
+        val json = JFileInfoNew.toJson(fileInfo)
+
+        val obj = JFileInfoNew.fromJson(json).expectSuccess()
+        expectThat(obj).isEqualTo(fileInfo)
+
+    }
+
+    @Test
     fun `Json SelectedFile new format`() {
         repeat(10) {
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
             val jsonStr = JSelectedFileNew.toJson(value)
-            println("[DEBUG_LOG] JSelectedFileNew JSON (nested): $jsonStr")
             val result = JSelectedFileNew.fromJson(jsonStr).expectSuccess()
             expectThat(result).isEqualTo(value)
         }
