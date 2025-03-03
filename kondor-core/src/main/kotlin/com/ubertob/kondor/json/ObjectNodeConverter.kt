@@ -26,8 +26,8 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
 
-    fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
-        fromFieldMap(fieldMap, path)
+    fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
+        fromFieldMap(FieldMap(fieldNodeMap), path)
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldNodeMap(node._fieldMap, path)

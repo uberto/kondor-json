@@ -275,7 +275,7 @@ fun parseFields(
     tokens: TokensStream,
     path: NodePath,
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any>
-): JsonOutcome<Map<String, Any>> =
+): JsonOutcome<FieldMap> =
     commaSeparated(tokens, path) { t, p ->
         //!!! PATH should be updated with field details
         //how to exit where no more fields???
@@ -290,7 +290,7 @@ fun parseFields(
                     .transform { key to it }
             }
     }.bind {
-        it.toMap().asSuccess()
+        FieldMap(it.toMap()).asSuccess()
     }
 
 fun <T> parseNewValue(

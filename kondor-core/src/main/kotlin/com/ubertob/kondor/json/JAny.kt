@@ -11,7 +11,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
 
     override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            val nodeMap = fieldMap.mapValues { (_, value) ->
+            val nodeMap = fieldMap.map.mapValues { (_, value) ->
                 when (value) {
                     null -> JsonNodeNull
                     is String -> JsonNodeString(value)

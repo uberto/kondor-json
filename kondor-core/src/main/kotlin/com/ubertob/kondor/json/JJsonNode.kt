@@ -11,7 +11,7 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
 
     override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject> =
         tryFromNode(path) {
-            val nodeMap = fieldMap.mapValues { (_, value) ->
+            val nodeMap = fieldMap.map.mapValues { (_, value) -> //!!! duplicated
                 when (value) {
                     null -> JsonNodeNull
                     is String -> JsonNodeString(value)
@@ -24,8 +24,8 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
             JsonNodeObject.buildForParsing(nodeMap, path)
         }
 
-    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
-        JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
+    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
+        JsonNodeObject.buildForParsing(fieldNodeMap, path).asSuccess()
 
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
         valueObject._fieldMap

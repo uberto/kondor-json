@@ -13,7 +13,12 @@ import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 typealias FieldNodeMap = Map<String, JsonNode>
-typealias FieldMap = Map<String, Any?>
+
+data class FieldMap(val map: Map<String, Any?>) : Pippo {
+
+    override fun getValue(fieldName: String): Any? = map[fieldName]
+
+}
 
 sealed class JsonNode(val nodeKind: NodeKind<*>)
 
@@ -48,6 +53,14 @@ data class JsonNodeObject(val _fieldMap: FieldNodeMap) : JsonNode(ObjectNode) {
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(_fieldMap, path = _path)
             .onFailure { throw JsonParsingException(it) }
+}
+
+interface Pippo { //!!! rename this
+
+    fun getValue(fieldName: String): Any?
+
+    operator fun <T> JsonProperty<T>.unaryPlus(): T = getValue(propName) as T
+
 }
 
 

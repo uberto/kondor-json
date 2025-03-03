@@ -21,7 +21,7 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
                 fromFieldMap(fieldMap, path)
             }
 
-    override fun fromFieldMap(fieldMap: Map<String, Any?>, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
             fieldMap.deserializeOrThrow()
         }

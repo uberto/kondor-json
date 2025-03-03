@@ -1,10 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.JsonNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.JsonNodeString
-import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.sealedSchema
 
 abstract class PolymorphicConverter<T : Any> : JAny<T>() {
@@ -19,9 +16,9 @@ abstract class PolymorphicConverter<T : Any> : JAny<T>() {
 
     protected open val defaultConverter: ObjectNodeConverter<out T>? = null
 
-    override fun fromFieldMap(fieldMap: Map<String, Any?>, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            val discriminatorValue = fieldMap[discriminatorFieldName]
+            val discriminatorValue = fieldMap.getValue(discriminatorFieldName)
                 ?: defaultConverter?.let { return@tryFromNode it.fromFieldMap(fieldMap, path).orThrow() }
                 ?: throw JsonParsingException(
                     ConverterJsonError(

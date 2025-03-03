@@ -374,12 +374,12 @@ object JFileInfoNew : JObj<FileInfo>() {
     val folder_path by str(FileInfo::folderPath)
 
     override fun FieldMap.deserializeOrThrow() =
-        FileInfo( //!!! use some kind of DSL/operator here
-            name = this["file_name"] as String,
-            date = this["creation_date"] as Instant,
-            isDir = this["is_dir"] as Boolean,
-            size = this["size"] as Long,
-            folderPath = this["folder_path"] as String
+        FileInfo(
+            name = +file_name,
+            date = +creation_date,
+            isDir = +is_dir,
+            size = +size,
+            folderPath = +folder_path
         )
 }
 
@@ -420,8 +420,8 @@ object JSelectedFileNew : JObj<SelectedFile>() {
 
     override fun FieldMap.deserializeOrThrow(): SelectedFile =
         SelectedFile(
-            selected = this["selected"] as Boolean,
-            file = this["file"] as FileInfo
+            selected = +selected,
+            file = +file
         )
 }
 

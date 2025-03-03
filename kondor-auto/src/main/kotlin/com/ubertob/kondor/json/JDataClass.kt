@@ -16,7 +16,7 @@ abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
     protected val _jsonProperties by lazy { getProperties() }
 
     private fun convertToNodeMap(fieldMap: FieldMap, path: NodePath): FieldNodeMap =
-        fieldMap.mapValues { (_, value) ->
+        fieldMap.map.mapValues { (_, value) ->
             when (value) {
                 null -> JsonNodeNull
                 is String -> JsonNodeString(value)

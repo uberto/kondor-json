@@ -50,9 +50,9 @@ class JMap<K : Any, V : Any>(
     override fun JsonNodeObject.deserializeOrThrow(): Map<K, V> =
         convertEntries(_fieldMap.entries, _path)
 
-    override fun fromFieldMap(fieldMap: Map<String, Any?>, path: NodePath): JsonOutcome<Map<K, V>> =
+    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<Map<K, V>> =
         tryFromNode(path) {
-            convertEntries(fieldMap.entries, path)
+            convertEntries(fieldMap.map.entries, path)
         }
 
 
