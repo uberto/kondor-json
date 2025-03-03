@@ -279,13 +279,13 @@ fun parseFields(
     commaSeparated(tokens, path) { t, p ->
         //!!! PATH should be updated with field details
         //how to exit where no more fields???
-        println("!!!path $p")
+//        println("!!!path $p")
         parseString(t, p)
             .bindAndIgnore {
-                println("!!!path in fieldname $p")
+//                println("!!!path in fieldname $p")
                 take(Colon, t, p)
             }.bind { key ->
-                println("!!!path in fielVal $p")
+//                println("!!!path in fielVal $p")
                 fieldParser(key, t, p)
                     .transform { key to it }
             }
