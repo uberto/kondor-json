@@ -23,8 +23,8 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
 
     override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            fieldMap.deserializeOrThrow()
+            fieldMap.deserializeOrThrow(path)
         }
 
-    abstract fun FieldMap.deserializeOrThrow(): T //this is the method that concrete converter will have to implement
+    abstract fun FieldMap.deserializeOrThrow(path: NodePath): T //this is the method that concrete converter will have to implement
 }

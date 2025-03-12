@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.random.Random
 
 fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).replaceFirstChar { it.uppercase() })
-fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.values().random())
+fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.entries.random())
 
 fun randomCustomer(): Customer = when (Random.nextBoolean()) {
     true -> randomPerson()
@@ -93,10 +93,10 @@ fun randomNodeFields(): FieldNodeMap =
 
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer() {
-    object Json : JAny<Person>() {
+    object Json : JObj<Person>() {
         val id by num(Person::id)
         val name by str(Person::name)
-        override fun JsonNodeObject.deserializeOrThrow() = Person(
+        override fun FieldMap.deserializeOrThrow(path: NodePath) = Person(
             id = +id,
             name = +name
         )
@@ -127,12 +127,12 @@ object JGraphNode : JAny<GraphNode>() {
 }
 
 
-object JPerson : JAny<Person>() {
+object JPerson : JObj<Person>() {
 
     private val id by num(Person::id)
     private val name by str(Person::name)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldMap.deserializeOrThrow(path: NodePath) =
         Person(
             id = +id,
             name = +name
@@ -155,14 +155,14 @@ data class Product(val id: Int, val shortDesc: String, val longDesc: String, val
     }
 }
 
-object JProduct : JAny<Product>() {
+object JProduct : JObj<Product>() {
 
     private val id by num(Product::id)
     private val long_description by str(Product::longDesc)
     private val `short-desc` by str(Product::shortDesc)
     private val price by num(Product::price)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldMap.deserializeOrThrow(path: NodePath) =
         Product(
             id = +id,
             shortDesc = +`short-desc`,
@@ -208,12 +208,12 @@ data class Invoice(
     }
 }
 
-object JCompany : JAny<Company>() {
+object JCompany : JObj<Company>() {
 
     private val name by str(Company::name)
     private val tax_type by str(Company::taxType)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldMap.deserializeOrThrow(path: NodePath) =
         Company(
             name = +name,
             taxType = +tax_type
@@ -241,7 +241,7 @@ object JCustomer : JSealed<Customer>() {
 }
 
 
-object JInvoice : JAny<Invoice>() {
+object JInvoice : JObj<Invoice>() {
 
     private val id by str(::InvoiceId, Invoice::id)
     private val `vat-to-pay` by bool(Invoice::vat)
@@ -251,7 +251,7 @@ object JInvoice : JAny<Invoice>() {
     private val created_date by str(Invoice::created)
     private val paid_datetime by num(Invoice::paid)
 
-    override fun JsonNodeObject.deserializeOrThrow(): Invoice =
+    override fun FieldMap.deserializeOrThrow(path: NodePath): Invoice =
         Invoice(
             id = +id,
             vat = +`vat-to-pay`,
@@ -373,7 +373,7 @@ object JFileInfoNew : JObj<FileInfo>() {
     val size by num(FileInfo::size)
     val folder_path by str(FileInfo::folderPath)
 
-    override fun FieldMap.deserializeOrThrow() =
+    override fun FieldMap.deserializeOrThrow(path: NodePath) =
         FileInfo(
             name = +file_name,
             date = +creation_date,
@@ -418,7 +418,7 @@ object JSelectedFileNew : JObj<SelectedFile>() {
     private val selected by bool(SelectedFile::selected)
     private val file by obj(JFileInfoNew, SelectedFile::file)
 
-    override fun FieldMap.deserializeOrThrow(): SelectedFile =
+    override fun FieldMap.deserializeOrThrow(path: NodePath): SelectedFile =
         SelectedFile(
             selected = +selected,
             file = +file

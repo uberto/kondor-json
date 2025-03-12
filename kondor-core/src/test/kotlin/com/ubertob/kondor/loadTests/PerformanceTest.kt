@@ -9,7 +9,6 @@ import com.ubertob.kondor.json.jsonnode.onRoot
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.randomString
 import com.ubertob.kondortools.expectSuccess
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
@@ -131,7 +130,7 @@ lazy parsing 4569 ms
 50k Invoices parsing from stream 3446 ms
  */
 
-@Disabled
+//@Disabled
 class PerformanceTest {
 
     val times = 10
@@ -152,13 +151,13 @@ class PerformanceTest {
 
             chronoAndLog("serialization compact") { JInvoices.toJson(invoices, JsonStyle.compact) }
 
-            chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }
+            chronoAndLog("total parsing") { JInvoices.fromJson(jsonString) }.expectSuccess()
 
-            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString).expectSuccess() }
+            val tokens = chronoAndLog("tokenizing") { KondorTokenizer.tokenize(jsonString) }.expectSuccess()
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
-            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes, NodePathRoot) }
+//!!! broken atm            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes, NodePathRoot) }
 
 //            chronoAndLog("lazy parsing") {
 //                ByteArrayInputStream(jsonString.toByteArray()).use {

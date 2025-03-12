@@ -1,10 +1,13 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.FieldMap
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.schema.sealedSchema
 
-abstract class PolymorphicConverter<T : Any> : JAny<T>() {
+abstract class PolymorphicConverter<T : Any> : JObj<T>() {  //!!!!!!!!!! thiis is broken now
     abstract fun extractTypeName(obj: T): String
     abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
 
@@ -42,27 +45,23 @@ abstract class PolymorphicConverter<T : Any> : JAny<T>() {
 
 abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
 
-    override open val discriminatorFieldName: String = "_type"
+    override val discriminatorFieldName: String = "_type"
 
-    override open val defaultConverter: ObjectNodeConverter<out T>? = null
+    override val defaultConverter: ObjectNodeConverter<out T>? = null
 
     private fun discriminatorFieldNode(obj: T) =
         JsonNodeString(extractTypeName(obj))
 
-    override fun JsonNodeObject.deserializeOrThrow(): T {
-        val discriminatorNode = _fieldMap[discriminatorFieldName]
-            ?: defaultConverter?.let { return it.fromFieldNodeMap(_fieldMap, _path).orThrow() }
+    override fun FieldMap.deserializeOrThrow(path: NodePath): T {
+        val typeName = getValue(discriminatorFieldName)
+            ?: defaultConverter?.let { return it.fromFieldMap(this, path).orThrow() }
             ?: throw JsonParsingException(
-                ConverterJsonError(
-                    _path,
-                    "expected discriminator field \"$discriminatorFieldName\" not found"
-                )
+                ConverterJsonError(path, "expected discriminator field \"$discriminatorFieldName\" not found")
             )
 
-        val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
         val converter = subConverters[typeName]
-            ?: throw JsonParsingException(ConverterJsonError(_path, "subtype not known $typeName"))
-        return converter.fromFieldNodeMap(_fieldMap, _path).orThrow()
+            ?: throw JsonParsingException(ConverterJsonError(path, "subtype not known $typeName"))
+        return converter.fromFieldMap(this, path).orThrow()
     }
 
     override fun convertFields(valueObject: T): Map<String, JsonNode> =

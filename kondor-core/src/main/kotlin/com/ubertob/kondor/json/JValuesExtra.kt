@@ -1,6 +1,8 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.FieldMap
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.schema.enumSchema
 import java.util.*
 import kotlin.reflect.KClass
@@ -41,7 +43,7 @@ data class JEnumClass<E : Enum<E>>(val clazz: KClass<E>) : JStringRepresentable<
 }
 
 //for serializing Kotlin object and other single instance types
-data class JInstance<T : Any>(val singleton: T) : JAny<T>() {
-    override fun JsonNodeObject.deserializeOrThrow() = singleton
+data class JInstance<T : Any>(val singleton: T) : JObj<T>() {
+    override fun FieldMap.deserializeOrThrow(path: NodePath) = singleton
 }
 
