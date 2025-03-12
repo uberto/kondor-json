@@ -9,9 +9,9 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            val nodeMap = fieldMap.map.mapValues { (_, value) ->
+            val nodeMap = fieldValues.mapValues { value ->
                 when (value) {
                     null -> JsonNodeNull
                     is String -> JsonNodeString(value)
@@ -22,7 +22,6 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
                 }
             }
             JsonNodeObject.buildForParsing(nodeMap, path).deserializeOrThrow()
-                ?: throw JsonParsingException(ConverterJsonError(path, "deserializeOrThrow returned null!"))
         }
 
 }

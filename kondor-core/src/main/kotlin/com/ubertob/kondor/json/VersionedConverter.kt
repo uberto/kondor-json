@@ -22,18 +22,18 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     open val outputVersionConverter: ObjectNodeConverter<T> get() =
         converterForVersion(outputVersion) ?: error("no converter for version $outputVersion")
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
-        val jsonVersion = (fieldMap.getValue(versionProperty) as? String)
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
+        val jsonVersion = (fieldValues.getValue(versionProperty) as? String)
             ?: defaultVersion
             ?: return missingVersionError(path).asFailure()
 
         return converterForVersion(jsonVersion).asSuccess()
             .failIfNull { unsupportedVersionError(path, jsonVersion) }
-            .bind { it.fromFieldMap(fieldMap, path) }
+            .bind { it.fromFieldValues(fieldValues, path) }
     }
 
     override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
-        val jsonVersion = fieldNodeMap[versionProperty].asStringValue()
+        val jsonVersion = fieldNodeMap.map[versionProperty].asStringValue()
             ?: defaultVersion
             ?: return missingVersionError(path).asFailure()
 
@@ -52,7 +52,7 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
 
     override fun toJsonNode(value: T): JsonNodeObject =
         outputVersionConverter.toJsonNode(value).let {
-            it.copy(_fieldMap = it._fieldMap + (versionProperty to JsonNodeString(outputVersion)))
+            it.copy(_fieldMap = FieldNodeMap(it._fieldMap.map + (versionProperty to JsonNodeString(outputVersion))))
         }
 
     private fun missingVersionError(path: NodePath) =

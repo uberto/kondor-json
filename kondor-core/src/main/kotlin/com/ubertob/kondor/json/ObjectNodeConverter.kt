@@ -24,10 +24,11 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
-    fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T>
+    fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T>
 
     fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
-        fromFieldMap(FieldMap(fieldNodeMap), path)
+        //!!! check if we can remove this and leave only fromFieldValues
+        fromFieldValues(fieldNodeMap, path)
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldNodeMap(node._fieldMap, path)
@@ -43,7 +44,7 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
     override fun toJsonNode(value: T): JsonNodeObject =
         JsonNodeObject(convertFields(value))
 
-    abstract fun convertFields(valueObject: T): Map<String, JsonNode>
+    abstract fun convertFields(valueObject: T): FieldNodeMap
 
 }
 
@@ -52,9 +53,11 @@ abstract class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>(
     abstract val writers: List<NodeWriter<T>>
 
     override fun convertFields(valueObject: T): FieldNodeMap =
-        writers.fold(mutableMapOf()) { acc, writer ->
-            writer(acc, valueObject)
-        }
+        FieldNodeMap(
+            writers.fold(mutableMapOf()) { acc, writer ->
+                writer(acc, valueObject)
+            }
+        )
 
 }
 

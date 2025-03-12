@@ -1,6 +1,6 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.FieldMap
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.parser.KondorSeparator
 import com.ubertob.kondor.json.parser.TokensStream
@@ -18,13 +18,13 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
             KondorSeparator.ClosingCurly,
         )(tokens, path)
             .bind { fieldMap ->
-                fromFieldMap(fieldMap, path)
+                fromFieldValues(fieldMap, path)
             }
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            fieldMap.deserializeOrThrow(path)
+            fieldValues.deserializeOrThrow(path)
         }
 
-    abstract fun FieldMap.deserializeOrThrow(path: NodePath): T //this is the method that concrete converter will have to implement
+    abstract fun FieldsValues.deserializeOrThrow(path: NodePath): T //this is the method that concrete converter will have to implement
 }

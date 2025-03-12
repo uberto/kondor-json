@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
-import java.io.*
 
 data class JsonStyle(
     val appendFieldSeparator: (CharWriter) -> CharWriter,
@@ -169,7 +168,7 @@ data class JsonStyle(
             }
         
         private fun JsonNodeObject.fields(includeNulls: Boolean, sorted: Boolean) =
-            (if (includeNulls) _fieldMap.entries else notNullFields).let {
+            (if (includeNulls) _fieldMap.map.entries else notNullFields).let {
                 if (sorted) it.sortedBy(Map.Entry<String, JsonNode>::key) else it
             }
         

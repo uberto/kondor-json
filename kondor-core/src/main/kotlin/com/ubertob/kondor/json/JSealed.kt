@@ -1,8 +1,8 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.FieldMap
-import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.FieldNodeMap
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.schema.sealedSchema
@@ -19,10 +19,10 @@ abstract class PolymorphicConverter<T : Any> : JObj<T>() {  //!!!!!!!!!! thiis i
 
     protected open val defaultConverter: ObjectNodeConverter<out T>? = null
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
-            val discriminatorValue = fieldMap.getValue(discriminatorFieldName)
-                ?: defaultConverter?.let { return@tryFromNode it.fromFieldMap(fieldMap, path).orThrow() }
+            val discriminatorValue = fieldValues.getValue(discriminatorFieldName)
+                ?: defaultConverter?.let { return@tryFromNode it.fromFieldValues(fieldValues, path).orThrow() }
                 ?: throw JsonParsingException(
                     ConverterJsonError(
                         path,
@@ -39,7 +39,7 @@ abstract class PolymorphicConverter<T : Any> : JObj<T>() {  //!!!!!!!!!! thiis i
             val converter = subConverters[typeName]
                 ?: throw JsonParsingException(ConverterJsonError(path, "subtype not known $typeName"))
 
-            converter.fromFieldMap(fieldMap, path).orThrow()
+            converter.fromFieldValues(fieldValues, path).orThrow()
         }
 }
 
@@ -52,24 +52,24 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
     private fun discriminatorFieldNode(obj: T) =
         JsonNodeString(extractTypeName(obj))
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath): T {
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): T {
         val typeName = getValue(discriminatorFieldName)
-            ?: defaultConverter?.let { return it.fromFieldMap(this, path).orThrow() }
+            ?: defaultConverter?.let { return it.fromFieldValues(this, path).orThrow() }
             ?: throw JsonParsingException(
                 ConverterJsonError(path, "expected discriminator field \"$discriminatorFieldName\" not found")
             )
 
         val converter = subConverters[typeName]
             ?: throw JsonParsingException(ConverterJsonError(path, "subtype not known $typeName"))
-        return converter.fromFieldMap(this, path).orThrow()
+        return converter.fromFieldValues(this, path).orThrow()
     }
 
-    override fun convertFields(valueObject: T): Map<String, JsonNode> =
+    override fun convertFields(valueObject: T): FieldNodeMap =
         extractTypeName(valueObject).let { typeName ->
             findSubTypeConverter(typeName)
                 ?.toJsonNode(valueObject)
                 ?._fieldMap
-                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
+                ?.also { (it.map as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
                 ?: error("subtype not known $typeName")
         }
 

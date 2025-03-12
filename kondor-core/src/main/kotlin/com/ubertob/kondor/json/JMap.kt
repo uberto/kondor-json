@@ -14,7 +14,7 @@ class JMap<K : Any, V : Any>(
         if (keyConverter is JStringRepresentable<*> && keyConverter.cons === { it: String -> it })
             objectSchema(emptyList()) // for string-keyed maps, return empty object schema with type
         else
-            JsonNodeObject(mapOf("type" to JsonNodeString("object"))) // for non-string keys, just return type:object
+            JsonNodeObject(FieldNodeMap(mapOf("type" to JsonNodeString("object")))) // for non-string keys, just return type:object
 
     companion object {
         operator fun <V : Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
@@ -48,11 +48,15 @@ class JMap<K : Any, V : Any>(
         }
 
     override fun JsonNodeObject.deserializeOrThrow(): Map<K, V> =
-        convertEntries(_fieldMap.entries, _path)
+        convertEntries(_fieldMap.map.entries, _path)
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<Map<K, V>> =
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<Map<K, V>> =
         tryFromNode(path) {
-            convertEntries(fieldMap.map.entries, path)
+
+            when (fieldValues) { //!!! clean up
+                is FieldMap -> convertEntries(fieldValues.map.entries, path)
+                is FieldNodeMap -> convertEntries(fieldValues.map.entries, path)
+            }
         }
 
 
@@ -69,13 +73,14 @@ class JMap<K : Any, V : Any>(
             }
             .sortedBy { it.first }
 
-    override fun convertFields(valueObject: Map<K, V>): Map<String, JsonNode> =
-        valueObject
+    override fun convertFields(valueObject: Map<K, V>): FieldNodeMap =
+        FieldNodeMap(
+            valueObject
             .map { (key, value) ->
                 val keyString = keyConverter.render(key)
                 keyString to valueConverter.toJsonNode(value)
             }
             .sortedBy { it.first }
             .toMap()
-
+        )
 }

@@ -26,7 +26,7 @@ class NodeKindTest {
     fun `from Json to JsonNode`() {
         val jsonNode: JsonNodeObject = ObjectNode.fromJsonString(jsonString).expectSuccess()
 
-        expectThat(jsonNode._fieldMap.keys).containsExactly(setOf("id", "name", "somethingelse"))
+        expectThat(jsonNode._fieldMap.map.keys).containsExactly(setOf("id", "name", "somethingelse"))
         expectThat(jsonNode.render(prettyWithNulls)).isEqualTo(jsonString)
     }
 
@@ -34,7 +34,7 @@ class NodeKindTest {
     object ExtractId : FromJson<Long> {
         override fun fromJson(json: String): JsonOutcome<Long> =
             ObjectNode.fromJsonString(json)
-                .transform { it._fieldMap["id"].asNumValue()?.toLong() }
+                .transform { it._fieldMap.map["id"].asNumValue()?.toLong() }
                 .failIfNull { JsonPropertyError(NodePathRoot, "id", "expected Number!") }
     }
 

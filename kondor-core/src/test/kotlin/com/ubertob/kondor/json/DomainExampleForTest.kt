@@ -83,10 +83,12 @@ fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
 )
 
 fun randomNodeFields(): FieldNodeMap =
-    mapOf(
-        "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
-        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
-        "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
+    FieldNodeMap(
+        mapOf(
+            "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
+            "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
+            "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
+        )
     )
 
 //------------
@@ -96,7 +98,7 @@ data class Person(val id: Int, val name: String) : Customer() {
     object Json : JObj<Person>() {
         val id by num(Person::id)
         val name by str(Person::name)
-        override fun FieldMap.deserializeOrThrow(path: NodePath) = Person(
+        override fun FieldsValues.deserializeOrThrow(path: NodePath) = Person(
             id = +id,
             name = +name
         )
@@ -132,7 +134,7 @@ object JPerson : JObj<Person>() {
     private val id by num(Person::id)
     private val name by str(Person::name)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath) =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Person(
             id = +id,
             name = +name
@@ -162,7 +164,7 @@ object JProduct : JObj<Product>() {
     private val `short-desc` by str(Product::shortDesc)
     private val price by num(Product::price)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath) =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Product(
             id = +id,
             shortDesc = +`short-desc`,
@@ -213,7 +215,7 @@ object JCompany : JObj<Company>() {
     private val name by str(Company::name)
     private val tax_type by str(Company::taxType)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath) =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Company(
             name = +name,
             taxType = +tax_type
@@ -251,7 +253,7 @@ object JInvoice : JObj<Invoice>() {
     private val created_date by str(Invoice::created)
     private val paid_datetime by num(Invoice::paid)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath): Invoice =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Invoice =
         Invoice(
             id = +id,
             vat = +`vat-to-pay`,
@@ -370,10 +372,10 @@ object JFileInfoNew : JObj<FileInfo>() {
     val file_name by str(FileInfo::name)
     val creation_date by num(FileInfo::date)
     val is_dir by bool(FileInfo::isDir)
-    val size by num(FileInfo::size)
+    val size by num(JLong, FileInfo::size)
     val folder_path by str(FileInfo::folderPath)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath) =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         FileInfo(
             name = +file_name,
             date = +creation_date,
@@ -418,7 +420,7 @@ object JSelectedFileNew : JObj<SelectedFile>() {
     private val selected by bool(SelectedFile::selected)
     private val file by obj(JFileInfoNew, SelectedFile::file)
 
-    override fun FieldMap.deserializeOrThrow(path: NodePath): SelectedFile =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): SelectedFile =
         SelectedFile(
             selected = +selected,
             file = +file

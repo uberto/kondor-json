@@ -6,7 +6,7 @@ infix fun String.toNode(fieldValuesMap: Map<String, String?>): NamedNode =
     this to JsonNodeObject(fieldValuesMap.toNodes())
 
 fun Map<String, String?>.toNodes(): FieldNodeMap =
-    mapValues { (_, str) -> str?.let { JsonNodeString(str) } ?: JsonNodeNull }
+    FieldNodeMap(mapValues { (_, str) -> str?.let { JsonNodeString(str) } ?: JsonNodeNull })
 
 infix fun String.toNode(fieldValue: String): NamedNode =
     this to JsonNodeString(fieldValue)
@@ -46,7 +46,7 @@ infix fun String.toNode(fieldValue: Boolean?): NamedNode =
     fieldValue?.let(::toNode) ?: nullNode()
 
 fun nodeObject(vararg nodes: NamedNode): JsonNodeObject = JsonNodeObject(
-    _fieldMap = nodes.toMap()
+    _fieldMap = FieldNodeMap(nodes.toMap())
 )
 
 fun JsonNode?.asStringValue(): String? = (this as? JsonNodeString)?.text
@@ -55,6 +55,6 @@ fun JsonNode?.asBooleanValue(): Boolean? = (this as? JsonNodeBoolean)?.boolean
 
 fun JsonNode?.asNumValue(): Number? = (this as? JsonNodeNumber)?.num
 
-fun JsonNode?.asObjFieldMap(): FieldNodeMap? = (this as? JsonNodeObject)?._fieldMap
+fun JsonNode?.asObjFieldMap(): Map<String, JsonNode>? = (this as? JsonNodeObject)?._fieldMap?.map
 
 

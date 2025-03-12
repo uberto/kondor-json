@@ -124,7 +124,7 @@ fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated(withPa
     keyValue {
         parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.lastPosRead(), path, "invalid Json")
     }
-}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap()) }
+}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(FieldNodeMap(it.toMap())) }
 
 private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
     pairs.sortedBy { it.first }

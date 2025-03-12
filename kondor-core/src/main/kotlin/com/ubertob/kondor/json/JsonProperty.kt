@@ -26,13 +26,13 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
 ) : JsonProperty<T>() {
 
     override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
-        fieldMap[propName]
+        fieldMap.map[propName]
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?.failIfNull { JsonPropertyError(NodePathSegment(propName, path), propName, "Found null for non-nullable") }
             ?: JsonPropertyError(
                 path,
                 propName,
-                "Not found key '$propName'. Keys found: [${fieldMap.keys.joinToString()}]"
+                "Not found key '$propName'. Keys found: [${fieldMap.map.keys.joinToString()}]"
             ).asFailure()
 
 
@@ -57,14 +57,15 @@ data class JsonPropOptional<T, JN : JsonNode>(
 ) : JsonProperty<T?>() {
 
     override fun getter(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T?> =
-        fieldMap[propName]
+        fieldMap.map[propName]
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?: null.asSuccess()
 
 
     override fun setter(value: T?): PropertySetter = { fm ->
         fm.apply {
-            put(propName,
+            put(
+                propName,
                 value?.let { converter.toJsonNode(it) }
                     ?: JsonNodeNull
             )
@@ -96,12 +97,12 @@ data class JsonPropMandatoryFlatten<T : Any>(
         converter.fromFieldNodeMap(fieldMap.removeFieldsFromParent(), path)
             .failIfNull { JsonPropertyError(path, propName, "Found null for non-nullable") }
 
-    private fun FieldNodeMap.removeFieldsFromParent() =
-        filterKeys { key -> !parentProperties.contains(key) }
+    private fun FieldNodeMap.removeFieldsFromParent(): FieldNodeMap =
+        FieldNodeMap(map.filterKeys { key -> !parentProperties.contains(key) })
 
     override fun setter(value: T): PropertySetter = { fm ->
         fm.apply {
-            fm.putAll(converter.toJsonNode(value)._fieldMap)
+            fm.putAll(converter.toJsonNode(value)._fieldMap.map)
         }
     }
 

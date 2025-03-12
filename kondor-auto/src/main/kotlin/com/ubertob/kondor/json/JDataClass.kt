@@ -15,8 +15,8 @@ abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
     //this class should be replaced by the new JObj
     protected val _jsonProperties by lazy { getProperties() }
 
-    private fun convertToNodeMap(fieldMap: FieldMap, path: NodePath): FieldNodeMap =
-        fieldMap.map.mapValues { (_, value) ->
+    private fun convertToNodeMap(fieldMap: FieldsValues, path: NodePath): FieldNodeMap =
+        FieldNodeMap(fieldMap.mapValues { value ->
             when (value) {
                 null -> JsonNodeNull
                 is String -> JsonNodeString(value)
@@ -25,10 +25,10 @@ abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
                 is JsonNode -> value
                 else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
             }
-        }
+        })
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<T> {
-        val nodeMap = convertToNodeMap(fieldMap, path)
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
+        val nodeMap = convertToNodeMap(fieldValues, path)
         val args = _jsonProperties.associate { prop ->
             val propValue = prop.getter(nodeMap, path)
                 .onFailure { return it.asFailure() }

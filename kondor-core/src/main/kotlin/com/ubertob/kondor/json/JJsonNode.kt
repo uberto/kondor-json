@@ -2,16 +2,15 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.asSuccess
 
 object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
     override val _nodeType = ObjectNode
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromFieldMap(fieldMap: FieldMap, path: NodePath): JsonOutcome<JsonNodeObject> =
+    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<JsonNodeObject> =
         tryFromNode(path) {
-            val nodeMap = fieldMap.map.mapValues { (_, value) -> //!!! duplicated
+            val nodeMap = fieldValues.mapValues { value -> //!!! duplicated
                 when (value) {
                     null -> JsonNodeNull
                     is String -> JsonNodeString(value)
@@ -24,11 +23,12 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
             JsonNodeObject.buildForParsing(nodeMap, path)
         }
 
-    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
-        JsonNodeObject.buildForParsing(fieldNodeMap, path).asSuccess()
+    //Not sure we need it !!!
+//    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
+//        JsonNodeObject.buildForParsing(fieldNodeMap, path).asSuccess()
 
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
-        valueObject._fieldMap
+        valueObject._fieldMap.map
             .map { (key, value) ->
                 key to valueAppender(value)
             }
