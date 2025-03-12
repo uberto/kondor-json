@@ -1,6 +1,6 @@
 allprojects {
     group = "com.ubertob.kondor"
-    version = "3.4.1"
+    version = "3.4.2"
 }
 
 tasks.wrapper {
