@@ -277,12 +277,12 @@ object JInvoice : JObj<Invoice>() {
 
 data class Money(val currency: Currency, val amount: BigInteger)
 
-object JMoney : JAny<Money>() {
+object JMoney : JObj<Money>() {
 
     private val ccy by str(Money::currency)
     private val amount by num(Money::amount)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Money(
             currency = +ccy,
             amount = +amount

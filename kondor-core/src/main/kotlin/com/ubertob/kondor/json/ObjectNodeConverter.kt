@@ -93,7 +93,6 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 
-    @Suppress("UNCHECKED_CAST")
     protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any> {
         val properties = getProperties()
         val property = properties.find { it.propName == fieldName }
@@ -101,15 +100,16 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
                 nodePath.parent(),
                 fieldName,
                 "Not found a property for the Json field '$fieldName'. Defined properties: ${properties.map { it.propName }}"
-            ).asFailure()
+            )
+                .asFailure()
         val fieldPath = NodePathSegment(fieldName, nodePath)
         return when (property) {
-            is JsonPropMandatory<*, *> -> property.converter.fromTokens(tokensStream, fieldPath) as JsonOutcome<Any>
+            is JsonPropMandatory<*, *> -> property.converter.fromTokens(tokensStream, fieldPath)
             is JsonPropOptional<*, *> -> property.converter.fromTokens(tokensStream, fieldPath).bind {
                 (it as Any).asSuccess()
             }
 
-            is JsonPropMandatoryFlatten<*> -> property.converter.fromTokens(tokensStream, fieldPath) as JsonOutcome<Any>
+            is JsonPropMandatoryFlatten<*> -> property.converter.fromTokens(tokensStream, fieldPath)
         }
     }
 }
