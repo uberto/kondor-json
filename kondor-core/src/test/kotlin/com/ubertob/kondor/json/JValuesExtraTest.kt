@@ -86,15 +86,15 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomExpenseReport()
+
+            val jsonStr = JExpenseReport.toJson(value)
+            expectThat(JExpenseReport.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
             val json = JExpenseReport.toJsonNode(value)
 
             val actual = JExpenseReport.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
-
-            val jsonStr = JExpenseReport.toJson(value)
-
-            expectThat(JExpenseReport.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
