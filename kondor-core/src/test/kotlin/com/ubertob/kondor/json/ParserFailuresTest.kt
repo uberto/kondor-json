@@ -64,6 +64,7 @@ class ParserFailuresTest {
 
         expectThat(error.msg).isEqualTo("Error converting node </customer/tax_type> not found Coyote among [Domestic, Exempt, EU, US, Other]")
     }
+
     @Test
     fun `thrown exception keep the json error`() {
         val illegalJson = "False"
@@ -169,7 +170,7 @@ class ParserFailuresTest {
     fun `parsing illegal Json Object with double comma returns an error`() {
         val illegalJson = """{ "id": 1,, "name": "alice" }"""
 
-        val error = JPerson.fromJson(illegalJson).expectFailure()
+        val error = JJsonNode.fromJson(illegalJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 10: expected a valid key but found Comma - key missing in object field")
     }
@@ -178,7 +179,7 @@ class ParserFailuresTest {
     fun `parsing illegal Json Object without quoted keys returns an error`() {
         val illegalJson = """{ "id": 1, name: "alice" }"""
 
-        val error = JPerson.fromJson(illegalJson).expectFailure()
+        val error = JJsonNode.fromJson(illegalJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected a valid key but found 'name' - key missing in object field")
     }
@@ -244,7 +245,8 @@ class ParserFailuresTest {
     @Test
     fun `parsing nested invalid json gives an error with the correct position`() {
         val invalidJson = """{ "obj": {"num": 123, "nestedObj": { BOOOM} } }"""
-        val error = JPerson.fromJson(invalidJson).expectFailure()
+
+        val error = JJsonNode.fromJson(invalidJson).expectFailure()
 
         expectThat(error.msg).isEqualTo("Error parsing node </obj/nestedObj> at position 38: expected a valid key but found 'BOOOM' - key missing in object field")
     }

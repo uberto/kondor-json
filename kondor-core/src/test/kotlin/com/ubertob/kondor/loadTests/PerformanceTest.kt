@@ -158,18 +158,15 @@ class PerformanceTest {
 
             val nodes = chronoAndLog("parsing up to JsonNode") { ArrayNode.parse(tokens.onRoot()) }.expectSuccess()
 
-//!!! broken atm            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes, NodePathRoot) }
+            chronoAndLog("marshalling") { JInvoices.fromJsonNode(nodes, NodePathRoot) }
 
-//            chronoAndLog("lazy parsing") {
-//                ByteArrayInputStream(jsonString.toByteArray()).use {
-//                    JInvoices.fromJson(it).expectSuccess()
-//                }
-//            }
-
+            chronoAndLog("lazy parsing") {
+                ByteArrayInputStream(jsonString.toByteArray()).use {
+                    JInvoices.fromJson(it).expectSuccess()
+                }
+            }
         }
-
     }
-
 
     @Test
     fun `serialize and parse FileInfo`() {
