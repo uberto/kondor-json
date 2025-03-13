@@ -274,7 +274,7 @@ fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStrea
 fun parseFields(
     tokens: TokensStream,
     path: NodePath,
-    fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any>
+    fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
 ): JsonOutcome<FieldMap> =
     commaSeparated(tokens, path) { t, p ->
         //!!! PATH should be updated with field details

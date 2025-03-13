@@ -2,6 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
+import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
@@ -30,40 +31,28 @@ class JMap<K : Any, V : Any>(
             JMap(JString)
     }
 
-    private fun convertEntries(entries: Set<Map.Entry<String, Any?>>, path: NodePath): Map<K, V> =
-        entries.associate { (key, value) ->
-            val newPath = NodePathSegment(key, path)
-            val jsonNode = when (value) {
-                null -> JsonNodeNull
-                is String -> JsonNodeString(value)
-                is Number -> JsonNodeNumber(value)
-                is Boolean -> JsonNodeBoolean(value)
-                is JsonNode -> value
-                else -> throw JsonParsingException(
-                    ConverterJsonError(
-                        path,
-                        "Unsupported value for key: $key type: ${value::class}"
-                    )
-                )
-            }
-            keyConverter.cons(key) to
-                    valueConverter.fromJsonNodeBase(jsonNode, newPath)
-                        .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
-                        .orThrow()
-        }
-
+    override fun resolveConverter(fieldName: String, nodePath: NodePath): JsonOutcome<JsonConverter<*, *>> =
+        valueConverter.asSuccess()
 
     override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<Map<K, V>> =
         tryFromNode(path) {
-
-            when (fieldValues) { //!!! clean up
-                is FieldMap -> convertEntries(fieldValues.map.entries, path)
-                is FieldNodeMap -> convertEntries(fieldValues.map.entries, path)
-            }
+            fieldValues.deserializeOrThrow(path)
         }
 
+    @Suppress("UNCHECKED_CAST")
     override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
-        error("This shouldn't be called!!!")
+        when (this) {
+            is FieldMap -> map.entries.associate { (key, value) ->
+                val mapKey = keyConverter.cons(key)
+                mapKey to value as V
+            }
+
+            is FieldNodeMap -> map.entries.associate { (key, node) ->
+                val keyPath = NodePathSegment(key, path)
+                keyConverter.cons(key) to valueConverter.fromJsonNodeBase(node, keyPath)
+                    .failIfNull { ConverterJsonError(keyPath, "Null value found for key: $key") }.orThrow()
+            }
+        }
 
 
 

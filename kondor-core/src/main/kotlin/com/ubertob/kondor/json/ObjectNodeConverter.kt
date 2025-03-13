@@ -35,7 +35,12 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         _nodeType.parse(TokensPath(tokens, path))
-            .bind { fromJsonNode(it, path) } // this will be moved to JAny alone when the rest have moved to new parsing
+            .bind {
+                fromJsonNode(
+                    it,
+                    path
+                )
+            } // !!! this will be moved to JAny alone when the rest have moved to new parsing
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -45,6 +50,7 @@ abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
         JsonNodeObject(convertFields(value))
 
     abstract fun convertFields(valueObject: T): FieldNodeMap
+
 
 }
 
@@ -59,6 +65,10 @@ abstract class ObjectNodeConverterWriters<T : Any> : ObjectNodeConverterBase<T>(
             }
         )
 
+    abstract fun resolveConverter(
+        fieldName: String,
+        nodePath: NodePath
+    ): JsonOutcome<JsonConverter<*, *>>
 }
 
 abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWriters<T>() {
@@ -93,23 +103,39 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 
-    protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any> {
-        val properties = getProperties()
-        val property = properties.find { it.propName == fieldName }
-            ?: return JsonPropertyError(
-                nodePath.parent(),
-                fieldName,
-                "Not found a property for the Json field '$fieldName'. Defined properties: ${properties.map { it.propName }}"
-            )
-                .asFailure()
-        val fieldPath = NodePathSegment(fieldName, nodePath)
-        return when (property) {
-            is JsonPropMandatory<*, *> -> property.converter.fromTokens(tokensStream, fieldPath)
-            is JsonPropOptional<*, *> -> property.converter.fromTokens(tokensStream, fieldPath).bind {
-                (it as Any).asSuccess()
+    protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any?> {
+        return resolveConverter(fieldName, nodePath)
+            .bind { conv ->
+
+                val fieldPath = NodePathSegment(fieldName, nodePath)
+                conv.fromTokens(tokensStream, fieldPath)
             }
 
-            is JsonPropMandatoryFlatten<*> -> property.converter.fromTokens(tokensStream, fieldPath)
+    }
+
+    override fun resolveConverter(
+        fieldName: String,
+        nodePath: NodePath
+    ): JsonOutcome<JsonConverter<*, *>> {
+        val properties = getProperties()
+        val property = properties.find { it.propName == fieldName }
+
+        return if (property == null) {
+            JsonPropertyError(
+                nodePath.parent(),
+                fieldName,
+                "Not found a property for the Json field '$fieldName'. Defined properties: ${getProperties().map { it.propName }}"
+            )
+                .asFailure()
+        } else {
+
+            val converter = when (property) {
+                is JsonPropMandatory<*, *> -> property.converter
+                is JsonPropOptional<*, *> -> property.converter
+                is JsonPropMandatoryFlatten<*> -> property.converter
+            }
+
+            converter.asSuccess()
         }
     }
 }
