@@ -18,7 +18,12 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
                     is Number -> JsonNodeNumber(value)
                     is Boolean -> JsonNodeBoolean(value)
                     is JsonNode -> value
-                    else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
+                    else -> throw JsonParsingException(
+                        ConverterJsonError(
+                            path,
+                            "Unsupported type in JAny: ${value::class}"
+                        )
+                    )
                 }
             }
             JsonNodeObject.buildForParsing(nodeMap, path).deserializeOrThrow()

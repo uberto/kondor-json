@@ -7,7 +7,7 @@ import com.ubertob.kondor.outcome.failIfNull
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
     private val valueConverter: JConverter<V>
-) : JAny<Map<K, V>>() {
+) : JObj<Map<K, V>>() {
 
     override fun schema(): JsonNodeObject =
         //!!! we shouldn't need this override, investigate
@@ -39,7 +39,12 @@ class JMap<K : Any, V : Any>(
                 is Number -> JsonNodeNumber(value)
                 is Boolean -> JsonNodeBoolean(value)
                 is JsonNode -> value
-                else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
+                else -> throw JsonParsingException(
+                    ConverterJsonError(
+                        path,
+                        "Unsupported value for key: $key type: ${value::class}"
+                    )
+                )
             }
             keyConverter.cons(key) to
                     valueConverter.fromJsonNodeBase(jsonNode, newPath)
@@ -47,8 +52,6 @@ class JMap<K : Any, V : Any>(
                         .orThrow()
         }
 
-    override fun JsonNodeObject.deserializeOrThrow(): Map<K, V> =
-        convertEntries(_fieldMap.map.entries, _path)
 
     override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<Map<K, V>> =
         tryFromNode(path) {
@@ -59,9 +62,14 @@ class JMap<K : Any, V : Any>(
             }
         }
 
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
+        error("This shouldn't be called!!!")
+
+
 
     private fun valueAppender(value: V?): ValueAppender? =
-        if (value == null) null
+        if (value == null)
+            null
         else { style, off ->
             valueConverter.appendValue(this, style, off, value)
         }

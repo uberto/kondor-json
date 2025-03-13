@@ -291,16 +291,16 @@ object JMoney : JAny<Money>() {
 
 data class ExpenseReport(val person: Person, val expenses: Map<String, Money>)
 
-object JExpenseReport : JAny<ExpenseReport>() {
+object JExpenseReport : JObj<ExpenseReport>() {
 
     private val person by obj(JPerson, ExpenseReport::person)
     private val expenses by obj(JMap(JMoney), ExpenseReport::expenses)
-
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         ExpenseReport(
             person = +person,
             expenses = +expenses
         )
+
 }
 
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
