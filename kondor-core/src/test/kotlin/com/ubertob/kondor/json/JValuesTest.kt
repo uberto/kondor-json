@@ -201,6 +201,21 @@ class JValuesTest {
         }
     }
 
+    @Test
+    fun `Json Simple Object and back`() {
+
+        val value = SimpleObject("abc123")
+        val json = SimpleObject.Json.toJson(value)
+
+        val actual = SimpleObject.Json.fromJson(json).expectSuccess()
+
+        expectThat(actual).isEqualTo(value)
+
+        val jsonNode = SimpleObject.Json.toJsonNode(value)
+        val actualFromNode = SimpleObject.Json.fromJsonNode(jsonNode, NodePathRoot).expectSuccess()
+        expectThat(actualFromNode).isEqualTo(value)
+
+    }
 
     @Test
     fun `Json Person and back`() {

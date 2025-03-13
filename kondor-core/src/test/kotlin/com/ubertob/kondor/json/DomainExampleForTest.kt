@@ -93,6 +93,14 @@ fun randomNodeFields(): FieldNodeMap =
 
 //------------
 
+data class SimpleObject(val string: String) {
+    object Json : JObj<SimpleObject>() {
+        val str by str(SimpleObject::string)
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): SimpleObject =
+            SimpleObject(+str)
+    }
+}
+
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer() {
     object Json : JObj<Person>() {
@@ -111,6 +119,7 @@ object AnonymousCustomer : Customer()
 data class GraphNode(val name: String, val nodeType: String, val path: String)
 
 //converters
+
 
 object JStringList : JArrayConverter<List<String>> by JList(JString)
 
