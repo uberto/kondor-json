@@ -16,7 +16,7 @@ typealias EntryJsonNode = Map.Entry<String, JsonNode>
 data class FieldNodeMap(val map: Map<String, JsonNode>) : FieldsValues {
 
     override fun getValue(fieldName: String): Any? {
-        val value = getValue(fieldName)
+        val value = map[fieldName]
         return when (value) {
             is JsonNodeNumber -> value.num
             is JsonNodeString -> value.text
