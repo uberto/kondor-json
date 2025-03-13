@@ -95,9 +95,13 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
 
     @Suppress("UNCHECKED_CAST")
     protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any> {
-        val property = getProperties().find { it.propName == fieldName }
-            ?: return JsonPropertyError(nodePath, fieldName, "Unknown field").asFailure()
-//!!! clean this better
+        val properties = getProperties()
+        val property = properties.find { it.propName == fieldName }
+            ?: return JsonPropertyError(
+                nodePath.parent(),
+                fieldName,
+                "Not found a property for the Json field '$fieldName'. Defined properties: ${properties.map { it.propName }}"
+            ).asFailure()
         val fieldPath = NodePathSegment(fieldName, nodePath)
         return when (property) {
             is JsonPropMandatory<*, *> -> property.converter.fromTokens(tokensStream, fieldPath) as JsonOutcome<Any>

@@ -230,7 +230,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error reading property <name> of node <[root]> Not found key 'name'. Keys found: [fullname, id]")
+        expectThat(error.msg).isEqualTo("Error reading property <fullname> of node <[root]> Not found a property for the Json field 'fullname'. Defined properties: [id, name]")
     }
 
     @Test

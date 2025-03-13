@@ -30,11 +30,8 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
             ?.let { converter.fromJsonNodeBase(it, NodePathSegment(propName, path)) }
             ?.failIfNull { JsonPropertyError(NodePathSegment(propName, path), propName, "Found null for non-nullable") }
             ?: JsonPropertyError(
-                path,
-                propName,
-                "Not found key '$propName'. Keys found: [${fieldMap.map.keys.joinToString()}]"
+                path, propName, "Not found key '$propName'. Keys found: [${fieldMap.map.keys.joinToString()}]"
             ).asFailure()
-
 
     override fun setter(value: T): PropertySetter = { fm ->
         fm.apply {
