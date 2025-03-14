@@ -222,7 +222,6 @@ abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, Jso
 
 }
 
-
 abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String

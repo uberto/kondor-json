@@ -411,17 +411,16 @@ object JMetadataFile : JAny<MetadataFile>() {
 
 data class SelectedFile(val selected: Boolean, val file: FileInfo)
 
-object JSelectedFile : JObj<SelectedFile>() {
+object JSelectedFile : JAny<SelectedFile>() {
 
     val selected by bool(SelectedFile::selected)
     val file_info by flatten(JFileInfo, SelectedFile::file)
 
-    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+    override fun JsonNodeObject.deserializeOrThrow() =
         SelectedFile(
             selected = +selected,
             file = +file_info,
         )
-
 }
 
 object JSelectedFileNew : JObj<SelectedFile>() {
