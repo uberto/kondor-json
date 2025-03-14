@@ -411,12 +411,12 @@ object JMetadataFile : JAny<MetadataFile>() {
 
 data class SelectedFile(val selected: Boolean, val file: FileInfo)
 
-object JSelectedFile : JAny<SelectedFile>() {
+object JSelectedFile : JObj<SelectedFile>() {
 
     val selected by bool(SelectedFile::selected)
     val file_info by flatten(JFileInfo, SelectedFile::file)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         SelectedFile(
             selected = +selected,
             file = +file_info,
@@ -443,6 +443,7 @@ object JUserFile : JObj<UserFile>() {
 
     val user by obj(JPerson, UserFile::user)
     val file by obj(JSelectedFile, UserFile::file)
+
     override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         UserFile(
             user = +user,

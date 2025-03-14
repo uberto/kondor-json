@@ -82,14 +82,14 @@ fun <T> surrounded(
 
 fun <T> parseValues(
     tokens: TokensStream, path: NodePath,
-    parseFun: (TokensStream, NodePath) -> JsonOutcome<Pair<T?, Boolean>>
+    parseFun: (TokensStream, NodePath, Int) -> JsonOutcome<Pair<T?, Boolean>>
 ): JsonOutcome<List<T>> {
     val values = ArrayList<T>(128)
     var index = 0
     var shouldContinue: Boolean = true
 
     while (shouldContinue) {
-        shouldContinue = parseFun(tokens, newSegment(path, index++))
+        shouldContinue = parseFun(tokens, path, index++)
             .transform { (value, continueParsing) ->
                 value?.let { values.add(it) }
                 continueParsing
@@ -99,8 +99,6 @@ fun <T> parseValues(
 
     return values.asSuccess()
 }
-
-private fun newSegment(path: NodePath, nodeNumber: Int): NodePath = NodePathSegment("[$nodeNumber]", path)
 
 fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
     parseBoolean(tokens, path)
@@ -153,12 +151,12 @@ private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> = when (k
 }
 
 fun <T> TokensPath.commaSeparated(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
-    commaSeparated(tokens, path) { t, p -> TokensPath(t, p).contentParser() }
+    commaSeparated(tokens, path) { t, p, i -> TokensPath(t, p).contentParser() }
 
 fun <T> commaSeparated(
-    tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
-): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p ->
-    val parsedValue = contentParser(t, p)
+    tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath, Int) -> JsonOutcome<T>?
+): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p, i ->
+    val parsedValue = contentParser(t, p, i)
         ?: return@parseValues (null to false).asSuccess()
 
     parsedValue.transform { value ->
@@ -269,16 +267,20 @@ private fun stringOrEmpty(
     }
 
 fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>) =
-    commaSeparated(tokens, path) { t, p -> parseNewValue(t, p, converter) }
+    commaSeparated(tokens, path) { t, p, i -> parseNewValue(t, newSegment(p, i + 1), converter) }
+
+
+private fun newSegment(path: NodePath, nodeNumber: Int): NodePath = NodePathSegment("[$nodeNumber]", path)
 
 fun parseFields(
     tokens: TokensStream,
     path: NodePath,
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
 ): JsonOutcome<FieldMap> =
-    commaSeparated(tokens, path) { t, p ->
+    commaSeparated(tokens, path) { t, p, i ->
         //!!! PATH should be updated with field details
         //how to exit where no more fields???
+
 //        println("!!!path $p")
         parseString(t, p)
             .bindAndIgnore {
@@ -286,7 +288,10 @@ fun parseFields(
                 take(Colon, t, p)
             }.bind { key ->
 //                println("!!!path in fielVal $p")
-                fieldParser(key, t, p)
+
+                val fieldPath = NodePathSegment(key, path)
+//                println("!!!path in fieldPath $fieldPath")
+                fieldParser(key, t, fieldPath)
                     .transform { key to it }
             }
     }.bind {

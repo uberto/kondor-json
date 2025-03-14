@@ -242,4 +242,3 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
         parseString(tokens, path, true)
             .transform { cons(it) }
 }
-
