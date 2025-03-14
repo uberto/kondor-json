@@ -439,17 +439,15 @@ object JSelectedFileNew : JObj<SelectedFile>() {
 
 data class UserFile(val user: Person, val file: SelectedFile)
 
-object JUserFile : JAny<UserFile>() {
+object JUserFile : JObj<UserFile>() {
 
     val user by obj(JPerson, UserFile::user)
     val file by obj(JSelectedFile, UserFile::file)
-
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         UserFile(
             user = +user,
             file = +file
         )
-
 
 }
 

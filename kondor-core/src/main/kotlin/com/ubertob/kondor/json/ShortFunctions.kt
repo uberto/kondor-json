@@ -140,5 +140,5 @@ inline fun <PT : Any, reified T : Any> ObjectNodeConverterProperties<PT>.flatten
         JFieldFlatten(binder, converter, this)
 
 @JvmName("bindFlattenJsonNode")
-fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonNodeObject) =
+fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonNodeObject) = //works only on JAny, not JObj
         JFieldFlatten(binder, JJsonNode, this)
