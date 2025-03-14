@@ -4,10 +4,10 @@ import com.ubertob.kondor.json.jsonnode.*
 
 abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
 
-    //the idea is to leave this class with the deserializeOrThrow() method and create a new one with a different
-    //way to invoke the constructor with all properties
+    //This class will stay both for compatibilty reasons and because it's use JsonNode as intermediate step in parsing
+    //which is slower but useful in some difficult cases
 
-    abstract fun JsonNodeObject.deserializeOrThrow(): T
+    abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
     override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {
@@ -26,7 +26,7 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
                     )
                 }
             }
-            JsonNodeObject.buildForParsing(nodeMap, path).deserializeOrThrow()
+            JsonNodeObject.buildForParsing(nodeMap, path).deserializeOrThrow() ?: error("Deserialized to null value!")
         }
 
 }

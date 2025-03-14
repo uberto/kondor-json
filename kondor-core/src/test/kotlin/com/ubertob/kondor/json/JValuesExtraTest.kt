@@ -199,8 +199,6 @@ class JValuesExtraTest {
         )
         val jsonPretty = JInvoice.toJson(invoice, pretty)
 
-        expectThat(JInvoice.fromJson(jsonPretty).expectSuccess()).isEqualTo(invoice)
-
         expectThat(jsonPretty).isEqualTo(
             """|{
                 |  "created_date": "2024-09-25",
@@ -228,6 +226,9 @@ class JValuesExtraTest {
                 |  "vat-to-pay": false
                 |}""".trimMargin()
         )
+
+        expectThat(JInvoice.fromJson(jsonPretty).expectSuccess()).isEqualTo(invoice)
+
     }
 
 
