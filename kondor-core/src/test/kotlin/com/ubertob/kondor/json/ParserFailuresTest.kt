@@ -7,7 +7,6 @@ import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
-import strikt.assertions.startsWith
 
 class ParserFailuresTest {
 
@@ -114,14 +113,14 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 0: expected a valid Number")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format For input string: \"123-234\"")
     }
 
     @Test
     fun `Json Long underflow`() {
 
         val error = JLong.fromJson("-9223372036854775809").expectFailure()
-        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 0: expected a valid Number")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format For input string: \"-9223372036854775809\"")
     }
 
     @Test
@@ -129,14 +128,14 @@ class ParserFailuresTest {
 
         val error = JLong.fromJson("9223372036854775808000000000000").expectFailure()
 
-        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 0: expected a valid Number")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format For input string: \"9223372036854775808000000000000\"")
     }
 
     @Test
     fun `Json Int underflow`() {
 
         val error = JInt.fromJson("-2147483649").expectFailure()
-        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 0: expected a valid Number")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format For input string: \"-2147483649\"")
     }
 
     @Test
@@ -144,7 +143,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson("2147483648").expectFailure()
 
-        expectThat(error.msg).startsWith("Error parsing node <[root]> at position 0: expected a valid Number")
+        expectThat(error.msg).isEqualTo("Error converting node <[root]> Wrong number format For input string: \"2147483648\"")
     }
 
     @Test
