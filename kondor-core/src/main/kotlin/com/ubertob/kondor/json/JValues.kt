@@ -159,6 +159,20 @@ object JBigInteger : JBigIntegerRepresentable<BigInteger>() {
 }
 
 
+fun <T> tryWithPath(path: NodePath, f: () -> JsonOutcome<T>): JsonOutcome<T> =
+    try {
+        f()
+    } catch (exception: Throwable) {
+        when (exception) {
+            is NumberFormatException -> ConverterJsonError(path, "Wrong number format ${exception.message}")
+            is ArithmeticException -> ConverterJsonError(path, "Wrong number format ${exception.message}")
+            is JsonParsingException -> exception.error
+            is IllegalStateException -> ConverterJsonError(path, "IllegalStateException: ${exception.message}")
+            is OutcomeException -> exception.toJsonError(path)
+            else -> ConverterJsonError(path, "Caught exception: $exception")
+        }.asFailure()
+    }
+
 fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
@@ -186,8 +200,14 @@ abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, Jso
     abstract fun toNumberSubtype(number: Number): NUM
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        parseNumber(tokens, path, ::parser)
+        parseNumber(tokens, path, safelyParse(path))
             .transform { cons(it) }
+
+    private fun safelyParse(path: NodePath): (String) -> JsonOutcome<NUM> = { numAsStr ->
+        tryWithPath(path) {
+            parser(numAsStr)
+        }
+    }
 
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendNumber(render(value))
