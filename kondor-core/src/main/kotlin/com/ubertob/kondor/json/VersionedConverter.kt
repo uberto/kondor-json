@@ -26,17 +26,9 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
         val jsonVersion = fieldMap[versionProperty].asStringValue() ?: defaultVersion
 
-        val converters = if (jsonVersion != null) {
-
-            val defaultConverter = converterForVersion(jsonVersion)
-
-            if (defaultConverter != null) {
-                listOf(defaultConverter) + unversionedConverters
-            } else {
-                unversionedConverters
-            }
-        } else {
-            unversionedConverters
+        val converters = when {
+            jsonVersion == null -> unversionedConverters
+            else -> (listOf(converterForVersion(jsonVersion)) + unversionedConverters).filterNotNull()
         }
 
         return ChainedConverter(converters).fromFieldNodeMap(fieldMap, path)
