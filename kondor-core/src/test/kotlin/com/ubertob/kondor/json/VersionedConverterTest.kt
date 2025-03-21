@@ -42,6 +42,15 @@ private val converterWithDefaultVersion = VersionMapConverter(
     defaultVersion = "1"
 )
 
+private val converterWithUnversionedVersions = VersionMapConverter(
+    unversionedConverters = listOf(V2Format, V1Format),
+)
+
+private val convertorWithMixedVersions = VersionMapConverter(
+    versionConverters = mapOf("2" to V2Format),
+    unversionedConverters = listOf(V1Format),
+)
+
 
 class VersionedConverterTest {
 
@@ -67,9 +76,9 @@ class VersionedConverterTest {
 
         val jsonWithoutSpecificVersion = """{"i":3,"s":"amigos"}"""
 
-        val failure = converter.fromJson(jsonWithoutSpecificVersion).expectFailure() as JsonPropertyError
+        val failure = converter.fromJson(jsonWithoutSpecificVersion).expectFailure() as ConverterJsonError
         expectThat(failure.path).isEqualTo(NodePathRoot)
-        expectThat(converter.versionProperty).isEqualTo(failure.propertyName)
+        expectThat("no valid versioned convertor").isEqualTo(failure.reason)
     }
 
     @Test
@@ -81,6 +90,38 @@ class VersionedConverterTest {
         val parsed = converter.fromJson(badJson).expectSuccess()
         val expected = Example(3, "amigos")
         expectThat(expected).isEqualTo(parsed)
+    }
+
+    @Test
+    fun `can use a fallback 'stack' of converter versions when the there is no explicit versioning of the data`() {
+        val converter = converterWithUnversionedVersions
+
+        val original = Example(2, "eyes")
+
+        val badV1Json = """{"i":2,"s":"eyes"}"""
+        val badV2Json = """{"int":2,"str":"eyes"}"""
+
+        expectThat(original).isEqualTo(converter.fromJson(badV1Json).expectSuccess())
+        expectThat(original).isEqualTo(converter.fromJson(badV2Json).expectSuccess())
+
+        val generatedJson = converter.toJson(original, compactSorted)
+        expectThat(badV2Json).isEqualTo(generatedJson)
+    }
+
+    @Test
+    fun `will prefer the versions to the stack, and will settle on the versioned version`() {
+        val converter = convertorWithMixedVersions
+
+        val original = Example(2, "eyes")
+
+        val badV1Json = """{"i":2,"s":"eyes"}"""
+        val badV2Json = """{"@version":"2","int":2,"str":"eyes"}"""
+
+        expectThat(original).isEqualTo(converter.fromJson(badV1Json).expectSuccess())
+        expectThat(original).isEqualTo(converter.fromJson(badV2Json).expectSuccess())
+
+        val generatedJson = converter.toJson(original, compactSorted)
+        expectThat(badV2Json).isEqualTo(generatedJson)
     }
 
     @Test
