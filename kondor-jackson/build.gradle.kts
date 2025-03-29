@@ -16,12 +16,9 @@ java {
 }
 
 dependencies {
-    implementation(project(":kondor-core"))
+    api(project(":kondor-core"))
     api(libs.jUnit.api)
 
-    implementation(libs.kotlin.jdk8)
-    implementation(libs.kotlin.reflect) //needed for source generator
-    implementation(libs.kotlinPoet)
     implementation(group = "com.fasterxml.jackson.core", name = "jackson-databind", version = "2.18.2")
 }
 
@@ -62,8 +59,8 @@ publishing {
             version = project.version.toString()
 
             pom {
-                name = "kondor-tools"
-                description = "A suite of tools to work with Kondor json library"
+                name = "kondor-jackson"
+                description = "Converting between Jackson and Kondor JsonNode. Useful for migrations."
                 url = "https://github.com/uberto/kondor-json"
                 inceptionYear = "2021"
                 scm {
