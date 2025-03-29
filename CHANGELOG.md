@@ -3,6 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.5.0 - 29 March 2025
+
+Kondor-core: Better errors for JNum parser exceptions
+Kondor-core: Unversioned versions in the VersionedConverter
+Kondor-jackson: New module to simplify migration from Jackson-Json (Thanks David Wickes)
+
 ### v.3.4.2 - 12 March 2025
 
 Kondor-core: Added dinatural() method to JsonConverter to map a converter over another (thanks Nat Pryce)
