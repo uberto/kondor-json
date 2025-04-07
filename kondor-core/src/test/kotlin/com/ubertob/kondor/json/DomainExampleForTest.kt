@@ -15,7 +15,7 @@ import java.util.*
 import kotlin.random.Random
 
 fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).replaceFirstChar { it.uppercase() })
-fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.values().random())
+fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.entries.random())
 
 fun randomCustomer(): Customer = when (Random.nextBoolean()) {
     true -> randomPerson()
@@ -102,6 +102,7 @@ data class Person(val id: Int, val name: String) : Customer() {
         )
     }
 }
+
 data class Company(val name: String, val taxType: TaxType) : Customer()
 object AnonymousCustomer : Customer()
 
@@ -407,21 +408,30 @@ object JUserFile : JAny<UserFile>() {
             user = +user,
             file = +file
         )
-
-
 }
 
 // Using other field of Enum
 data class TitleRequest(
     val id: String,
-    val type: TitleType?
+    val type: TitleType?,
+    val yesOrNo: YesOrNo,
 )
+
+sealed interface YesOrNo
+data object Yes : YesOrNo
+data object No : YesOrNo
+
+object JYesOrNo : JBooleanRepresentable<YesOrNo>() {
+    override val cons: (Boolean) -> YesOrNo = { if (it) Yes else No }
+    override val render: (YesOrNo) -> Boolean = { it == Yes }
+}
+
 
 enum class TitleType(val label: String) {
     Movie("movie"), Series("series"), Episode("episode");
 
     companion object {
-        fun fromLabel(label: String) = values().firstOrNull() { it.label == label }
+        fun fromLabel(label: String) = entries.firstOrNull() { it.label == label }
     }
 }
 
@@ -435,10 +445,13 @@ object JTitleRequest : JAny<TitleRequest>() {
 
     private val type by str(JTitleType, TitleRequest::type)
 
+    private val yesOrNo by bool(JYesOrNo, TitleRequest::yesOrNo)
+
     override fun JsonNodeObject.deserializeOrThrow(): TitleRequest =
         TitleRequest(
             id = +id,
-            type = +type
+            type = +type,
+            yesOrNo = +yesOrNo,
         )
 }
 

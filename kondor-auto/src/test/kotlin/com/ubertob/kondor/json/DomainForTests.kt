@@ -88,7 +88,7 @@ data class Invoice(
 
 
 fun randomPerson() = Person(Random.nextInt(1, 1000), randomString(lowercase, 1, 10).replaceFirstChar { it.uppercase() })
-fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.values().random())
+fun randomCompany() = Company(randomString(lowercase, 5, 10), TaxType.entries.random())
 
 fun randomCustomer(): Customer = when (Random.nextBoolean()) {
     true -> randomPerson()
