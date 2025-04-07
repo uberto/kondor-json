@@ -431,7 +431,7 @@ enum class TitleType(val label: String) {
     Movie("movie"), Series("series"), Episode("episode");
 
     companion object {
-        fun fromLabel(label: String) = values().firstOrNull() { it.label == label }
+        fun fromLabel(label: String) = entries.firstOrNull() { it.label == label }
     }
 }
 

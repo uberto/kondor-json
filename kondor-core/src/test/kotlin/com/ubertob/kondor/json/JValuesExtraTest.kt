@@ -342,7 +342,7 @@ class JValuesExtraTest {
 
             val value = TitleRequest(
                 id = randomString(lowercase, 5, 5),
-                type = TitleType.values().random(),
+                type = TitleType.entries.random(),
                 yesOrNo = listOf(Yes, No).random(),
             )
             val json = JTitleRequest.toJsonNode(value)
@@ -364,7 +364,7 @@ class JValuesExtraTest {
 
             val value = TitleRequest(
                 id = randomString(lowercase, 5, 5),
-                type = TitleType.values().random(),
+                type = TitleType.entries.random(),
                 yesOrNo = listOf(Yes, No).random(),
             )
             val json = JTitleRequest.toJsonNode(value)
