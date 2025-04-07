@@ -12,6 +12,13 @@ fun <PT : Any> bool(binder: PT.() -> Boolean) = JField(binder, JBoolean)
 @JvmName("bindBoolNull")
 fun <PT : Any> bool(binder: PT.() -> Boolean?) = JFieldMaybe(binder, JBoolean)
 
+@JvmName("bindBool")
+fun <PT : Any, T: Any> bool(converter: JBooleanRepresentable<T>, binder: PT.() -> T) =
+    JField(binder, converter)
+
+@JvmName("bindBoolNull")
+fun <PT : Any, T: Any> bool(converter: JBooleanRepresentable<T>, binder: PT.() -> T?) =
+    JFieldMaybe(binder, converter)
 
 @JvmName("bindNum")
 fun <PT : Any, NUM : Number, T : Any> num(converter: JNumRepresentable<NUM, T>, binder: PT.() -> T) =
