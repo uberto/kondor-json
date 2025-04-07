@@ -64,7 +64,6 @@ fun <PT : Any> num(binder: PT.() -> BigInteger) = JField(binder, JBigInteger)
 @JvmName("bindBigIntegerNull")
 fun <PT : Any> num(binder: PT.() -> BigInteger?) = JFieldMaybe(binder, JBigInteger)
 
-
 @JvmName("bindString")
 fun <PT : Any> str(binder: PT.() -> String) = JField(binder, JString)
 
