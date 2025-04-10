@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.5.1 - 9 April 2025
+
+Kondor-core: short bool funs for JBooleanRepresentable (Thanks David Wickes)
+
 ### v.3.5.0 - 29 March 2025
 
 Kondor-core: Better errors for JNum parser exceptions
