@@ -4,6 +4,8 @@ import com.ubertob.kondor.json.JsonStyle.Companion.compact
 import com.ubertob.kondor.json.JsonStyle.Companion.compactWithNulls
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
+import com.ubertob.kondor.json.array.JList
+import com.ubertob.kondor.json.array.JNullableList
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
@@ -314,7 +316,7 @@ class JsonRenderTest {
             expectThat(jsonString).isEqualTo(expected)
         }
     }
-    
+
     @Test
     fun `pretty render array with nested objects and arrays`() {
         repeat(5) {
@@ -344,7 +346,7 @@ class JsonRenderTest {
                     ))
                 ))
             ))
-            
+
             val jsonString = tree.render(pretty)
 
             val expected = """[
@@ -373,11 +375,11 @@ class JsonRenderTest {
                 |    ]
                 |  }
                 |]""".trimMargin()
-            
+
             expectThat(jsonString).isEqualTo(expected)
         }
     }
-    
+
     @Test
     fun `pretty render object with nested objects and arrays`() {
         repeat(5) {
@@ -407,7 +409,7 @@ class JsonRenderTest {
                     ))
                 ))
             ))
-            
+
             val jsonString = tree.render(pretty)
 
             val expected = """{
@@ -436,7 +438,7 @@ class JsonRenderTest {
                 |    ]
                 |  }
                 |}""".trimMargin()
-            
+
             expectThat(jsonString).isEqualTo(expected)
         }
     }

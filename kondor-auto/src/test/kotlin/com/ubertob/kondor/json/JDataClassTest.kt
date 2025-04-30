@@ -1,5 +1,6 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.array.JSet
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
