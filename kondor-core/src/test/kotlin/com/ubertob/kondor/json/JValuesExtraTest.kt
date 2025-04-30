@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.pretty
+import com.ubertob.kondor.json.array.JList
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.lowercase
 import com.ubertob.kondor.randomList

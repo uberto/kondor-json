@@ -1,6 +1,7 @@
 package com.ubertob.kondor.json.jmh
 
 import com.ubertob.kondor.json.*
+import com.ubertob.kondor.json.array.JList
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 
 

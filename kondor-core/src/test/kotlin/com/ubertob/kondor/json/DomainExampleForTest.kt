@@ -3,6 +3,8 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.*
 import com.ubertob.kondor.json.JsonStyle.Companion.prettyWithNulls
 import com.ubertob.kondor.json.TitleType.Companion.fromLabel
+import com.ubertob.kondor.json.array.JArray
+import com.ubertob.kondor.json.array.JList
 import com.ubertob.kondor.json.datetime.num
 import com.ubertob.kondor.json.datetime.str
 import com.ubertob.kondor.json.jsonnode.*
@@ -337,7 +339,7 @@ class Products : ArrayList<Product>() {
 }
 
 //custom collection
-object JProducts : JArray<Product, Products> {
+object JProducts : JArray<Product, Products>() {
     override val converter = JProduct
 
     override fun convertToCollection(from: Iterable<Product?>) =

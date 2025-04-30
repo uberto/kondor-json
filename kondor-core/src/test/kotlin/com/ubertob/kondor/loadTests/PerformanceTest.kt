@@ -3,6 +3,7 @@ package com.ubertob.kondor.loadTests
 import com.ubertob.kondor.all
 import com.ubertob.kondor.chronoAndLog
 import com.ubertob.kondor.json.*
+import com.ubertob.kondor.json.array.JList
 import com.ubertob.kondor.json.jsonnode.ArrayNode
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.jsonnode.onRoot
