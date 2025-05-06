@@ -89,7 +89,7 @@ abstract class JsonLexerTestAbstract {
     @Test
     fun `json strings with escapes`() {
         val json = """
-            {"abc":"abc\"\\ \n}"}
+            {"abc":"abc\"\\ \n\/}"}
         """.trimIndent()
         val tokens = tokenize(json).expectSuccess()
 
@@ -101,7 +101,7 @@ abstract class JsonLexerTestAbstract {
                 ClosingQuotesSep,
                 ColonSep,
                 OpeningQuotesSep,
-                Value("abc\"\\ \n}", 12),
+                Value("abc\"\\ \n/}", 13),
                 ClosingQuotesSep,
                 ClosingCurlySep
             )
