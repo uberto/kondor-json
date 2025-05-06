@@ -260,7 +260,11 @@ private fun stringOrEmpty(
         )
     }
 
-fun <T> parseArray(tokens: TokensStream, path: NodePath, converter: (TokensStream, NodePath) -> JsonOutcome<T>) =
+fun <T> parseArray(
+    tokens: TokensStream,
+    path: NodePath,
+    converter: (TokensStream, NodePath) -> JsonOutcome<T>
+): JsonOutcome<List<T>> =
     commaSeparated(tokens, path) { t, p -> parseNewValue(t, p, converter) }
 
 fun parseFields(

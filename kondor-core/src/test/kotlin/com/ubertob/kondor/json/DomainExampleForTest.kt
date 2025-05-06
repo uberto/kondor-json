@@ -343,6 +343,9 @@ object JProducts : JArray<Product, Products> {
     override fun convertToCollection(from: Iterable<Product?>) =
         Products.fromIterable(from.filterNotNull())
 
+    override fun convertFromCollection(collection: Products): Iterable<Product?> =
+        collection
+
     override val _nodeType = ArrayNode
 
 }
