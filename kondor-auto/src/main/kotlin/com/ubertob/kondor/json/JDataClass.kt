@@ -1,6 +1,9 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.FieldsValues
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.onFailure
@@ -10,38 +13,8 @@ import kotlin.reflect.KProperty1
 
 typealias ObjectFields = Map<String, Any?>
 
-abstract class JAnyAuto<T : Any>() : ObjectNodeConverterProperties<T>() {
 
-    //this class should be replaced by the new JObj
-    protected val _jsonProperties by lazy { getProperties() }
-
-    private fun convertToNodeMap(fieldMap: FieldsValues, path: NodePath): FieldNodeMap =
-        FieldNodeMap(fieldMap.mapValues { value ->
-            when (value) {
-                null -> JsonNodeNull
-                is String -> JsonNodeString(value)
-                is Number -> JsonNodeNumber(value)
-                is Boolean -> JsonNodeBoolean(value)
-                is JsonNode -> value
-                else -> throw JsonParsingException(ConverterJsonError(path, "Unsupported type: ${value::class}"))
-            }
-        })
-
-    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
-        val nodeMap = convertToNodeMap(fieldValues, path)
-        val args = _jsonProperties.associate { prop ->
-            val propValue = prop.getter(nodeMap, path)
-                .onFailure { return it.asFailure() }
-            prop.propName to propValue
-        }
-
-        return buildInstance(args, path)
-    }
-
-    abstract fun buildInstance(args: ObjectFields, path: NodePath): JsonOutcome<T>
-}
-
-abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAnyAuto<T>() {
+abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
 
     val clazz: Class<T> = klazz.java
 
@@ -52,7 +25,11 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAnyAuto<T>() {
         clazz.constructors.first() as Constructor<T>
     }
 
-    override fun buildInstance(args: ObjectFields, path: NodePath) =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): T =
+        buildInstance(mapValues { it }, path)
+            .orThrow() //!!! can we do better?
+
+    fun buildInstance(args: ObjectFields, path: NodePath) =
         try {
             constructor.newInstance(*(args.values).toTypedArray())
                 .asSuccess()
@@ -67,8 +44,7 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JAnyAuto<T>() {
 
 private fun <T> Constructor<T>.description(): String =
     parameterTypes
-        .map { it.simpleName }
-        .joinToString(prefix = "[", postfix = "]")
+        .joinToString(prefix = "[", postfix = "]") { it.simpleName }
 
 fun <T : Any> JDataClass<T>.testParserAndRender(times: Int = 100, generator: (index: Int) -> T) {
     repeat(times) { index ->
@@ -89,7 +65,7 @@ fun <T : Any> JDataClass<T>.testParserAndRender(times: Int = 100, generator: (in
     }
 }
 
-abstract class JDataClassReflect<T : Any>(val klazz: KClass<T>) : JDataClass<T>(klazz) {
+abstract class JDataClassAuto<T : Any>(val klazz: KClass<T>) : JDataClass<T>(klazz) {
 
 
     fun registerAllProperties() {

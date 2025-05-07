@@ -5,7 +5,6 @@ import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.printIt
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
@@ -133,9 +132,8 @@ class JDataClassTest {
     }
 
 
-    object PersonRefl : JDataClassReflect<Person>(Person::class)
+    object PersonRefl : JDataClassAuto<Person>(Person::class)
 
-    @Disabled("Work in progress")
     @Test
     fun `JDataClassAuto doesn't need the fields declaration`() {
 

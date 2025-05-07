@@ -79,6 +79,7 @@ sealed interface FieldsValues {
 
     @Suppress("UNCHECKED_CAST")
     operator fun <T> JsonProperty<T>.unaryPlus(): T = getValue(propName) as T
+
     fun <T> mapValues(fn: (Any?) -> T): Map<String, T> =
         when (this) {
             is FieldMap -> map.mapValues { (_, v) -> fn(v) }

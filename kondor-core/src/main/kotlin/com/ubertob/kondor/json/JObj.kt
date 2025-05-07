@@ -9,7 +9,7 @@ import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.outcome.bind
 
 abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
-    //this is the new JAny. !!! Better name? JObject, JAnyObj, JData, JClassInstance....  ???
+    //this is the new JAny with faster parsing !!!
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         surrounded(
