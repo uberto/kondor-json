@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
+import com.ubertob.kondor.json.parser.sameValueAs
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
@@ -106,9 +107,15 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
     protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any?> {
         return resolveConverter(fieldName, nodePath)
             .bind { conv ->
+                //!!! a better solution to the null is to delegate it to the converter should also consider null in resolveConverter!!!
 
-                val fieldPath = NodePathSegment(fieldName, nodePath)
-                conv.fromTokens(tokensStream, fieldPath)
+                if (tokensStream.peek().sameValueAs("null")) {
+                    tokensStream.next()
+                    null.asSuccess()
+                } else {
+                    val fieldPath = NodePathSegment(fieldName, nodePath)
+                    conv.fromTokens(tokensStream, fieldPath)
+                }
             }
 
     }

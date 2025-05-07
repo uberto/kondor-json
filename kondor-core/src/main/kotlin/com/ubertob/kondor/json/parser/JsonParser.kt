@@ -22,7 +22,7 @@ fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
 private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
     InvalidJsonError(
         path, "at position $position: expected $expected but found $actual - $details"
-    )
+    ) //.also { Exception().printStackTrace() !!!!!!! }
 
 fun parsingError(
     expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
@@ -172,8 +172,10 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
 fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
     if (tokens.hasNext()) {
         tokens.next().let { token ->
-            if ((token as? Separator)?.sep == separator) token.asSuccess()
-            else parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
+            if ((token as? Separator)?.sep == separator)
+                token.asSuccess()
+            else
+                parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
         }
     } else {
         parsingFailure(separator.name, "end of file", tokens.lastPosRead(), path, "invalid Json")
