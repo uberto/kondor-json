@@ -8,7 +8,7 @@ import com.ubertob.kondor.outcome.*
 private const val defaultVersionProperty = "@version"
 
 
-abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
+abstract class VersionedConverter<T : Any> : ObjectNodeConverterProperties<T>() {
     open val versionProperty = defaultVersionProperty
     open val defaultVersion: String? = null
 open val unversionedConverters: List<ObjectNodeConverter<T>> = emptyList()

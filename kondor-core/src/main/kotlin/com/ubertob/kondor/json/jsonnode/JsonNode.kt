@@ -13,27 +13,9 @@ import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
-data class FieldNodeMap(val map: Map<String, JsonNode>) { //: FieldsValues
+data class FieldNodeMap(val map: Map<String, JsonNode>)
 
-//    override fun getValue(fieldName: String, converters: (String) -> (JsonNode) -> Any?): Any? {
-//        val value = map[fieldName]
-//
-//        here we need converter, for stringwrap, NaN, arrays, etc.
-//        or we delete this method and covert to FieldMap before calling getValue...
-//        return when (value) {
-//            is JsonNodeNumber -> value.num
-//            is JsonNodeString -> value.text
-//            is JsonNodeBoolean -> value.boolean
-//            is JsonNodeArray -> value.elements
-//            is JsonNodeObject -> value._fieldMap
-//            JsonNodeNull -> null
-//            else -> value
-//        }
-//    }
-
-}
-
-data class FieldMap(val map: Map<String, Any?>) : FieldsValues {
+data class FieldMap(val map: Map<String, Any?>) : FieldsValues { //should be fieldsMap or just remove FieldsValue...!!!
 
     override fun getValue(fieldName: String): Any? = map[fieldName]
 
@@ -86,9 +68,7 @@ sealed interface FieldsValues {
     fun <T> mapValues(fn: (Any?) -> T): Map<String, T> =
         when (this) {
             is FieldMap -> map.mapValues { (_, v) -> fn(v) }
-            is FieldNodeMap -> map.mapValues { (k, v) -> fn(getValue(k)) }
         }
-
 }
 
 

@@ -7,9 +7,7 @@ import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.sameValueAs
 import com.ubertob.kondor.json.schema.objectSchema
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
+import com.ubertob.kondor.outcome.*
 import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
@@ -27,22 +25,14 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
 
     fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T>
 
-    fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
-    //!!! use the converters and covert FieldNodeMap to FieldMap.
-        //field map should have actual types in arrays, string etc, fieldNodeMap has only basic Json types
-        fromFieldValues(fieldNodeMap, path)
-
-    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
-        fromFieldNodeMap(node._fieldMap, path)
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         _nodeType.parse(TokensPath(tokens, path))
             .bind {
-                fromJsonNode(
-                    it,
-                    path
-                )
-            } // !!! this will be moved to JAny alone when the rest have moved to new parsing
+                fromJsonNode(it, path)
+            } ///!!! this is the old method with JsonNode, it's overridden in JObj. This should be moved to JAny
+
+    fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T>
 }
 
 abstract class ObjectNodeConverterBase<T : Any> : ObjectNodeConverter<T> {
@@ -146,4 +136,16 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
             converter.asSuccess()
         }
     }
+
+    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
+        getProperties().traverse { property ->
+            property.getter(fieldNodeMap, path)
+                .transform { property.propName to it }
+        }.bind {
+            fromFieldValues(FieldMap(it.toMap()), path)
+        }
+
+
+    override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
+        fromFieldNodeMap(node._fieldMap, path)
 }

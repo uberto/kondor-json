@@ -3,7 +3,7 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
 import com.ubertob.kondor.json.jsonnode.*
 
-object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
+object JJsonNode : ObjectNodeConverterProperties<JsonNodeObject>() {
     override val _nodeType = ObjectNode
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value

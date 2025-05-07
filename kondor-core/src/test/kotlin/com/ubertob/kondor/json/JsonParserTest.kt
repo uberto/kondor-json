@@ -304,18 +304,18 @@ class JsonParserTest {
         expectThat(objWithDynamicAttr) {
             get { id }.isEqualTo(123)
             get { name }.isEqualTo("Ann")
-            get { attributes._fieldMap.getValue("aString") }.isEqualTo(
+            get { attributes._fieldMap.map.get("aString") }.isEqualTo(
                 JsonNodeString(
                     "String"
                 )
             )
-            get { attributes._fieldMap.getValue("aObj") }.isA<JsonNodeObject>()
+            get { attributes._fieldMap.map.get("aObj") }.isA<JsonNodeObject>()
         }
 
-        expectThat(objWithDynamicAttr.attributes._fieldMap.getValue("aObj") as? JsonNodeObject).isNotNull()
+        expectThat(objWithDynamicAttr.attributes._fieldMap.map.get("aObj") as? JsonNodeObject).isNotNull()
             .and {
-                get { (_fieldMap.getValue("aNestedString") as? JsonNodeString)?.text }.isEqualTo("NestedString")
-                get { (_fieldMap.getValue("aNestedNum") as JsonNodeNumber).num.toInt() }.isEqualTo(123123)
+                get { (_fieldMap.map.get("aNestedString") as? JsonNodeString)?.text }.isEqualTo("NestedString")
+                get { (_fieldMap.map.get("aNestedNum") as JsonNodeNumber).num.toInt() }.isEqualTo(123123)
             }
     }
 
