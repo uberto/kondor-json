@@ -31,7 +31,7 @@ fun JsonNodeString.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.ins
 fun JsonNodeNumber.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.instance) = this.num.toNumericNode(json)
 fun JsonNodeBoolean.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.instance) = json.booleanNode(this.boolean)
 fun JsonNodeNull.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.instance) = json.nullNode()
-fun JsonNodeObject.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.instance) = _fieldMap.entries
+fun JsonNodeObject.toJacksonJsonNode(json: JsonNodeFactory = JsonNodeFactory.instance) = _fieldMap.map.entries
     .fold(json.objectNode()) { obj, node ->
         obj.set<JJsonNode>(node.key, node.value.toJacksonJsonNode())
         obj

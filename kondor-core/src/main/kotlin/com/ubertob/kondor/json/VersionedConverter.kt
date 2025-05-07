@@ -60,9 +60,15 @@ val converters = when {
             if (outputVersion == null) {
                 it
             } else {
-                it.copy(_fieldMap = it._fieldMap + (versionProperty to JsonNodeString(nullCheckedOutputVersion)))
+                it.copy(
+                    _fieldMap = FieldNodeMap(
+                        it._fieldMap.map + (versionProperty to JsonNodeString(
+                            nullCheckedOutputVersion
+                        ))
+                    )
+                )
             }
-        } //     it.copy(_fieldMap = FieldNodeMap(it._fieldMap.map + (versionProperty to JsonNodeString(outputVersion))))
+        }
 
     private fun missingVersionError(path: NodePath) =
         JsonPropertyError(
