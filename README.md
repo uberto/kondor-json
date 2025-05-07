@@ -23,14 +23,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>3.5.1</version>
+    <version>3.5.2</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:3.5.1'
+implementation 'com.ubertob.kondor:kondor-core:3.5.2'
 ```
 
 ## The Video Presentation
@@ -65,7 +65,7 @@ And we want to render it to this Json:
 
 ```json
 {
-   "creation_date": 162513.5.1000,
+  "creation_date": 162513.5.2000,
    "file_name": "filename",
    "folder_path": "/tmp",
    "is_dir": false,
