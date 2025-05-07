@@ -87,6 +87,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
                         Escaping -> when (char) {
                             '\\' -> currToken.write('\\')
+                            '/' -> currToken.write('/')
                             '"' -> currToken.write('\"')
                             'n' -> currToken.write('\n')
                             'f' -> currToken.write('\t')

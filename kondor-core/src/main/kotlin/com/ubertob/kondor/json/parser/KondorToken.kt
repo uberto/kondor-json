@@ -15,14 +15,14 @@ sealed class Separator(val sep: KondorSeparator) : KondorToken() {
     override val desc: String = sep.name
 }
 
-object ColonSep : Separator(KondorSeparator.Colon)
-object CommaSep : Separator(KondorSeparator.Comma)
-object OpeningBracketSep : Separator(KondorSeparator.OpeningBracket)
-object OpeningCurlySep : Separator(KondorSeparator.OpeningCurly)
-object OpeningQuotesSep : Separator(KondorSeparator.OpeningQuotes)
-object ClosingBracketSep : Separator(KondorSeparator.ClosingBracket)
-object ClosingCurlySep : Separator(KondorSeparator.ClosingCurly)
-object ClosingQuotesSep : Separator(KondorSeparator.ClosingQuotes)
+data object ColonSep : Separator(KondorSeparator.Colon)
+data object CommaSep : Separator(KondorSeparator.Comma)
+data object OpeningBracketSep : Separator(KondorSeparator.OpeningBracket)
+data object OpeningCurlySep : Separator(KondorSeparator.OpeningCurly)
+data object OpeningQuotesSep : Separator(KondorSeparator.OpeningQuotes)
+data object ClosingBracketSep : Separator(KondorSeparator.ClosingBracket)
+data object ClosingCurlySep : Separator(KondorSeparator.ClosingCurly)
+data object ClosingQuotesSep : Separator(KondorSeparator.ClosingQuotes)
 
 
 data class Value(val text: String, val pos: Int) : KondorToken() {
