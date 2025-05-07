@@ -28,7 +28,8 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T>
 
     fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> =
-        //!!! check if we can remove this and leave only fromFieldValues
+    //!!! use the converters and covert FieldNodeMap to FieldMap.
+        //field map should have actual types in arrays, string etc, fieldNodeMap has only basic Json types
         fromFieldValues(fieldNodeMap, path)
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
