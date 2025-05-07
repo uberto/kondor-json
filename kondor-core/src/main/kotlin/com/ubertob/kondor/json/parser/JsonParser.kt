@@ -188,24 +188,27 @@ private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: N
             null
     }
 
-fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? = if (!tokens.hasNext()) null
-else when (val t = tokens.peek()) {
-    is Value -> when (t.text) {
-        "null" -> parseJsonNodeNull()
-        "false", "true" -> parseJsonNodeBoolean()
-        else -> parseJsonNodeNum()
-    }
+fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
+    if (!tokens.hasNext())
+        null
+    else
+        when (val t = tokens.peek()) {
+            is Value -> when (t.text) {
+                "null" -> parseJsonNodeNull()
+                "false", "true" -> parseJsonNodeBoolean()
+                else -> parseJsonNodeNum()
+            }
 
-    is Separator -> when (t.sep) {
-        OpeningQuotes -> parseJsonNodeString()
-        OpeningBracket -> parseJsonNodeArray()
-        OpeningCurly -> parseJsonNodeObject()
-        ClosingBracket, ClosingCurly -> null //no more nodes
-        ClosingQuotes, Comma, Colon -> parsingError(
-            "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
-        ).asFailure()
-    }
-}
+            is Separator -> when (t.sep) {
+                OpeningQuotes -> parseJsonNodeString()
+                OpeningBracket -> parseJsonNodeArray()
+                OpeningCurly -> parseJsonNodeObject()
+                ClosingBracket, ClosingCurly -> null //no more nodes
+                ClosingQuotes, Comma, Colon -> parsingError(
+                    "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
+                ).asFailure()
+            }
+        }
 
 
 fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>): Outcome<E, T> = when (this) {
@@ -232,7 +235,7 @@ fun <T> parseNumber(
     return when (val token = tokens.peek()) {
         is Value ->
             try {
-                tokens.next()
+                tokens.next() //commit on the peek NOOP
                 converter(token.text)
             } catch (nfe: NumberFormatException) {
                 parsingFailure("a valid Number", token.desc, position, path, "NumberFormatException ${nfe.message}")

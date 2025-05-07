@@ -238,4 +238,3 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
         parseString(tokens, path, true)
             .bind { str -> Outcome.tryOrFail { cons(str) }.transformFailure { err -> ConverterJsonError(path, err.msg) } }
 }
-
