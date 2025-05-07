@@ -8,10 +8,7 @@ import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parseBoolean
 import com.ubertob.kondor.json.parser.parseNumber
 import com.ubertob.kondor.json.parser.parseString
-import com.ubertob.kondor.outcome.Outcome
-import com.ubertob.kondor.outcome.OutcomeException
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
 import java.math.BigInteger
 
@@ -32,7 +29,7 @@ abstract class JBooleanRepresentable<T : Any>() : JsonConverter<T, JsonNodeBoole
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseBoolean(tokens, path)
-            .transform { cons(it) }
+            .bind { str -> Outcome.tryOrFail { cons(str) }.transformFailure { err -> ConverterJsonError(path, err.msg) } }
 }
 
 object JBoolean : JBooleanRepresentable<Boolean>() {
@@ -201,7 +198,7 @@ abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, Jso
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseNumber(tokens, path, safelyParse(path))
-            .transform { cons(it) }
+            .bind { str -> Outcome.tryOrFail { cons(str) }.transformFailure { err -> ConverterJsonError(path, err.msg) } }
 
     private fun safelyParse(path: NodePath): (String) -> JsonOutcome<NUM> = { numAsStr ->
         tryWithPath(path) {
@@ -239,5 +236,6 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         parseString(tokens, path, true)
-            .transform { cons(it) }
+            .bind { str -> Outcome.tryOrFail { cons(str) }.transformFailure { err -> ConverterJsonError(path, err.msg) } }
 }
+

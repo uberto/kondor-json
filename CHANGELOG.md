@@ -3,6 +3,26 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.3.5.2 - 7 May 2025
+
+Kondor-core: Solidus escaped as Json standard (Thanks Nat Pryce)
+Kondor-core: JArray works with non standard collections (Thanks David Wickes)
+
+### v.3.5.1 - 9 April 2025
+
+Kondor-core: short bool funs for JBooleanRepresentable (Thanks David Wickes)
+
+### v.3.5.0 - 29 March 2025
+
+Kondor-core: Better errors for JNum parser exceptions
+Kondor-core: Unversioned versions in the VersionedConverter
+Kondor-jackson: New module to simplify migration from Jackson-Json (Thanks David Wickes)
+
+### v.3.4.2 - 12 March 2025
+
+Kondor-core: Added dinatural() method to JsonConverter to map a converter over another (thanks Nat Pryce)
+Kondor-core: More precise (and faster) base converters for numbers (JLongRepresentable, JDoubleRepresentable, etc)
+
 ### v.3.4.1 - 17 February 2025
 
 Kondor-auto: new module with converters using reflection at "test-time"

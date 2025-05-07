@@ -19,11 +19,12 @@ echo updating to: $1
 sed -i "s/$ver/$1/g" README.md build.gradle.kts
 
 # launch:
+./gradlew publish -p kondor-outcome
 ./gradlew publish -p kondor-core
 ./gradlew publish -p kondor-auto
 ./gradlew publish -p kondor-tools
-./gradlew publish -p kondor-outcome
 ./gradlew publish -p kondor-mongo
+./gradlew publish -p kondor-jackson
 
 
 echo "check the CHANGELOG.md"

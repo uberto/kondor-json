@@ -354,6 +354,9 @@ object JProducts : JArray<Product, Products> {
     override fun convertToCollection(from: Iterable<Product?>) =
         Products.fromIterable(from.filterNotNull())
 
+    override fun convertFromCollection(collection: Products): Iterable<Product?> =
+        collection
+
     override val _nodeType = ArrayNode
 
 }
@@ -448,14 +451,24 @@ object JUserFile : JObj<UserFile>() {
             user = +user,
             file = +file
         )
-
 }
 
 // Using other field of Enum
 data class TitleRequest(
     val id: String,
-    val type: TitleType?
+    val type: TitleType?,
+    val yesOrNo: YesOrNo,
 )
+
+sealed interface YesOrNo
+data object Yes : YesOrNo
+data object No : YesOrNo
+
+object JYesOrNo : JBooleanRepresentable<YesOrNo>() {
+    override val cons: (Boolean) -> YesOrNo = { if (it) Yes else No }
+    override val render: (YesOrNo) -> Boolean = { it == Yes }
+}
+
 
 enum class TitleType(val label: String) {
     Movie("movie"), Series("series"), Episode("episode");
@@ -475,10 +488,13 @@ object JTitleRequest : JAny<TitleRequest>() {
 
     private val type by str(JTitleType, TitleRequest::type)
 
+    private val yesOrNo by bool(JYesOrNo, TitleRequest::yesOrNo)
+
     override fun JsonNodeObject.deserializeOrThrow(): TitleRequest =
         TitleRequest(
             id = +id,
-            type = +type
+            type = +type,
+            yesOrNo = +yesOrNo,
         )
 }
 

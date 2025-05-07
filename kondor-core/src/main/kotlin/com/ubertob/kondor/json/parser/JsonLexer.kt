@@ -87,13 +87,15 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
                         Escaping -> when (char) {
                             '\\' -> currToken.write('\\')
+                            '/' -> currToken.write('/')
                             '"' -> currToken.write('\"')
+                            '/' -> currToken.write('/')
                             'n' -> currToken.write('\n')
                             'f' -> currToken.write('\t')
                             't' -> currToken.write('\t')
                             'r' -> currToken.write('\r')
                             'b' -> currToken.write('\b')
-                            'u' -> currToken.write("\\u") //technically Unicode shouldn't be escaped in Json since it's UTF-8 but since people insist on using it...
+                            'u' -> currToken.write("\\u") //technically Unicode shouldn't be escaped in Json bc it's UTF-8 but since people insist on using it...
                             else -> error("wrongly escaped char '\\$char' inside a Json string")
                         }.also { state = InString }
                     }

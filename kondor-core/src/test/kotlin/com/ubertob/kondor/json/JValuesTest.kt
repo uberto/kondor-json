@@ -154,7 +154,7 @@ class JValuesTest {
 
         repeat(10) {
 
-            val value = TaxType.values().random()
+            val value = TaxType.entries.random()
             val json = jTaxType.toJsonNode(value)
 
             val actual = jTaxType.fromJsonNode(json, NodePathRoot).expectSuccess()

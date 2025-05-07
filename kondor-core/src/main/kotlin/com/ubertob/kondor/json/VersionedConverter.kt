@@ -2,10 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.asFailure
-import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
-import com.ubertob.kondor.outcome.failIfNull
+import com.ubertob.kondor.outcome.*
 
 
 private const val defaultVersionProperty = "@version"
@@ -14,13 +11,16 @@ private const val defaultVersionProperty = "@version"
 abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     open val versionProperty = defaultVersionProperty
     open val defaultVersion: String? = null
-
+open val unversionedConverters: List<ObjectNodeConverter<T>> = emptyList()
     abstract fun converterForVersion(version: String): ObjectNodeConverter<T>?
 
-    abstract val outputVersion: String
+    abstract val outputVersion: String?
+private val nullCheckedOutputVersion get() = outputVersion ?: error("output version is null")
 
-    open val outputVersionConverter: ObjectNodeConverter<T> get() =
-        converterForVersion(outputVersion) ?: error("no converter for version $outputVersion")
+    open val outputVersionConverter: ObjectNodeConverter<T>
+        get() =
+            outputVersion?.let { converterForVersion(nullCheckedOutputVersion) } ?: unversionedConverters.firstOrNull()
+            ?: error("no converter for version $outputVersion")
 
     override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
         val jsonVersion = (fieldValues.getValue(versionProperty) as? String)
@@ -33,27 +33,36 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
     }
 
     override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
-        val jsonVersion = fieldNodeMap.map[versionProperty].asStringValue()
-            ?: defaultVersion
-            ?: return missingVersionError(path).asFailure()
+        val jsonVersion = fieldNodeMap.map[versionProperty].asStringValue() ?: defaultVersion
 
-        return converterForVersion(jsonVersion).asSuccess()
-            .failIfNull { unsupportedVersionError(path, jsonVersion) }
-            .bind { it.fromFieldNodeMap(fieldNodeMap, path) }
+val converters = when {
+            jsonVersion == null -> unversionedConverters
+            else -> (listOf(converterForVersion(jsonVersion)) + unversionedConverters).filterNotNull()
+        }
+
+        return ChainedConverter(converters).fromFieldNodeMap(fieldNodeMap, path)
     }
 
     override fun fieldAppenders(valueObject: T): List<NamedAppender> {
-        return outputVersionConverter.fieldAppenders(valueObject) +
-            (versionProperty to { s, _ ->
-                appendText(outputVersion)
-                this
-            })
+        return if (outputVersion == null) {
+            outputVersionConverter.fieldAppenders(valueObject)
+        } else {
+            outputVersionConverter.fieldAppenders(valueObject) +
+                    (versionProperty to { s, _ ->
+                        appendText(nullCheckedOutputVersion)
+                        this
+                    })
+        }
     }
 
     override fun toJsonNode(value: T): JsonNodeObject =
         outputVersionConverter.toJsonNode(value).let {
-            it.copy(_fieldMap = FieldNodeMap(it._fieldMap.map + (versionProperty to JsonNodeString(outputVersion))))
-        }
+            if (outputVersion == null) {
+                it
+            } else {
+                it.copy(_fieldMap = it._fieldMap + (versionProperty to JsonNodeString(nullCheckedOutputVersion)))
+            }
+        } //     it.copy(_fieldMap = FieldNodeMap(it._fieldMap.map + (versionProperty to JsonNodeString(outputVersion))))
 
     private fun missingVersionError(path: NodePath) =
         JsonPropertyError(
@@ -65,12 +74,27 @@ abstract class VersionedConverter<T : Any> : ObjectNodeConverter<T> {
         JsonPropertyError(path + versionProperty, versionProperty, "unsupported format version $version")
 }
 
-data class VersionMapConverter<T: Any>(
+data class VersionMapConverter<T : Any>(
     override val versionProperty: String = defaultVersionProperty,
     override val defaultVersion: String? = null,
-    val versionConverters: Map<String,ObjectNodeConverter<T>>,
-    override val outputVersion: String = versionConverters.keys.max()
+    val versionConverters: Map<String, ObjectNodeConverter<T>> = emptyMap(),
+    override val unversionedConverters: List<ObjectNodeConverter<T>> = emptyList(),
+    override val outputVersion: String? = versionConverters.keys.maxOrNull(),
 ) : VersionedConverter<T>() {
     override fun converterForVersion(version: String): ObjectNodeConverter<T>? =
         versionConverters[version]
+}
+
+private class ChainedConverter<T : Any>(
+    val konvertors: List<ObjectNodeConverter<T>>,
+) : JAny<T>() {
+    override fun toJsonNode(value: T): JsonNodeObject = konvertors.first().toJsonNode(value)
+
+    override fun JsonNodeObject.deserializeOrThrow(): T {
+        val initialFailure = ConverterJsonError(_path, "no valid versioned convertor").asFailure()
+
+        return konvertors.fold<ObjectNodeConverter<T>, JsonOutcome<T>>(initialFailure) { outcome, converter ->
+            outcome.bindFailure { converter.fromJsonNode(this, _path) }
+        }.orThrow()
+    }
 }

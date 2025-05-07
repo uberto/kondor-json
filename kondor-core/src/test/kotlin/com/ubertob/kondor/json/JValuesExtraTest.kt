@@ -382,7 +382,11 @@ class JValuesExtraTest {
 
         repeat(5) {
 
-            val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
+            val value = TitleRequest(
+                id = randomString(lowercase, 5, 5),
+                type = TitleType.entries.random(),
+                yesOrNo = listOf(Yes, No).random(),
+            )
             val json = JTitleRequest.toJsonNode(value)
 
             val actual = JTitleRequest.fromJsonNode(json, NodePathRoot).expectSuccess()
@@ -400,7 +404,11 @@ class JValuesExtraTest {
 
         repeat(5) {
 
-            val value = TitleRequest(randomString(lowercase, 5, 5), TitleType.values().random())
+            val value = TitleRequest(
+                id = randomString(lowercase, 5, 5),
+                type = TitleType.entries.random(),
+                yesOrNo = listOf(Yes, No).random(),
+            )
             val json = JTitleRequest.toJsonNode(value)
 
             val actual = JTitleRequest.fromJsonNode(json, NodePathRoot).expectSuccess()
