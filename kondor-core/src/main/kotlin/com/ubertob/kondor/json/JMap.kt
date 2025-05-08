@@ -3,7 +3,6 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
@@ -37,19 +36,10 @@ class JMap<K : Any, V : Any>(
 
     @Suppress("UNCHECKED_CAST")
     override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
-        when (this) {
-            is FieldMap -> map.entries.associate { (key, value) ->
-                val mapKey = keyConverter.cons(key)
-                mapKey to value as V
-            }
-
-            is FieldNodeMap -> map.entries.associate { (key, node) ->
-                val keyPath = NodePathSegment(key, path)
-                keyConverter.cons(key) to valueConverter.fromJsonNodeBase(node, keyPath)
-                    .failIfNull { ConverterJsonError(keyPath, "Null value found for key: $key") }.orThrow()
-            }
+        getMap().entries.associate { (key, value) ->
+            val mapKey = keyConverter.cons(key)
+            mapKey to value as V
         }
-
 
 
     private fun valueAppender(value: V?): ValueAppender? =
@@ -66,14 +56,20 @@ class JMap<K : Any, V : Any>(
             }
             .sortedBy { it.first }
 
-    override fun convertFields(valueObject: Map<K, V>): FieldNodeMap =
-        FieldNodeMap(
+    override fun convertFields(valueObject: Map<K, V>): FieldNodeMap {
+        println("[DEBUG_LOG] JMap.convertFields valueObject=$valueObject")
+        val result = FieldNodeMap(
             valueObject
-            .map { (key, value) ->
-                val keyString = keyConverter.render(key)
-                keyString to valueConverter.toJsonNode(value)
-            }
-            .sortedBy { it.first }
-            .toMap()
+                .map { (key, value) ->
+                    val keyString = keyConverter.render(key)
+                    val jsonNode = valueConverter.toJsonNode(value)
+                    println("[DEBUG_LOG] JMap.convertFields key=$key, keyString=$keyString, value=$value, jsonNode=$jsonNode")
+                    keyString to jsonNode
+                }
+                .sortedBy { it.first }
+                .toMap()
         )
+        println("[DEBUG_LOG] JMap.convertFields result=$result")
+        return result
+    }
 }

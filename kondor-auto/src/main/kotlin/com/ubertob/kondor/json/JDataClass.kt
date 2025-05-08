@@ -26,8 +26,8 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
     }
 
     override fun FieldsValues.deserializeOrThrow(path: NodePath): T =
-        buildInstance(mapValues { it }, path)
-            .orThrow() //!!! can we do better?
+        buildInstance(getMap(), path)
+            .orThrow()
 
     fun buildInstance(args: ObjectFields, path: NodePath) =
         try {
