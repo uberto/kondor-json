@@ -3,11 +3,12 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
     private val valueConverter: JConverter<V>
-) : JObj<Map<K, V>>() {
+) : JAny<Map<K, V>>() { //can this work with JObj? !!!!
 
     override fun schema(): JsonNodeObject =
         //!!! we shouldn't need this override, investigate
@@ -34,13 +35,14 @@ class JMap<K : Any, V : Any>(
         valueConverter.asSuccess()
 
 
-    @Suppress("UNCHECKED_CAST")
-    override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
-        getMap().entries.associate { (key, value) ->
-            val mapKey = keyConverter.cons(key)
-            mapKey to value as V
+    override fun JsonNodeObject.deserializeOrThrow() =
+        _fieldMap.map.entries.associate { (key, value) ->
+            val newPath = NodePathSegment(key, _path)
+            keyConverter.cons(key) to
+                    valueConverter.fromJsonNodeBase(value, newPath)
+                        .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
+                        .orThrow()
         }
-
 
     private fun valueAppender(value: V?): ValueAppender? =
         if (value == null)
@@ -57,19 +59,16 @@ class JMap<K : Any, V : Any>(
             .sortedBy { it.first }
 
     override fun convertFields(valueObject: Map<K, V>): FieldNodeMap {
-        println("[DEBUG_LOG] JMap.convertFields valueObject=$valueObject")
         val result = FieldNodeMap(
             valueObject
                 .map { (key, value) ->
                     val keyString = keyConverter.render(key)
                     val jsonNode = valueConverter.toJsonNode(value)
-                    println("[DEBUG_LOG] JMap.convertFields key=$key, keyString=$keyString, value=$value, jsonNode=$jsonNode")
                     keyString to jsonNode
                 }
                 .sortedBy { it.first }
                 .toMap()
         )
-        println("[DEBUG_LOG] JMap.convertFields result=$result")
         return result
     }
 }

@@ -304,7 +304,6 @@ class JValuesExtraTest {
         repeat(10) {
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
             val jsonStr = JSelectedFile.toJson(value)
-            println("[DEBUG_LOG] JSelectedFile JSON (flattened): $jsonStr")
             val result = JSelectedFile.fromJson(jsonStr).expectSuccess()
             expectThat(result).isEqualTo(value)
         }

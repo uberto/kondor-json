@@ -29,6 +29,7 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
         buildInstance(getMap(), path)
             .orThrow()
 
+    //There is a problem here with nullable args that are not passed instead of passing the null... !!!
     fun buildInstance(args: ObjectFields, path: NodePath) =
         try {
             constructor.newInstance(*(args.values).toTypedArray())

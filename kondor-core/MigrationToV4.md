@@ -7,13 +7,12 @@ There could be issues if you derived by intermediate types, look at how similar 
 - JObj is the new converter that can parse directly from the tokens
 - JSealed is still derived by JAny because of "discriminant node position"
 - JSubTypes (TBC) is the new converter for subtyping faster but with the type field always first
-- JDataClass (TBC) doesn't need the constructor (like old deserializeOrThrow)
-- JDataClassAuto (TBC) doesn't need anything (reflection or code generation)
+- JDataClass doesn't need the constructor (like old deserializeOrThrow)
+- JDataClassAuto doesn't need anything (reflection or code generation)
 
 ## Issues To Be Fixed Before Release
 
 All tests should pass
-JMap not working as field
 flatten -> doesn't work both finding fields and path with JObj
 
-8/5/2025 27 tests still failing
+8/5/2025 21 tests still failing

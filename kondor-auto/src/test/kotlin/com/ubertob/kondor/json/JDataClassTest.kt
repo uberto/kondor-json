@@ -85,7 +85,8 @@ class JDataClassTest {
 
             val jsonStrNull = Product.Json.toJson(product, JsonStyle.prettyWithNulls)
 
-            expectThat(Product.Json.fromJson(jsonStrNull).expectSuccess()).isEqualTo(product)
+            val newProduct = Product.Json.fromJson(jsonStrNull).expectSuccess()
+            expectThat(newProduct).isEqualTo(product)
 
         }
 
