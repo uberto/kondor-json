@@ -13,7 +13,7 @@ There could be issues if you derived by intermediate types, look at how similar 
 ## Issues To Be Fixed Before Release
 
 All tests should pass
-JObj.fromJsonNode() -> send the FieldNodeMap as value
-JEnum -> java.lang.ClassCastException: class java.lang.String
-JStringWrapper -> Java class exception (??why)
+error on array fields
 flatten -> doesn't work both finding fields and path with JObj
+
+8/5/2025 27 tests still failing
