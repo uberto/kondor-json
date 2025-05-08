@@ -34,10 +34,6 @@ class JMap<K : Any, V : Any>(
     override fun resolveConverter(fieldName: String, nodePath: NodePath): JsonOutcome<JsonConverter<*, *>> =
         valueConverter.asSuccess()
 
-    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<Map<K, V>> =
-        tryFromNode(path) {
-            fieldValues.deserializeOrThrow(path)
-        }
 
     @Suppress("UNCHECKED_CAST")
     override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =

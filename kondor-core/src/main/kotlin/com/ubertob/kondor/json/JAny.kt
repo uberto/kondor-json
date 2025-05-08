@@ -1,6 +1,9 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.jsonnode.FieldNodeMap
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.outcome.Outcome
 
 abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
 
@@ -9,24 +12,10 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
-    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
+    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
         tryFromNode(path) {
-            val nodeMap = fieldValues.mapValues { value ->
-                when (value) {
-                    null -> JsonNodeNull
-                    is String -> JsonNodeString(value)
-                    is Number -> JsonNodeNumber(value)
-                    is Boolean -> JsonNodeBoolean(value)
-                    is JsonNode -> value
-                    else -> throw JsonParsingException(
-                        ConverterJsonError(
-                            path,
-                            "Unsupported type in JAny: ${value::class}"
-                        )
-                    )
-                }
-            }
-            JsonNodeObject.buildForParsing(nodeMap, path).deserializeOrThrow() ?: error("Deserialized to null value!")
+            JsonNodeObject.buildForParsing(fieldMap.map, path).deserializeOrThrow() ?: throw JsonParsingException(
+                ConverterJsonError(path, "deserializeOrThrow returned null!")
+            )
         }
-
 }

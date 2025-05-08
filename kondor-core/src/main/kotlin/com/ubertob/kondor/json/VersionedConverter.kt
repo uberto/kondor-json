@@ -2,40 +2,41 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.*
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.bindFailure
 
 
 private const val defaultVersionProperty = "@version"
 
-
-abstract class VersionedConverter<T : Any> : ObjectNodeConverterProperties<T>() {
+abstract class VersionedConverter<T : Any> : JAny<T>() {
     open val versionProperty = defaultVersionProperty
     open val defaultVersion: String? = null
-open val unversionedConverters: List<ObjectNodeConverter<T>> = emptyList()
+    open val unversionedConverters: List<ObjectNodeConverter<T>> = emptyList()
     abstract fun converterForVersion(version: String): ObjectNodeConverter<T>?
 
     abstract val outputVersion: String?
-private val nullCheckedOutputVersion get() = outputVersion ?: error("output version is null")
+    private val nullCheckedOutputVersion get() = outputVersion ?: error("output version is null")
 
     open val outputVersionConverter: ObjectNodeConverter<T>
         get() =
             outputVersion?.let { converterForVersion(nullCheckedOutputVersion) } ?: unversionedConverters.firstOrNull()
             ?: error("no converter for version $outputVersion")
 
-    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
-        val jsonVersion = (fieldValues.getValue(versionProperty) as? String)
-            ?: defaultVersion
-            ?: return missingVersionError(path).asFailure()
-
-        return converterForVersion(jsonVersion).asSuccess()
-            .failIfNull { unsupportedVersionError(path, jsonVersion) }
-            .bind { it.fromFieldValues(fieldValues, path) }
-    }
+    //not this method, use the ones from JAny
+//    override fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> {
+//        val jsonVersion = (fieldValues.getValue(versionProperty) as? String)
+//            ?: defaultVersion
+//            ?: return missingVersionError(path).asFailure()
+//
+//        return converterForVersion(jsonVersion).asSuccess()
+//            .failIfNull { unsupportedVersionError(path, jsonVersion) }
+//            .bind { it.fromFieldValues(fieldValues, path) }
+//    }
 
     override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T> {
         val jsonVersion = fieldNodeMap.map[versionProperty].asStringValue() ?: defaultVersion
 
-val converters = when {
+        val converters = when {
             jsonVersion == null -> unversionedConverters
             else -> (listOf(converterForVersion(jsonVersion)) + unversionedConverters).filterNotNull()
         }
@@ -89,6 +90,10 @@ data class VersionMapConverter<T : Any>(
 ) : VersionedConverter<T>() {
     override fun converterForVersion(version: String): ObjectNodeConverter<T>? =
         versionConverters[version]
+
+    override fun JsonNodeObject.deserializeOrThrow(): T? {
+        TODO("Not yet implemented!!!!!")
+    }
 }
 
 private class ChainedConverter<T : Any>(

@@ -7,7 +7,9 @@ import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.sameValueAs
 import com.ubertob.kondor.json.schema.objectSchema
-import com.ubertob.kondor.outcome.*
+import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.bind
 import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
@@ -23,15 +25,13 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
-    fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T>
-
-
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         _nodeType.parse(TokensPath(tokens, path))
             .bind {
                 fromJsonNode(it, path)
             } ///!!! this is the old method with JsonNode, it's overridden in JObj. This should be moved to JAny
 
+    //this is useful for when a converter needs to do operations on the fieldsNodeMap before passing to other subconverters
     fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T>
 }
 
@@ -136,15 +136,6 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
             converter.asSuccess()
         }
     }
-
-    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): Outcome<JsonError, T> =
-        getProperties().traverse { property ->
-            property.getter(fieldNodeMap, path)
-                .transform { property.propName to it }
-        }.bind {
-            fromFieldValues(FieldMap(it.toMap()), path)
-        }
-
 
     override fun fromJsonNode(node: JsonNodeObject, path: NodePath): JsonOutcome<T> =
         fromFieldNodeMap(node._fieldMap, path)
