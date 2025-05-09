@@ -34,7 +34,7 @@ internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonNodeObject =
 internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject {
 
     val reqProp = mutableListOf<String>()
-    val pmap = properties.flatMap { prop ->
+    val pmap: Map<String, JsonNode> = properties.flatMap { prop ->
 
         when (prop) {
             is JsonPropMandatory<*, *> -> listOf(prop.propName to prop.converter.schema()).also { reqProp.add(prop.propName) }
@@ -45,15 +45,13 @@ internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject
         }
 
     }.toMap()
-    val propNode = JsonNodeObject(FieldNodeMap(pmap))
 
     val map = mapOf(
         "type" to "object".asNode(),
-        "properties" to propNode,
+        "properties" to pmap.asNode(),
         "required" to reqProp.asNode()
     )
-
-    return JsonNodeObject(FieldNodeMap(pmap))
+    return JsonNodeObject(FieldNodeMap(map))
 }
 
 fun sealedSchema(

@@ -15,4 +15,4 @@ There could be issues if you derived by intermediate types, look at how similar 
 All tests should pass
 flatten -> doesn't work both finding fields and path with JObj
 
-8/5/2025 21 tests still failing
+9/5/2025 11 tests still failing in kondor-core
