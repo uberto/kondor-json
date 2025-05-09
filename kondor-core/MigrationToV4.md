@@ -16,4 +16,4 @@ All tests should pass
 Take care of all !!!
 flatten -> doesn't work both finding fields and path with JObj
 
-9/5/2025 10 tests still failing in kondor-core
+9/5/2025 6 tests still failing in kondor-core

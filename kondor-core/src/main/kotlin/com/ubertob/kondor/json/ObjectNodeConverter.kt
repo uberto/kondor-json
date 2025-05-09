@@ -104,8 +104,7 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
                     tokensStream.next()
                     null.asSuccess()
                 } else {
-                    val fieldPath = NodePathSegment(fieldName, nodePath)
-                    conv.fromTokens(tokensStream, fieldPath)
+                    conv.fromTokens(tokensStream, nodePath)
                 }
             }
 
