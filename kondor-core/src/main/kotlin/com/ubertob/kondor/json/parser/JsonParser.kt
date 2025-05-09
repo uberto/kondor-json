@@ -283,7 +283,7 @@ fun <T> parseArray(
     path: NodePath,
     converter: (TokensStream, NodePath) -> JsonOutcome<T>
 ): JsonOutcome<List<T>> =
-    commaSeparated(tokens, path) { t, p, i -> parseNewValue(t, newSegment(p, i + 1), converter) }
+    commaSeparated(tokens, path) { t, p, i -> parseNewValue(t, newSegment(p, i), converter) }
 
 
 private fun newSegment(path: NodePath, nodeNumber: Int): NodePath = NodePathSegment("[$nodeNumber]", path)

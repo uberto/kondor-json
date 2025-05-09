@@ -311,7 +311,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> expected a Number or NaN but found 'a string'")
+        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> Wrong number format For input string: \"a string\"")
     }
 
     object JPersonIncomplete : JAny<Person>() {
@@ -409,7 +409,7 @@ class ParserFailuresTest {
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format: Rounding necessary")
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format For input string: \"597.7\"")
     }
 
     @Test
@@ -428,7 +428,7 @@ class ParserFailuresTest {
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> expected a Number but found String 'id-123'")
+        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format For input string: \"id-123\"")
     }
 
     //TODO add test for jmap with mixed node types
