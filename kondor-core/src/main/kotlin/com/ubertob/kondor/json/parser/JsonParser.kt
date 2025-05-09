@@ -13,7 +13,6 @@ fun KondorToken.sameValueAs(text: String): Boolean = when (this) {
     is Value -> this.text == text
 }
 
-
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
 fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
@@ -22,7 +21,7 @@ fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
 private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
     InvalidJsonError(
         path, "at position $position: expected $expected but found $actual - $details"
-    ) //.also { Exception().printStackTrace() !!!!!!! }
+    ).also { Exception().printStackTrace() } //!!!!!!!!!!!!!
 
 fun parsingError(
     expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
@@ -58,7 +57,6 @@ fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> =
         OpeningCurly, TokensPath::jsonObject, ClosingCurly
     )()
 
-
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
 typealias JsonParserFromTokens<T> = (TokensStream, NodePath) -> JsonOutcome<T>
 
@@ -66,7 +64,6 @@ fun <T> surroundedForNodes(
     openingToken: KondorSeparator, takeContent: JsonParser<T>, closingToken: KondorSeparator
 ): JsonParser<T> = {
     val middle = { _: KondorToken, middle: T, _: KondorToken -> middle }
-
     middle `!` take(openingToken, tokens, path) `*` takeContent() `*` take(closingToken, tokens, path)
 }
 
@@ -86,7 +83,7 @@ fun <T> parseValues(
 ): JsonOutcome<List<T>> {
     val values = ArrayList<T>(128)
     var index = 0
-    var shouldContinue: Boolean = true
+    var shouldContinue = true
 
     while (shouldContinue) {
         shouldContinue = parseFun(tokens, path, index++)
@@ -118,9 +115,15 @@ fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSeparated { parseNewNode() }.transform { JsonNodeArray(it) }
 
-fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated(withParentNode {
-    keyValue {
-        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.lastPosRead(), path, "invalid Json")
+fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
+    keyValue { (tokens, innerPath) -> //!!! clean up
+        TokensPath(tokens, innerPath).parseNewNode() ?: parsingFailure(
+            "a valid node",
+            "nothing",
+            tokens.lastPosRead(),
+            innerPath,
+            "invalid Json"
+        )
     }
 }).transform(::checkForDuplicateKeys).transform { JsonNodeObject(FieldNodeMap(it.toMap())) }
 
@@ -129,13 +132,17 @@ private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pai
 
 
 fun <T> withParentNode(f: TokensPath.() -> JsonOutcome<T>?): TokensPath.() -> JsonOutcome<T>? =
-    { f(copy(path = path.parent())) }
+    { f(copy(path = path.parent())) } //!!!! remove it?
 
 
-fun <T> TokensPath.keyValue(contentParser: TokensPath.() -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
+fun <T> TokensPath.keyValue(contentParser: (TokensPath) -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
     parseOptionalKeyNode()?.bind { key ->
-        take(Colon, tokens, path)
-            .bind { contentParser(copy(path = NodePathSegment(key, path))) }
+        val newPath = NodePathSegment(key, path)
+        take(Colon, tokens, newPath)
+            .bind {
+                val tk: TokensPath = copy(path = newPath)
+                contentParser(tk)
+            }
             .transform { value -> key to value }
     }
 

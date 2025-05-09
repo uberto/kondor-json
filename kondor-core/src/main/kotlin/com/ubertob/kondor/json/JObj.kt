@@ -13,7 +13,7 @@ import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.traverse
 
 abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
-    //this is the new JAny with faster parsing !!!
+    //this is the new JAny with faster parsing !!!better desc
 
     override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
         surrounded(
