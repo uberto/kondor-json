@@ -384,10 +384,3 @@ class JValuesTest {
         expectThat(valuesFromProducedJson).isEqualTo(values)
     }
 }
-
-
-//Possible extensions:
-// add Converters for all java.time, GUUID, URI, etc.
-// add un-typed option JObject<Any>
-// add constant fields (ignoring Json content)
-// add support to serialize calculated fields
