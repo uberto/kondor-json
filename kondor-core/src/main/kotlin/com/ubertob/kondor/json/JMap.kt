@@ -9,7 +9,7 @@ class JMap<K : Any, V : Any>(
     private val valueConverter: JConverter<V>
 ) : JAny<Map<K, V>>() { //can this work with JObj? !!!!
 
-    // return type:object assuming the map is representing an object. We don't know its properties.
+    // always return type:object assuming the map is representing an object. We don't know its properties.
     override fun schema(): JsonNodeObject =
         JsonNodeObject(FieldNodeMap(mapOf("type" to JsonNodeString("object"))))
 
