@@ -3,7 +3,6 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.sameValueAs
 import com.ubertob.kondor.json.schema.objectSchema
@@ -25,11 +24,6 @@ interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
         app.appendObjectValue(style, offset, fieldAppenders(value))
 
-    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
-        _nodeType.parse(TokensPath(tokens, path))
-            .bind {
-                fromJsonNode(it, path)
-            } ///!!! this is the old method with JsonNode, it's overridden in JObj. This should be moved to JAny
 
     //this is useful for when a converter needs to do operations on the fieldsNodeMap before passing to other subconverters
     fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<T>

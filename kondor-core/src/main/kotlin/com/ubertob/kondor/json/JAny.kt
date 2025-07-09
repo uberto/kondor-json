@@ -3,7 +3,10 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.FieldNodeMap
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.parser.TokensPath
+import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.outcome.Outcome
+import com.ubertob.kondor.outcome.bind
 
 abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
     // If possible, use JObj that is faster at parsing and serializing.
@@ -19,4 +22,10 @@ abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
                 ConverterJsonError(path, "deserializeOrThrow returned null!")
             )
         }
+
+    override fun fromTokens(tokens: TokensStream, path: NodePath): JsonOutcome<T> =
+        _nodeType.parse(TokensPath(tokens, path))
+            .bind {
+                fromJsonNode(it, path)
+            }
 }
