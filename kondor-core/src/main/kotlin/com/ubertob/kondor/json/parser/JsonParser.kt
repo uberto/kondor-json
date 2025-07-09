@@ -21,7 +21,7 @@ fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
 private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
     InvalidJsonError(
         path, "at position $position: expected $expected but found $actual - $details"
-    ).also { Exception().printStackTrace() } //!!!!!!!!!!!!!
+    )
 
 fun parsingError(
     expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
@@ -69,7 +69,7 @@ fun <T> surroundedForNodes(
 
 fun <T> surrounded(
     openingToken: KondorSeparator, takeContent: JsonParserFromTokens<T>, closingToken: KondorSeparator
-): JsonParserFromTokens<T> = { tokens, path ->  //!!! add test for null object {}
+): JsonParserFromTokens<T> = { tokens, path ->
     take(openingToken, tokens, path)
         .bind { takeContent(tokens, path) }
         .bindAndIgnore {
