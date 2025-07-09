@@ -131,10 +131,6 @@ private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pai
     pairs.sortedBy { it.first }
 
 
-fun <T> withParentNode(f: TokensPath.() -> JsonOutcome<T>?): TokensPath.() -> JsonOutcome<T>? =
-    { f(copy(path = path.parent())) } //!!!! remove it?
-
-
 fun <T> TokensPath.keyValue(contentParser: (TokensPath) -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
     parseOptionalKeyNode()?.bind { key ->
         val newPath = NodePathSegment(key, path)

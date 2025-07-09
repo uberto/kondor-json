@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.failIfNull
 
@@ -10,12 +9,9 @@ class JMap<K : Any, V : Any>(
     private val valueConverter: JConverter<V>
 ) : JAny<Map<K, V>>() { //can this work with JObj? !!!!
 
+    // return type:object assuming the map is representing an object. We don't know its properties.
     override fun schema(): JsonNodeObject =
-        //!!! we shouldn't need this override, investigate
-        if (keyConverter is JStringRepresentable<*> && keyConverter.cons === { it: String -> it })
-            objectSchema(emptyList()) // for string-keyed maps, return empty object schema with type
-        else
-            JsonNodeObject(FieldNodeMap(mapOf("type" to JsonNodeString("object")))) // for non-string keys, just return type:object
+        JsonNodeObject(FieldNodeMap(mapOf("type" to JsonNodeString("object"))))
 
     companion object {
         operator fun <V : Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
