@@ -292,17 +292,11 @@ fun parseFields(
     commaSeparated(tokens, path) { t, p, i ->
         //!!! PATH should be updated with field details
         //how to exit where no more fields???
-
-//        println("!!!path $p")
         parseString(t, p)
             .bindAndIgnore {
-//                println("!!!path in fieldname $p")
                 take(Colon, t, p)
             }.bind { key ->
-//                println("!!!path in fielVal $p")
-
                 val fieldPath = NodePathSegment(key, path)
-//                println("!!!path in fieldPath $fieldPath")
                 fieldParser(key, t, fieldPath)
                     .transform { key to it }
             }
