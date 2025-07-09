@@ -10,6 +10,8 @@ import strikt.api.expectThat
 import strikt.assertions.contains
 import strikt.assertions.containsExactly
 import strikt.assertions.isEqualTo
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
 import kotlin.random.Random
 
@@ -382,5 +384,54 @@ class JValuesTest {
         val valuesFromProducedJson = JVariants.fromJson(producedJson).expectSuccess()
 
         expectThat(valuesFromProducedJson).isEqualTo(values)
+    }
+
+    @Test
+    fun `Json BigDecimal`() {
+        repeat(10) {
+            val value = BigDecimal(Random.nextDouble() * 1000000)
+
+            val json = JBigDecimal.toJsonNode(value)
+            val actual = JBigDecimal.fromJsonNode(json, NodePathRoot).expectSuccess()
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JBigDecimal.toJson(value)
+            expectThat(JBigDecimal.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json BigInteger`() {
+        repeat(10) {
+            val value = BigInteger.valueOf(Random.nextLong()).multiply(BigInteger.valueOf(Random.nextLong()))
+
+            val json = JBigInteger.toJsonNode(value)
+            val actual = JBigInteger.fromJsonNode(json, NodePathRoot).expectSuccess()
+            expectThat(actual).isEqualTo(value)
+
+            val jsonStr = JBigInteger.toJson(value)
+            expectThat(JBigInteger.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json Double with special values`() {
+        // Test NaN
+        val nanValue = Double.NaN
+        val nanJson = JDouble.toJson(nanValue)
+        expectThat(nanJson).isEqualTo("\"NaN\"")
+        expectThat(JDouble.fromJson(nanJson).expectSuccess().isNaN()).isEqualTo(true)
+
+        // Test Positive Infinity
+        val posInfValue = Double.POSITIVE_INFINITY
+        val posInfJson = JDouble.toJson(posInfValue)
+        expectThat(posInfJson).isEqualTo("\"Infinity\"")
+        expectThat(JDouble.fromJson(posInfJson).expectSuccess()).isEqualTo(posInfValue)
+
+        // Test Negative Infinity
+        val negInfValue = Double.NEGATIVE_INFINITY
+        val negInfJson = JDouble.toJson(negInfValue)
+        expectThat(negInfJson).isEqualTo("\"-Infinity\"")
+        expectThat(JDouble.fromJson(negInfJson).expectSuccess()).isEqualTo(negInfValue)
     }
 }
