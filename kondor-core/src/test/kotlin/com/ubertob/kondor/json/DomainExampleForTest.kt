@@ -305,11 +305,11 @@ object JExpenseReport : JObj<ExpenseReport>() {
 
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 
-object JNotes : JAny<Notes>() {
+object JNotes : JObj<Notes>() {
     private val updated by str(Notes::updated)
     private val things_to_do by obj(JMap(JString), Notes::thingsToDo)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Notes(
             updated = +updated,
             thingsToDo = +things_to_do

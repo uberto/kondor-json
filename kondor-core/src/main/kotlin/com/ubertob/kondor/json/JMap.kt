@@ -2,12 +2,11 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
     private val valueConverter: JConverter<V>
-) : JAny<Map<K, V>>() { //can this work with JObj? !!!!
+) : JObj<Map<K, V>>() {
 
     // always return type:object assuming the map is representing an object. We don't know its properties.
     override fun schema(): JsonNodeObject =
@@ -31,13 +30,22 @@ class JMap<K : Any, V : Any>(
         valueConverter.asSuccess()
 
 
-    override fun JsonNodeObject.deserializeOrThrow() =
-        _fieldMap.map.entries.associate { (key, value) ->
-            val newPath = NodePathSegment(key, _path)
-            keyConverter.cons(key) to
-                    valueConverter.fromJsonNodeBase(value, newPath)
-                        .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
-                        .orThrow()
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
+        getMap()
+            .entries.associate { (key, value) ->
+                val keyValue = keyConverter.cons(key)
+                keyValue to (value as V)
+            }
+
+    override fun fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath): JsonOutcome<Map<K, V>> =
+        tryFromNode(path) {
+            fieldNodeMap.map.entries.associate { (key, jsonNode) ->
+                val newPath = NodePathSegment(key, path)
+
+                val value = valueConverter.fromJsonNodeBase(jsonNode, newPath)
+                    .orThrow() as V
+                keyConverter.cons(key) to value
+            }
         }
 
     private fun valueAppender(value: V?): ValueAppender? =
@@ -67,4 +75,5 @@ class JMap<K : Any, V : Any>(
         )
         return result
     }
+
 }

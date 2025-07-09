@@ -105,17 +105,19 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomNotes()
+
+            val jsonStr = JNotes.toJson(value, pretty)
+
+//            println("jsonStr: $jsonStr")
+
+            expectThat(JNotes.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
             val json = JNotes.toJsonNode(value)
 
             val actual = JNotes.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toJson(value, pretty)
-
-//            println(jsonStr)
-
-            expectThat(JNotes.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
