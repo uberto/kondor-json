@@ -43,7 +43,7 @@ class ParallelTest {
             futures.add(future)
         }
 
-        val results = futures.map { it.get() }.filterNotNull()
+        val results = futures.mapNotNull { it.get() }
         executor.shutdown()
 
         expectThat(results).isEqualTo(emptyList())
