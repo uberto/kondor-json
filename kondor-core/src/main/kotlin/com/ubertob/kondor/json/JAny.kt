@@ -6,9 +6,10 @@ import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.outcome.Outcome
 
 abstract class JAny<T : Any> : ObjectNodeConverterProperties<T>() {
-
-    //This class will stay both for compatibilty reasons and because it's use JsonNode as intermediate step in parsing
-    //which is slower but useful in some difficult cases
+    // If possible, use JObj that is faster at parsing and serializing.
+    // This class is still useful—not just for compatibility reasons, but also because it uses JsonNode
+    // as an intermediate step in parsing. This approach is slower, but necessary in cases like JSeal,
+    // where all properties need to be parsed before deciding which converter to use.
 
     abstract fun JsonNodeObject.deserializeOrThrow(): T?
 
