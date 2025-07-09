@@ -129,6 +129,39 @@ marshalling 3 ms
 lazy parsing 4569 ms
 
 50k Invoices parsing from stream 3446 ms
+
+On My Laptop: 09/07/2025
+
+JFileInfo
+serialization 73 ms
+serialization compact 83 ms
+total parsing 242 ms
+total parsing NEW 231 ms
+tokenizing 112 ms
+parsing up to JsonNode 145 ms
+marshalling 37 ms
+lazy parsing 859 ms
+
+JInvoices
+serialization 678 ms
+serialization compact 718 ms
+total parsing 736 ms
+tokenizing 773 ms
+parsing from tokens to value 12 ms
+parsing from tokens to JsonNode 10 ms
+marshalling 2 ms
+lazy parsing 3961 ms
+
+
+50k invoices feom stream
+serialization 678 ms
+serialization compact 718 ms
+total parsing 736 ms
+tokenizing 773 ms
+parsing from tokens to value 12 ms
+parsing from tokens to JsonNode 10 ms
+marshalling 2 ms
+lazy parsing 3961 ms
  */
 
 @Disabled
