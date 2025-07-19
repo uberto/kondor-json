@@ -17,3 +17,5 @@ class JDataClassAutoTest {
 
     }
 }
+
+//!!! add test with more complex data examples (array, nested objects, etc)
