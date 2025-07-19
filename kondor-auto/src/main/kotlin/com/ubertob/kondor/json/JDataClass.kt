@@ -1,7 +1,6 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.FieldsValues
-import com.ubertob.kondor.json.jsonnode.JsonNode
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.outcome.asFailure
@@ -9,12 +8,14 @@ import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.onFailure
 import java.lang.reflect.Constructor
 import kotlin.reflect.KClass
-import kotlin.reflect.KProperty1
 
 typealias ObjectFields = Map<String, Any?>
 
 
 abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
+//assuming the declared fields of Kondor conver are in the same order of the constructor order
+    // we can automatically build the instance so no need to override deserializeOrThrow method
+
 
     val clazz: Class<T> = klazz.java
 
@@ -66,61 +67,12 @@ fun <T : Any> JDataClass<T>.testParserAndRender(times: Int = 100, generator: (in
     }
 }
 
-abstract class JDataClassAuto<T : Any>(val klazz: KClass<T>) : JDataClass<T>(klazz) {
-
-
-    fun registerAllProperties() {
-//assuming the declared fields are always in the construtor order we can fix the order problem in JDataClass
-
-
-        klazz.members.filterIsInstance<KProperty1<Any, *>>().forEach { property ->
-            println(property.name)
-            println(property.returnType)
-            println("#")
-
-            //this sees more promising...
-        }
-        klazz.java.declaredFields.forEach { field ->
-            val fieldType: Class<*> = field.type
-            val fieldTypeClass = field.type::class.java
-            println(field.name)
-            println(fieldType)
-            println("-")
-
-            val converter: JsonConverter<out Comparable<*>, out JsonNode> = when (fieldType) {
-                Int::class.java, Integer::class.java -> JInt
-                Long::class.java -> JLong
-                Float::class.java -> JFloat
-                Double::class.java -> JDouble
-                String::class.java -> JString
-                Boolean::class.java -> JBoolean
-                else -> fieldType.classLoader.loadClass("J${fieldType.simpleName}") as JsonConverter<out Comparable<*>, out JsonNode> //how to get the object from a javaclass or get a Koltin class by name??
-            }
-
-            //is there a way to detect nullable fields?
-
-            val prop = JsonPropMandatory(field.name, converter)
-
-
-            when (fieldType) {
-                Int::class.java -> registerProperty(JsonPropMandatory(field.name, JInt)) { o -> field.getInt(o) }
-                String::class.java -> registerProperty(
-                    JsonPropMandatory(
-                        field.name,
-                        JString
-                    )
-                ) { o -> field.get(o) as String }
-            }
-
-            registerPropertyHack(prop) { obj -> field.get(obj) }
-        }
-
-    }
-}
-
 /*
-Strategy to generate metadata needed to call constructor on Person using
+Possible trategy to generate metadata needed to call constructor on Person using
 annotation on Kondor converter.
+This would remove the need of having same orderconstructor args order and converter fields.
+
+
 
 Yes, it's possible! Instead of placing `@ConstructorMetadata` on `Person`,
 you can annotate another class that **contains** a field of type `Person`,
