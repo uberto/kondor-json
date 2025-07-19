@@ -6,6 +6,33 @@ import strikt.assertions.isEqualTo
 
 class ConvenienceMethodsTest {
 
+    @Test
+    fun `bindAndIgnore applies a function but returns the original success value`() {
+        // Success case - should apply the function but return the original value
+        val user = getUser(123)
+        var functionCalled = false
+
+        val result = user.bindAndIgnore {
+            functionCalled = true
+            "Some text".asSuccess()
+        }
+
+        expectThat(functionCalled).isEqualTo(true)
+        expectThat(result).isEqualTo(user)
+
+        // Failure case - should not apply the function and return the original failure
+        val failedUser = getUser(-1)
+        var failureFunctionCalled = false
+
+        val failureResult = failedUser.bindAndIgnore {
+            failureFunctionCalled = true
+            "Some text".asSuccess()
+        }
+
+        expectThat(failureFunctionCalled).isEqualTo(false)
+        expectThat(failureResult).isEqualTo(failedUser)
+    }
+
 
     @Test
     fun `asOutcome transforms values into Outcomes`() {

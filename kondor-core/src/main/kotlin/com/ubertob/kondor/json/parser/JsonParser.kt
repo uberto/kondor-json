@@ -216,11 +216,6 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
         }
 
 
-fun <T, U, E : OutcomeError> Outcome<E, T>.bindAndIgnore(f: (T) -> Outcome<E, U>): Outcome<E, T> = when (this) {
-    is Failure -> this
-    is Success -> f(value).transform { value }
-} //!!! this should go to Outcome core if not already there
-
 fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = when (val token = tokens.next()) {
     is Value -> when (token.text) {
         "true" -> true.asSuccess()
