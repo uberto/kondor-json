@@ -20,6 +20,7 @@ dependencies {
     api(project(":kondor-core"))
     implementation(libs.kotlin.jdk8)
     implementation(libs.kotlin.reflect)
+    testImplementation(testFixtures(project(":kondor-core")))
 }
 
 @Suppress("UnstableApiUsage")
@@ -31,7 +32,7 @@ testing {
                 implementation(libs.striKt)
                 implementation(project(":kondor-tools"))
                 implementation(libs.justify)
-                implementation(testFixtures(project(":kondor-core")))
+                testFixtures(project(":kondor-core"))
                 runtimeOnly(libs.jUnit.launcher)
                 runtimeOnly(libs.joy)
             }
