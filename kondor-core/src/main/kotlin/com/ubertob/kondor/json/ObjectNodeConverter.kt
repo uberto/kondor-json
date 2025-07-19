@@ -81,7 +81,7 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
 
     @Suppress("UNCHECKED_CAST")
     fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any) =
-        registerProperty(jsonProperty, binder as (T) -> FT) //!!! do we really need it?
+        registerProperty(jsonProperty, binder as (T) -> FT)
 
 
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =

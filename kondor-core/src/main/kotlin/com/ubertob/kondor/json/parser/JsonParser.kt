@@ -288,7 +288,7 @@ fun parseFields(
     tokens: TokensStream,
     path: NodePath,
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
-): JsonOutcome<FieldMap> =
+): JsonOutcome<FieldsValuesMap> =
     commaSeparated(tokens, path) { t, p, i ->
         parseString(t, p)
             .bindAndIgnore {
@@ -299,7 +299,7 @@ fun parseFields(
                     .transform { key to it }
             }
     }.bind {
-        FieldMap(it.toMap()).asSuccess()
+        FieldsValuesMap(it.toMap()).asSuccess()
     }
 
 fun <T> parseNewValue(

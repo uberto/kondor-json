@@ -15,12 +15,9 @@ typealias EntryJsonNode = Map.Entry<String, JsonNode>
 
 data class FieldNodeMap(val map: Map<String, JsonNode>)
 
-data class FieldMap(private val map: Map<String, Any?>) :
-    FieldsValues { //should be fieldsMap or just remove FieldsValue...!!!
-
+data class FieldsValuesMap(private val map: Map<String, Any?>) : FieldsValues {
     override fun getValue(fieldName: String): Any? = map[fieldName]
     override fun getMap(): Map<String, Any?> = map
-
 }
 
 sealed class JsonNode(val nodeKind: NodeKind<*>)

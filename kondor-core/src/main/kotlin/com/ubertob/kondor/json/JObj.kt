@@ -1,8 +1,8 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.FieldMap
 import com.ubertob.kondor.json.jsonnode.FieldNodeMap
 import com.ubertob.kondor.json.jsonnode.FieldsValues
+import com.ubertob.kondor.json.jsonnode.FieldsValuesMap
 import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.parser.KondorSeparator
 import com.ubertob.kondor.json.parser.TokensStream
@@ -35,7 +35,7 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
             property.getter(fieldNodeMap, path)
                 .transform { property.propName to it }
         }.bind {
-            fromFieldValues(FieldMap(it.toMap()), path)
+            fromFieldValues(FieldsValuesMap(it.toMap()), path)
         }
 
     abstract fun FieldsValues.deserializeOrThrow(path: NodePath): T //this is the method that concrete converter will have to implement
