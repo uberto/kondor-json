@@ -116,7 +116,7 @@ fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSeparated { parseNewNode() }.transform { JsonNodeArray(it) }
 
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
-    keyValue { (tokens, innerPath) -> //!!! clean up
+    keyValue { (tokens, innerPath) ->
         TokensPath(tokens, innerPath).parseNewNode() ?: parsingFailure(
             "a valid node",
             "nothing",
@@ -125,9 +125,9 @@ fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
             "invalid Json"
         )
     }
-}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(FieldNodeMap(it.toMap())) }
+}).transform { JsonNodeObject(FieldNodeMap(sortKeys(it).toMap())) }
 
-private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
+private fun sortKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
     pairs.sortedBy { it.first }
 
 
@@ -290,8 +290,6 @@ fun parseFields(
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
 ): JsonOutcome<FieldMap> =
     commaSeparated(tokens, path) { t, p, i ->
-        //!!! PATH should be updated with field details
-        //how to exit where no more fields???
         parseString(t, p)
             .bindAndIgnore {
                 take(Colon, t, p)
