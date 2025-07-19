@@ -10,6 +10,7 @@ import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.startsWith
 
 class JDataClassTest {
 
@@ -129,7 +130,7 @@ class JDataClassTest {
         expectThat(res).isA<Failure<JsonError>>()
         val error = (res as Failure<JsonError>).error
 
-        expectThat(error.reason).isEqualTo("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
+        expectThat(error.reason).startsWith("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
     }
 
 

@@ -12,11 +12,32 @@ import kotlin.reflect.KClass
 typealias ObjectFields = Map<String, Any?>
 
 
+/**
+ * Abstract base class for JSON converters that work with Kotlin data classes.
+ *
+ * JDataClass provides automatic deserialization for data classes by matching the declared
+ * JSON fields to the constructor parameters in the same order. This eliminates the need
+ * to override the deserializeOrThrow method.
+ *
+ * Usage:
+ * ```
+ * data class Person(val id: Int, val name: String)
+ *
+ * object PersonJson : JDataClass<Person>(Person::class) {
+ *     val id by num(Person::id)
+ *     val name by str(Person::name)
+ * }
+ * ```
+ *
+ * Important: The order of property declarations in the converter must match the order
+ * of parameters in the data class constructor for automatic deserialization to work correctly.
+ *
+ * @param T The data class type this converter handles
+ * @param klazz The Kotlin class reference for the data class
+ */
 abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
-//assuming the declared fields of Kondor conver are in the same order of the constructor order
-    // we can automatically build the instance so no need to override deserializeOrThrow method
 
-
+    private val kClass: KClass<T> = klazz
     val clazz: Class<T> = klazz.java
 
     private val constructor: Constructor<T> by lazy {
@@ -26,21 +47,46 @@ abstract class JDataClass<T : Any>(klazz: KClass<T>) : JObj<T>() {
         clazz.constructors.first() as Constructor<T>
     }
 
+    private val kConstructor by lazy {
+        kClass.constructors.first()
+    }
+
     override fun FieldsValues.deserializeOrThrow(path: NodePath): T =
         buildInstance(getMap(), path)
             .orThrow()
 
-    //There is a problem here with nullable args that are not passed instead of passing the null... !!!
     fun buildInstance(args: ObjectFields, path: NodePath) =
         try {
-            constructor.newInstance(*(args.values).toTypedArray())
+            // Get constructor parameters and properties in their declared order
+            val constructorParams = kConstructor.parameters
+            val properties = getProperties()
+
+            // Ensure we have the same number of properties as constructor parameters
+            if (properties.size != constructorParams.size) {
+                throw IllegalStateException("Number of properties (${properties.size}) doesn't match constructor parameters (${constructorParams.size})")
+            }
+
+            // Create argument array by matching properties to constructor parameters by position
+            val orderedArgs = properties.zip(constructorParams).map { (property, param) ->
+                val value = args[property.propName]
+
+                // If the parameter is nullable and the value is missing, pass null
+                if (value == null && param.type.isMarkedNullable) {
+                    null
+                } else if (value == null && !param.type.isMarkedNullable) {
+                    throw IllegalArgumentException("Missing required parameter: ${param.name} (property: ${property.propName})")
+                } else {
+                    value
+                }
+            }.toTypedArray()
+
+            constructor.newInstance(*orderedArgs)
                 .asSuccess()
         } catch (t: Exception) {
             ConverterJsonError(
                 path,
-                "Error calling constructor with signature ${constructor.description()} using params $args"
-            )
-                .asFailure()
+                "Error calling constructor with signature ${constructor.description()} using params $args. Error: ${t.message}"
+            ).asFailure()
         }
 }
 
