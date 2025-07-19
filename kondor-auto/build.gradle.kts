@@ -31,6 +31,7 @@ testing {
                 implementation(libs.striKt)
                 implementation(project(":kondor-tools"))
                 implementation(libs.justify)
+                implementation(testFixtures(project(":kondor-core")))
                 runtimeOnly(libs.jUnit.launcher)
                 runtimeOnly(libs.joy)
             }
