@@ -31,7 +31,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
         val typeName = JString.fromJsonNodeBase(discriminatorNode, _path).orThrow()
-        val converter = subConverters[typeName] ?: error("subtype not known $typeName")
+        val converter = try { typeName?.let {  subConverters.getValue(typeName) } } catch (e: Exception) { null } ?: error("subtype not known $typeName")
         return converter.fromFieldNodeMap(_fieldMap, _path).orThrow()
     }
 
