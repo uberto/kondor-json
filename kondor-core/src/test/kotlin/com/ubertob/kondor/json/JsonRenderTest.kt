@@ -73,6 +73,16 @@ class JsonRenderTest {
         expectThat(jsonString).isEqualTo(""""abc {} \\ , : [] \" \n \t \r 123"""")
     }
 
+    @Test
+    fun `render string with unicode control characters`() {
+        val value =
+            "abc \u0000 \u0001 \u0002 \u0003 \u0004 \u0005 \u0006 \u0007 \u0008 \u0009 \u000A \u000B \u000C \u000D \u000E \u000F"
+
+        val jsonString = JsonNodeString(value).render()
+
+        expectThat(jsonString).isEqualTo("\"abc \\u0000 \\u0001 \\u0002 \\u0003 \\u0004 \\u0005 \\u0006 \\u0007 \\b \\t \\n \\u000B \\f \\r \\u000E \\u000F\"")
+    }
+
 
     @Test
     fun `render array`() {
@@ -314,7 +324,7 @@ class JsonRenderTest {
             expectThat(jsonString).isEqualTo(expected)
         }
     }
-    
+
     @Test
     fun `pretty render array with nested objects and arrays`() {
         repeat(5) {
@@ -344,7 +354,7 @@ class JsonRenderTest {
                     ))
                 ))
             ))
-            
+
             val jsonString = tree.render(pretty)
 
             val expected = """[
@@ -373,11 +383,11 @@ class JsonRenderTest {
                 |    ]
                 |  }
                 |]""".trimMargin()
-            
+
             expectThat(jsonString).isEqualTo(expected)
         }
     }
-    
+
     @Test
     fun `pretty render object with nested objects and arrays`() {
         repeat(5) {
@@ -407,7 +417,7 @@ class JsonRenderTest {
                     ))
                 ))
             ))
-            
+
             val jsonString = tree.render(pretty)
 
             val expected = """{
@@ -436,7 +446,7 @@ class JsonRenderTest {
                 |    ]
                 |  }
                 |}""".trimMargin()
-            
+
             expectThat(jsonString).isEqualTo(expected)
         }
     }
