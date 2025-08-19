@@ -1,9 +1,11 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 
 abstract class JsonLexerTestAbstract {
@@ -119,10 +121,9 @@ abstract class JsonLexerTestAbstract {
         expectThat(tokens.toList()).isEqualTo(
             listOf(
                 OpeningQuotesSep,
-                Value("abc \\u263A", 2),
+                Value("abc \u263A", 7),
                 ClosingQuotesSep,
             )
         )
     }
-
 }

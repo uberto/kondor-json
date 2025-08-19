@@ -12,7 +12,7 @@ import java.nio.charset.Charset
 
 
 enum class LexerState {
-    OutString, InString, Escaping
+    OutString, InString, Escaping, Unicode
 }
 
 
@@ -24,6 +24,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
         sequence {
             val currToken = ChunkedStringWriter(256)
             var state = OutString
+            var unicodeCharacterPointString = ""
 
             inputStream
                 .reader(Charset.forName("UTF-8"))
@@ -86,18 +87,34 @@ class JsonLexerLazy(val inputStream: InputStream) {
                         }
 
                         Escaping -> when (char) {
-                            '\\' -> currToken.write('\\')
-                            '/' -> currToken.write('/')
-                            '"' -> currToken.write('\"')
-                            '/' -> currToken.write('/')
-                            'n' -> currToken.write('\n')
-                            'f' -> currToken.write('\t')
-                            't' -> currToken.write('\t')
-                            'r' -> currToken.write('\r')
-                            'b' -> currToken.write('\b')
-                            'u' -> currToken.write("\\u") //technically Unicode shouldn't be escaped in Json bc it's UTF-8 but since people insist on using it...
+                            '\\' -> currToken.write('\\').also { state = InString }
+                            '/' -> currToken.write('/').also { state = InString }
+                            '"' -> currToken.write('\"').also { state = InString }
+                            'n' -> currToken.write('\n').also { state = InString }
+                            'f' -> currToken.write('\t').also { state = InString }
+                            't' -> currToken.write('\t').also { state = InString }
+                            'r' -> currToken.write('\r').also { state = InString }
+                            'b' -> currToken.write('\b').also { state = InString }
+                            'u' -> {
+                                state = Unicode
+                            }
                             else -> error("wrongly escaped char '\\$char' inside a Json string")
-                        }.also { state = InString }
+                        }
+
+                        Unicode -> {
+                            unicodeCharacterPointString += char
+
+                            if (unicodeCharacterPointString.length == 4) {
+                                val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
+
+                                if (unicodeChar == null) error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
+
+                                currToken.write(unicodeChar)
+
+                                unicodeCharacterPointString = ""
+                                state = InString
+                            }
+                        }
                     }
                     currPos++
                 }
@@ -142,6 +159,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
         var pos = 1
         val charWriter = ChunkedStringWriter(256)
         var state = OutString
+        var unicodeCharacterPointString = ""
         val tokens = ArrayList<KondorToken>(128)
         for (char in jsonStr) {
             when (state) {
@@ -149,6 +167,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     when (char) {
                         ' ', '\t', '\n', '\r', '\b' ->
                             tokens.addValue(charWriter, pos)
+
                         '{' -> {
                             tokens.addValue(charWriter, pos)
                             tokens.add(OpeningCurlySep)
@@ -203,23 +222,49 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                 }
 
                 Escaping -> when (char) {
-                    '\\' -> charWriter.write('\\')
-                    '"' -> charWriter.write('"')
-                    '/' -> charWriter.write('/')
-                    'n' -> charWriter.write('\n')
-                    'f' -> charWriter.write('\t')
-                    't' -> charWriter.write('\t')
-                    'r' -> charWriter.write('\r')
-                    'b' -> charWriter.write('\b')
-                    'u' -> charWriter.write("\\u")
+                    '\\' -> charWriter.write('\\').also { state = InString }
+                    '"' -> charWriter.write('"').also { state = InString }
+                    '/' -> charWriter.write('/').also { state = InString }
+                    'n' -> charWriter.write('\n').also { state = InString }
+                    'f' -> charWriter.write('\t').also { state = InString }
+                    't' -> charWriter.write('\t').also { state = InString }
+                    'r' -> charWriter.write('\r').also { state = InString }
+                    'b' -> charWriter.write('\b').also { state = InString }
+                    'u' -> state = Unicode
                     else -> return parsingFailure(
                         "a valid Json",
                         "wrongly escaped char '\\$char' inside a Json string after '${charWriter.takeLast(10)}'",
                         pos,
                         NodePathRoot,
                         "Invalid Json"
-                    )
-                }.also { state = InString }
+                    ).also { state = InString }
+                }
+
+                Unicode -> {
+                    unicodeCharacterPointString += char
+
+                    if (unicodeCharacterPointString.length == 4) {
+                        val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
+
+                        if (unicodeChar == null) {
+                            return parsingFailure(
+                                "a valid Json",
+                                "invalid unicode escape sequence '\\u${unicodeCharacterPointString}' after '${
+                                    charWriter.takeLast(
+                                        10
+                                    )
+                                }'",
+                                pos,
+                                NodePathRoot,
+                                "Invalid Json"
+                            )
+                        }
+
+                        charWriter.write(unicodeChar)
+                        unicodeCharacterPointString = ""
+                        state = InString
+                    }
+                }
             }
             pos++
         }
