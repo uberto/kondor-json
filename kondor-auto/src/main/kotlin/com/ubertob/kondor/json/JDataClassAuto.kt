@@ -3,7 +3,9 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.JsonNode
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
+import kotlin.reflect.KType
 import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.primaryConstructor
 import kotlin.reflect.jvm.javaType
 
 
@@ -20,9 +22,6 @@ import kotlin.reflect.jvm.javaType
  * data class Person(val id: Int, val name: String)
  *
  * object PersonJson : JDataClassAuto<Person>(Person::class) {
- *     init {
- *         registerAllProperties()
- *     }
  * }
  * ```
  *
@@ -34,39 +33,54 @@ import kotlin.reflect.jvm.javaType
  */
 abstract class JDataClassAuto<T : Any>(val klazz: KClass<T>) : JDataClass<T>(klazz) {
 
+    init {
+        // Auto-register all properties on creation so users don't need to call register manually
+        registerAllProperties()
+    }
+
     fun registerAllProperties() {
-        // Use Kotlin reflection to get properties in the correct order
-        klazz.memberProperties.forEach { property ->
+        // Register properties in the exact order of constructor parameters
+        val constructor = klazz.primaryConstructor ?: klazz.constructors.firstOrNull()
+        ?: throw IllegalStateException("No accessible constructor found for $klazz")
+
+        val propertiesByName: Map<String, KProperty1<T, *>> = klazz.memberProperties
+            .associateBy { it.name }
+
+        constructor.parameters.forEach { param ->
+            val name = param.name
+                ?: throw IllegalStateException("Constructor parameter without a name in $klazz")
+
+            val property = propertiesByName[name]
+                ?: throw IllegalStateException("Property '$name' not found in $klazz for constructor parameter")
+
             @Suppress("UNCHECKED_CAST")
-
-
-            // Check if the property is nullable
-            if (property.returnType.isMarkedNullable) {
+            if (param.type.isMarkedNullable) {
                 val prop = property as KProperty1<T, Any?>
-                val converter = getConverterForType(property.returnType.javaType as Class<*>)
-
-                registerProperty(JsonPropOptional(property.name, converter)) { obj -> prop.get(obj) }
+                val converter = getConverterForKType(param.type)
+                registerProperty(JsonPropOptional(name, converter)) { obj -> prop.get(obj) }
             } else {
                 val prop = property as KProperty1<T, Any>
-                val converter =
-                    getConverterForType(property.returnType.javaType as Class<*>) as JsonConverter<Any, out JsonNode>
-
-                registerProperty(JsonPropMandatory(property.name, converter)) { obj -> prop.get(obj) }
+                val converter = getConverterForKType(param.type) as JsonConverter<Any, out JsonNode>
+                registerProperty(JsonPropMandatory(name, converter)) { obj -> prop.get(obj) }
             }
         }
     }
 
-    //converter for types should be different for nullable and not nullable !!!
+    // Basic mapping from Kotlin types to built-in converters
     @Suppress("UNCHECKED_CAST")
-    private fun getConverterForType(fieldType: Class<*>): JsonConverter<Any?, out JsonNode> {
-        return when (fieldType) {
+    private fun getConverterForKType(kType: KType): JsonConverter<Any?, out JsonNode> {
+        val rawClass = (kType.classifier as? KClass<*>)?.java
+            ?: (kType.javaType as? Class<*>)
+            ?: throw IllegalArgumentException("Unsupported Kotlin type: $kType")
+
+        return when (rawClass) {
             Int::class.java, Integer::class.java -> JInt as JsonConverter<Any?, out JsonNode>
-            Long::class.java -> JLong as JsonConverter<Any?, out JsonNode>
-            Float::class.java -> JFloat as JsonConverter<Any?, out JsonNode>
-            Double::class.java -> JDouble as JsonConverter<Any?, out JsonNode>
-            String::class.java -> JString as JsonConverter<Any?, out JsonNode>
-            Boolean::class.java -> JBoolean as JsonConverter<Any?, out JsonNode>
-            else -> throw IllegalArgumentException("Unsupported field type: $fieldType. Please use explicit JDataClass mapping for complex types.")
-        } //!!! add bigdecimal, big integer, enums, date, time, and other common types, plus use another JDataClassAuto for the data class types
+            Long::class.java, java.lang.Long::class.java -> JLong as JsonConverter<Any?, out JsonNode>
+            Float::class.java, java.lang.Float::class.java -> JFloat as JsonConverter<Any?, out JsonNode>
+            Double::class.java, java.lang.Double::class.java -> JDouble as JsonConverter<Any?, out JsonNode>
+            String::class.java, java.lang.String::class.java -> JString as JsonConverter<Any?, out JsonNode>
+            Boolean::class.java, java.lang.Boolean::class.java -> JBoolean as JsonConverter<Any?, out JsonNode>
+            else -> throw IllegalArgumentException("Unsupported field type: $rawClass. Please use explicit JDataClass mapping for complex or custom types.")
+        } // TODO: add BigDecimal, BigInteger, enums, date/time, nested data classes, collections, etc.
     }
 }

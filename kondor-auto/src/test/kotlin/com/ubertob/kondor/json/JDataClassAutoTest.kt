@@ -8,9 +8,6 @@ class JDataClassAutoTest {
 
     @Test
     fun `JDataClassAuto doesn't need the fields declaration`() {
-
-        PersonRefl.registerAllProperties() //temp hack
-
         PersonRefl.toJson(randomPerson(), JsonStyle.prettyWithNulls)
 
         PersonRefl.testParserAndRender(100) { randomPerson() }

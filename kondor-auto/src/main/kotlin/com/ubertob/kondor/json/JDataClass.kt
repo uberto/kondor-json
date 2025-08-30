@@ -114,13 +114,15 @@ fun <T : Any> JDataClass<T>.testParserAndRender(times: Int = 100, generator: (in
 }
 
 /*
-Possible trategy to generate metadata needed to call constructor on Person using
+Possible strategy to generate metadata needed to call constructor on Person using
 annotation on Kondor converter.
 This would remove the need of having same orderconstructor args order and converter fields.
 
 
-
-Yes, it's possible! Instead of placing `@ConstructorMetadata` on `Person`,
+Using the annotation processor to generate metadata that can be used to call the constructor
+params in the right order.
+We doon't need to annotate each `Person` or JPerson,
+ directly Instead of placing `@ConstructorMetadata` on `Person`,
 you can annotate another class that **contains** a field of type `Person`,
 and the annotation processor will generate metadata for `Person`.
 
