@@ -1,0 +1,40 @@
+# Kondor-JSON
+
+> A functional Kotlin JSON library that uses explicit, composable converters (a small DSL) instead of reflection/annotations/codegen at runtime—giving you precise, versionable JSON contracts, clearer errors, and multiple JSON views per domain type.
+
+Kondor centers on defining one `JsonConverter` per domain class (e.g., extend `JAny<T>` and declare fields via `str/num/bool/array/obj` delegates). Deserialization is explicit (override `deserializeOrThrow`), which keeps the mapping readable and refactor-safe. Converters can also generate JSON Schema (`schema()`), and you can maintain multiple converters for the same class (e.g., different API versions or HTTP vs persistence). Error messages include JSON paths for fast debugging. Polymorphism (sealed classes), maps, `Instant`, `BigDecimal`, and string-wrapper IDs are supported. You can also embed/flatten external JSON with `JsonNodeObject`.
+
+**Modules (overview)**
+- **kondor-core**: converters DSL, JSON nodes, schema gen
+- **kondor-tools**: generator & utilities (e.g., produce schemas / helpers)
+- **kondor-auto**: code generation of converters from data classes (paste-in, then adapt)
+- **kondor-jackson**: interop/migration helpers
+- **kondor-mongo**: reuse converters with MongoDB
+- **kondor-outcome**: lightweight Either-style result (`Outcome`) to avoid clashes with Kotlin `Result`
+
+**When to choose Kondor**
+- You need stable, explicit JSON contracts (no accidental format drift)
+- You want multiple JSON shapes for the same domain model
+- You prefer compile-time guidance + explicit mapping over “magic” reflection
+
+## Docs
+
+- [README (overview, quick start, examples)](https://github.com/uberto/kondor-json/blob/main/README.md): Start here; shows defining a converter, parsing/rendering, schema generation, and rationale.
+- [Architecture notes](https://github.com/uberto/kondor-json/blob/main/docs/ARCHITECTURE.md): High-level structure and design intent.
+
+## Modules
+
+- [kondor-core](https://github.com/uberto/kondor-json/tree/main/kondor-core): Core converters, JSON nodes, schema support.
+- [kondor-tools](https://github.com/uberto/kondor-json/tree/main/kondor-tools): Generator & utilities for working with converters.
+- [kondor-auto](https://github.com/uberto/kondor-json/tree/main/kondor-auto): Generate converter code from data classes (paste then refine).
+- [kondor-jackson](https://github.com/uberto/kondor-json/tree/main/kondor-jackson): Jackson interop to ease adoption/migration.
+- [kondor-mongo](https://github.com/uberto/kondor-json/tree/main/kondor-mongo): MongoDB integration reusing converters.
+- [kondor-outcome](https://github.com/uberto/kondor-json/tree/main/kondor-outcome): `Outcome` result type used across Kondor.
+
+## Examples
+
+- [kondor-examples](https://github.com/uberto/kondor-json/tree/main/kondor-examples): End-to-end examples of defining converters and using them.
+
+## Optional
+
+- [CHANGELOG](https://github.com/uberto/kondor-json/blob/main/CHANGELOG.md): Recent changes and new capabilities.
