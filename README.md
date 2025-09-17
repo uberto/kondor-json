@@ -267,7 +267,7 @@ an `Outcome<T>` instead of a simple `T`. Why is that?
 1. orThrow()
 
 ```kotlin
-JCustomer.fromJson(jsonString).orThrow()
+JCustomer.parseJson(jsonString).orThrow()
 ```
 
 this throws an exception if there is an error.
@@ -275,7 +275,7 @@ this throws an exception if there is an error.
 1. orNull()
 
 ```kotlin
-JCustomer.fromJson(jsonString).orNull()
+JCustomer.parseJson(jsonString).orNull()
    ?.let { customer ->
       //do something only if successful
    }
@@ -286,7 +286,7 @@ this returns null if there is an error, it's not great because the error is lost
 1. onFailure{}
 
 ```kotlin
-val customer = JCustomer.fromJson(jsonString)
+val customer = JCustomer.parseJson(jsonString)
    .onFailure { error ->
       log(error)
       return
@@ -298,7 +298,7 @@ using `onFailure` we can return from the calling function (non-local return) in 
 1. transform{} + recover{}
 
 ```kotlin
-val htmlPage = JCustomer.fromJson(jsonString)
+val htmlPage = JCustomer.parseJson(jsonString)
    .transform { customer ->
       display(customer)
    }.recover { error ->
