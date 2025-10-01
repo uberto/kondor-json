@@ -127,6 +127,53 @@ them using Kleisli arrows.
 But names are not important, what's nice with this approach is that it allows to easily reuse and test operation on
 database without mixing the business logic with the database infrastructure details.
 
+## Running tests locally with Docker (macOS)
+
+The kondor-mongo tests use Testcontainers to spin up a real MongoDB in Docker.
+On macOS you just need a working Docker runtime; Testcontainers will pull and run the container automatically.
+
+Steps:
+- Install a Docker runtime (choose one):
+  - Docker Desktop for Mac: https://www.docker.com/products/docker-desktop/
+  - Orbstack: https://orbstack.dev/ (fast, lightweight Docker replacement)
+  - Colima (Homebrew): `brew install colima docker` then start with `colima start`.
+- Start your Docker runtime so the Docker daemon is running.
+- From the project root, run: `./gradlew :kondor-mongo:test`
+
+Notes:
+- The tests use the image `mongo:6.0.14`, which has native ARM64 support and works on Apple Silicon and Intel Macs.
+- If using Colima and you prefer x86_64 images (slower), you can start with: `colima start --arch x86_64`.
+- Testcontainers needs to start helper containers (Ryuk). If you see permission errors, ensure your user can access the Docker socket and that the runtime is running.
+- To enable container reuse across test runs (optional), create a file `~/.testcontainers.properties` with:
+  `testcontainers.reuse.enable=true`
+  Then, start your Docker runtime once and keep it running between test runs.
+
+Troubleshooting:
+- "Cannot connect to Docker": make sure Docker Desktop/Orbstack/Colima is running.
+- "Image not found or platform mismatch": ensure you are on a recent Docker and that the image tag supports your architecture (we pin 6.0.14 for ARM64 support).
+- Network issues when pulling images: try `docker pull mongo:6.0.14` manually to verify connectivity.
+
+## Running tests locally with Docker (Linux)
+
+- Install Docker Engine: https://docs.docker.com/engine/install/
+- Optional post-install steps to run docker as non-root: https://docs.docker.com/engine/install/linux-postinstall/
+- Ensure the Docker daemon is running: `sudo systemctl status docker` (or your distro's init system).
+- Run tests: `./gradlew :kondor-mongo:test`
+
+## Running tests locally with Docker (Windows)
+
+- Install Docker Desktop for Windows: https://www.docker.com/products/docker-desktop/
+- Enable WSL2 backend during setup and ensure a Linux distro is installed/enabled in Docker Desktop Settings > Resources > WSL Integration.
+- Start Docker Desktop and verify `docker run hello-world` works in a PowerShell or WSL shell.
+- Run tests from your project directory: `./gradlew :kondor-mongo:test`
+
+## Image/platform notes
+
+- Tests default to `mongo:6.0.14`, a multi-arch image. Docker will pull the correct variant for your platform (amd64/arm64) automatically.
+- You can override the image via environment variable if needed (e.g., to use a corporate mirror):
+  - macOS/Linux: `MONGO_TEST_IMAGE=my-registry.example.com/mongo:6.0.14 ./gradlew :kondor-mongo:test`
+  - Windows PowerShell: `$env:MONGO_TEST_IMAGE="my-registry.example.com/mongo:6.0.14"; ./gradlew :kondor-mongo:test`
+
 ## ToDo
 
 - migration hook (update to latest version in the find)
