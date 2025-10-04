@@ -198,6 +198,27 @@ class JsonParserTest {
     }
 
     @Test
+    fun `parse unicode control characters String`() {
+
+        repeat(100) {
+            val value = randomString(controlCharacters + digits + latin1 + japanese, 0, 10)
+            val jsonString = JsonNodeString(value).render()
+
+//            println("$value -> $jsonString")
+
+            val tokens = tokenize(jsonString).expectSuccess()
+
+            val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
+
+//            println("-> ${node.text}")
+
+            expectThat(node.text).isEqualTo(value)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
+        }
+
+    }
+
+    @Test
     fun `parse Null`() {
 
         val jsonString = JsonNodeNull.render()

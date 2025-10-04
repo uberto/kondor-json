@@ -12,6 +12,7 @@ const val digits = "0123456789"
 const val spacesigns = " ,.:+-()%$@{}[]\\\"\n\r\t"
 const val latin1 = "°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ"
 const val japanese = "こんにちは　世界"
+const val controlCharacters = "\u0000\u0001\u0002\u0003\u0004\u0005\u0006\u0007\u0008\u0009\u000A"
 
 const val text = uppercase + lowercase + digits + spacesigns
 const val all = text + latin1 + japanese
