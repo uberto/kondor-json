@@ -162,9 +162,36 @@ parsing from tokens to value 12 ms
 parsing from tokens to JsonNode 10 ms
 marshalling 2 ms
 lazy parsing 3961 ms
- */
 
-@Disabled
+  Performance Test Results (Matteo's MacBook Pro M1 October 14, 2025)
+
+  FileInfo Test (100k objects, ~15MB)
+
+  - Serialization: ~95-103 ms
+  - Total parsing (eager): ~190-247 ms
+  - Tokenizing: ~98-140 ms
+  - Lazy parsing: ~789-926 ms ⬅️ JsonLexerLazy performance
+  - Marshalling: ~20-43 ms
+
+  Invoice Test (50k invoices, ~63MB)
+
+  - Serialization: ~525-548 ms
+  - Total parsing (eager): ~876-1262 ms
+  - Tokenizing: ~500-591 ms
+  - Lazy parsing: ~3055-3228 ms ⬅️ JsonLexerLazy performance
+  - Marshalling: ~188-264 ms
+
+  Array of Strings Test (100k strings, ~104MB)
+
+  - Serialization: ~655-692 ms
+  - Total parsing (eager): ~721-746 ms
+  - Tokenizing: ~681-727 ms
+  - Lazy parsing: ~4248-4305 ms ⬅️ JsonLexerLazy performance
+  - Parsing from tokens to value: ~27-87 ms
+
+*/
+
+//@Disabled
 class PerformanceTest {
 
     val times = 10
