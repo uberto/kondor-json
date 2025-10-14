@@ -18,106 +18,120 @@ enum class LexerState {
 
 class JsonLexerLazy(val inputStream: InputStream) {
 
-    private var currPos = 1
+    private companion object {
+        const val BUFFER_SIZE = 8192
+    }
 
     fun tokenize(): JsonOutcome<TokensStream> =
         sequence {
             val currToken = ChunkedStringWriter(256)
             var state = OutString
             var unicodeCharacterPointString = ""
+            var currPos = 1
 
-            inputStream
-                .reader(Charset.forName("UTF-8"))
-                .forEach { char ->
-                    when (state) {
-                        OutString ->
-                            when (char) {
-                                ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
-                                '{' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(OpeningCurlySep)
+            val reader = inputStream.reader(Charset.forName("UTF-8"))
+            val buffer = CharArray(BUFFER_SIZE)
+
+            reader.use {
+                var charsRead = reader.read(buffer)
+                while (charsRead > 0) {
+                    var bufferPos = 0
+                    while (bufferPos < charsRead) {
+                        val char = buffer[bufferPos]
+                        bufferPos++
+
+                        when (state) {
+                            OutString ->
+                                when (char) {
+                                    ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
+                                    '{' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(OpeningCurlySep)
+                                    }
+
+                                    '}' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(ClosingCurlySep)
+                                    }
+
+                                    '[' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(OpeningBracketSep)
+                                    }
+
+                                    ']' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(ClosingBracketSep)
+                                    }
+
+                                    ',' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(CommaSep)
+                                    }
+
+                                    ':' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(ColonSep)
+                                    }
+
+                                    '"' -> {
+                                        yieldValue(currToken, currPos)
+                                        yield(OpeningQuotesSep)
+                                        state = InString
+                                    }
+
+                                    else -> currToken.write(char)
                                 }
 
-                                '}' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(ClosingCurlySep)
-                                }
-
-                                '[' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(OpeningBracketSep)
-                                }
-
-                                ']' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(ClosingBracketSep)
-                                }
-
-                                ',' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(CommaSep)
-                                }
-
-                                ':' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(ColonSep)
+                            InString -> when (char) {
+                                '\\' -> {
+                                    state = Escaping
                                 }
 
                                 '"' -> {
                                     yieldValue(currToken, currPos)
-                                    yield(OpeningQuotesSep)
-                                    state = InString
+                                    yield(ClosingQuotesSep)
+                                    state = OutString
                                 }
 
                                 else -> currToken.write(char)
                             }
 
-                        InString -> when (char) {
-                            '\\' -> {
-                                state = Escaping
+                            Escaping -> when (char) {
+                                '\\' -> currToken.write('\\').also { state = InString }
+                                '/' -> currToken.write('/').also { state = InString }
+                                '"' -> currToken.write('\"').also { state = InString }
+                                'n' -> currToken.write('\n').also { state = InString }
+                                'f' -> currToken.write('\t').also { state = InString }
+                                't' -> currToken.write('\t').also { state = InString }
+                                'r' -> currToken.write('\r').also { state = InString }
+                                'b' -> currToken.write('\b').also { state = InString }
+                                'u' -> {
+                                    state = Unicode
+                                }
+                                else -> error("wrongly escaped char '\\$char' inside a Json string")
                             }
 
-                            '"' -> {
-                                yieldValue(currToken, currPos)
-                                yield(ClosingQuotesSep)
-                                state = OutString
-                            }
+                            Unicode -> {
+                                unicodeCharacterPointString += char
 
-                            else -> currToken.write(char)
-                        }
+                                if (unicodeCharacterPointString.length == 4) {
+                                    val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
 
-                        Escaping -> when (char) {
-                            '\\' -> currToken.write('\\').also { state = InString }
-                            '/' -> currToken.write('/').also { state = InString }
-                            '"' -> currToken.write('\"').also { state = InString }
-                            'n' -> currToken.write('\n').also { state = InString }
-                            'f' -> currToken.write('\t').also { state = InString }
-                            't' -> currToken.write('\t').also { state = InString }
-                            'r' -> currToken.write('\r').also { state = InString }
-                            'b' -> currToken.write('\b').also { state = InString }
-                            'u' -> {
-                                state = Unicode
-                            }
-                            else -> error("wrongly escaped char '\\$char' inside a Json string")
-                        }
+                                    if (unicodeChar == null) error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
 
-                        Unicode -> {
-                            unicodeCharacterPointString += char
+                                    currToken.write(unicodeChar)
 
-                            if (unicodeCharacterPointString.length == 4) {
-                                val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
-
-                                if (unicodeChar == null) error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
-
-                                currToken.write(unicodeChar)
-
-                                unicodeCharacterPointString = ""
-                                state = InString
+                                    unicodeCharacterPointString = ""
+                                    state = InString
+                                }
                             }
                         }
+                        currPos++
                     }
-                    currPos++
+                    charsRead = reader.read(buffer)
                 }
+            }
             yieldValue(currToken, currPos)
         }.peekingIterator().let { TokensStream(it).asSuccess() }
 
