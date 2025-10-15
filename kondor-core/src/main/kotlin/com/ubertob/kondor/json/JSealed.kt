@@ -6,6 +6,9 @@ import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.schema.sealedSchema
 
+//TODO PolymorphicConverter should inherit from ObjectNodeConverterProperties
+//TODO a new JSealed like that doesn't need JsonNode but requires discriminatorFiel to be the first field
+
 abstract class PolymorphicConverter<T : Any> : JAny<T>() {
     abstract fun extractTypeName(obj: T): String
     abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
