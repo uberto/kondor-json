@@ -122,7 +122,7 @@ Another advantage of converters is that it's very easy to define different conve
 Moreover the converters have all the informations to produce very friendly and precise error messages:
 
 ```
-error at parsing: Expected a Double at position 55 but found '"' while parsing </items/0/price>
+error at parsing: Expected a Double at line 1, column 55 but found '"' while parsing </items/0/price>
 ```
 
 Finally converters know how to generate a Json schema, for example:

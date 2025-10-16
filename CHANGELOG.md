@@ -3,6 +3,10 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.4.0.0-beta2 - 16 October 2025
+
+Kondor-core: Error messages now report line and column numbers instead of character position for easier debugging
+
 ### v.3.5.2 - 7 May 2025
 
 Kondor-core: Solidus escaped as Json standard (Thanks Nat Pryce)
