@@ -15,7 +15,7 @@ class ParserFailuresTest {
         val invalidJson = ""
         val error = parseJsonNode(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected some valid Json but found end of file - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 1: expected some valid Json but found end of file - invalid Json")
     }
 
     @Test
@@ -23,7 +23,7 @@ class ParserFailuresTest {
         val invalidJson = "BOOM"
         val error = parseJsonNode(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected a valid Number but found 'BOOM' - NumberFormatException For input string: \"BOOM\"")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 1: expected a valid Number but found 'BOOM' - NumberFormatException For input string: \"BOOM\"")
     }
 
 
@@ -32,7 +32,7 @@ class ParserFailuresTest {
         val invalidJson = ""
         val error = JPerson.fromJson(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected OpeningCurly but found end of file - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 0, column 0: expected OpeningCurly but found end of file - invalid Json")
     }
 
     @Test
@@ -41,7 +41,7 @@ class ParserFailuresTest {
 
         val error = JInt.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 5: expected EOF but found 'b' - json continue after end")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 5: expected EOF but found 'b' - json continue after end")
     }
 
     @Test
@@ -50,7 +50,7 @@ class ParserFailuresTest {
 
         val error = JBoolean.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 1: expected a Boolean but found 'False' - valid values: false, true")
     }
 
     @Test
@@ -71,7 +71,7 @@ class ParserFailuresTest {
         try {
             JBoolean.fromJson(illegalJson).orThrow()
         } catch (e: Exception) {
-            expectThat(e.message).isEqualTo("Error parsing node <[root]> at position 1: expected a Boolean but found 'False' - valid values: false, true")
+            expectThat(e.message).isEqualTo("Error parsing node <[root]> at line 1, column 1: expected a Boolean but found 'False' - valid values: false, true")
         }
     }
 
@@ -83,7 +83,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 16: expected ClosingQuotes but found end of file - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 2: expected ClosingQuotes but found end of file - invalid Json")
     }
 
     @Test
@@ -94,7 +94,7 @@ class ParserFailuresTest {
 
         val error = JString.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 7: expected a valid Json but found wrongly escaped char '\\ ' inside a Json string after 'foo ' - Invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 7: expected a valid Json but found wrongly escaped char '\\ ' inside a Json string after 'foo ' - Invalid Json")
     }
 
     @Test
@@ -162,7 +162,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 8: expected Colon but found '2' - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 8: expected Colon but found '2' - invalid Json")
     }
 
     @Test
@@ -171,7 +171,7 @@ class ParserFailuresTest {
 
         val error = JJsonNode.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 10: expected a valid key but found Comma - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 11: expected a valid key but found Comma - key missing in object field")
     }
 
     @Test
@@ -180,7 +180,7 @@ class ParserFailuresTest {
 
         val error = JJsonNode.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 12: expected a valid key but found 'name' - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 12: expected a valid key but found 'name' - key missing in object field")
     }
 
     @Test
@@ -198,7 +198,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at position 11: expected a new json value but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[2]> at line 1, column 12: expected a new json value but found Comma - Comma in wrong position")
 
     }
 
@@ -209,7 +209,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at position 1: expected a new json value but found Comma - Comma in wrong position")
+        expectThat(error.msg).isEqualTo("Error parsing node </[0]> at line 1, column 2: expected a new json value but found Comma - Comma in wrong position")
     }
 
     @Test
@@ -219,7 +219,7 @@ class ParserFailuresTest {
         val jsonStringArray = JList(JString)
         val error = jsonStringArray.fromJson(illegalJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 11: expected ClosingBracket but found ClosingCurly - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 12: expected ClosingBracket but found ClosingCurly - invalid Json")
     }
 
 
@@ -238,7 +238,7 @@ class ParserFailuresTest {
         val invalidJson = "BOOM"
         val error = JPerson.fromJson(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 1: expected OpeningCurly but found 'BOOM' - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at line 1, column 1: expected OpeningCurly but found 'BOOM' - invalid Json")
     }
 
     @Test
@@ -247,7 +247,7 @@ class ParserFailuresTest {
 
         val error = JJsonNode.fromJson(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </obj/nestedObj> at position 38: expected a valid key but found 'BOOOM' - key missing in object field")
+        expectThat(error.msg).isEqualTo("Error parsing node </obj/nestedObj> at line 1, column 38: expected a valid key but found 'BOOOM' - key missing in object field")
     }
 
     @Test

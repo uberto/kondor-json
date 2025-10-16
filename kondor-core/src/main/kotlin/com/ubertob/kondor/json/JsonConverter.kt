@@ -87,13 +87,15 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
     private fun fromTokensExhaustive(tokens: TokensStream): JsonOutcome<T> =
         fromTokens(tokens, NodePathRoot)
             .failIf({ tokens.hasNext() }) {
-                parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
+                val token = tokens.next()
+                parsingError("EOF", token, NodePathRoot, "json continue after end")
             }
 
     fun T.checkForJsonTail(tokens: TokensStream) = //TODO remove it after replacing with FailIf everywhere
-        if (tokens.hasNext())
-            parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
-        else
+        if (tokens.hasNext()) {
+            val token = tokens.next()
+            parsingFailure("EOF", token, NodePathRoot, "json continue after end")
+        } else
             asSuccess()
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
