@@ -23,123 +23,187 @@ class JsonLexerLazy(val inputStream: InputStream) {
     }
 
     fun tokenize(): JsonOutcome<TokensStream> =
-        sequence {
-            val currToken = ChunkedStringWriter(256)
-            var state = OutString
-            var unicodeCharacterPointString = ""
-            var currPos = 1
+        TokensStream(LazyTokenIterator()).asSuccess()
 
-            val reader = inputStream.reader(Charset.forName("UTF-8"))
-            val buffer = CharArray(BUFFER_SIZE)
+    private inner class LazyTokenIterator : PeekingIterator<KondorToken> {
+        private val reader: InputStreamReader = inputStream.reader(Charset.forName("UTF-8"))
+        private val buffer: CharArray = CharArray(BUFFER_SIZE)
+        private var charsRead: Int = 0
+        private var bufferPos: Int = 0
+        private var finished: Boolean = false
 
-            reader.use {
-                var charsRead = reader.read(buffer)
-                while (charsRead > 0) {
-                    var bufferPos = 0
-                    while (bufferPos < charsRead) {
-                        val char = buffer[bufferPos]
-                        bufferPos++
+        private var state: LexerState = OutString
+        private var unicodeCharacterPointString: String = ""
+        private var currPos: Int = 1
 
-                        when (state) {
-                            OutString ->
-                                when (char) {
-                                    ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
-                                    '{' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningCurlySep)
-                                    }
+        private val charWriter: ChunkedWriter = ChunkedStringWriter(256)
 
-                                    '}' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ClosingCurlySep)
-                                    }
+        private var pending: KondorToken? = null
+        private var queuedSeparator: KondorToken? = null
+        private var lastToken: KondorToken? = null
 
-                                    '[' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningBracketSep)
-                                    }
+        override fun peek(): KondorToken {
+            if (pending == null) advance()
+            return pending ?: throw EndOfCollection
+        }
 
-                                    ']' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ClosingBracketSep)
-                                    }
+        override fun hasNext(): Boolean {
+            if (pending != null) return true
+            advance()
+            return pending != null
+        }
 
-                                    ',' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(CommaSep)
-                                    }
+        override fun next(): KondorToken {
+            val tok = peek()
+            pending = null
+            lastToken = tok
+            return tok
+        }
 
-                                    ':' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ColonSep)
-                                    }
+        override fun last(): KondorToken? = pending ?: lastToken
 
-                                    '"' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningQuotesSep)
-                                        state = InString
-                                    }
+        private fun closeReader() {
+            if (!finished) {
+                finished = true
+                reader.close()
+            }
+        }
 
-                                    else -> currToken.write(char)
-                                }
+        private fun readMore(): Boolean {
+            if (finished) return false
 
-                            InString -> when (char) {
-                                '\\' -> {
-                                    state = Escaping
-                                }
+            charsRead = reader.read(buffer)
+            bufferPos = 0
+            if (charsRead <= 0) {
+                closeReader()
+                return false
+            } else {
+                return true
+            }
 
-                                '"' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(ClosingQuotesSep)
-                                    state = OutString
-                                }
+        }
 
-                                else -> currToken.write(char)
-                            }
+        private fun haveChar(): Boolean = bufferPos < charsRead || readMore()
 
-                            Escaping -> when (char) {
-                                '\\' -> currToken.write('\\').also { state = InString }
-                                '/' -> currToken.write('/').also { state = InString }
-                                '"' -> currToken.write('\"').also { state = InString }
-                                'n' -> currToken.write('\n').also { state = InString }
-                                'f' -> currToken.write('\t').also { state = InString }
-                                't' -> currToken.write('\t').also { state = InString }
-                                'r' -> currToken.write('\r').also { state = InString }
-                                'b' -> currToken.write('\b').also { state = InString }
-                                'u' -> {
-                                    state = Unicode
-                                }
-                                else -> error("wrongly escaped char '\\$char' inside a Json string")
-                            }
+        private fun nextChar(): Char {
+            val c = buffer[bufferPos]
+            bufferPos++
+            currPos++
+            return c
+        }
 
-                            Unicode -> {
-                                unicodeCharacterPointString += char
+        private fun yieldValueIfAny(pos: Int): Boolean {
+            if (!charWriter.isEmpty()) {
+                val text = charWriter.toString()
+                pending = Value(text, pos - text.length)
+                charWriter.clear()
+                return true
+            }
+            return false
+        }
 
-                                if (unicodeCharacterPointString.length == 4) {
-                                    val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
+        private fun queueOrSetSeparator(sep: KondorToken, pos: Int) {
+            if (yieldValueIfAny(pos)) {
+                queuedSeparator = sep
+            } else {
+                pending = sep
+            }
+        }
 
-                                    if (unicodeChar == null) error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
+        private fun advance() {
+            if (pending != null) return
+            if (queuedSeparator != null) {
+                pending = queuedSeparator
+                queuedSeparator = null
+                return
+            }
 
-                                    currToken.write(unicodeChar)
+            while (true) {
+                if (!haveChar()) {
+                    // End of input: flush any remaining value
+                    if (yieldValueIfAny(currPos)) return
+                    pending = null
+                    return
+                }
 
-                                    unicodeCharacterPointString = ""
-                                    state = InString
-                                }
-                            }
+                val char = nextChar()
+
+                when (state) {
+                    OutString -> when (char) {
+                        ' ', '\t', '\n', '\r', '\b' -> if (yieldValueIfAny(currPos - 1)) return else continue
+                        '{' -> {
+                            queueOrSetSeparator(OpeningCurlySep, currPos - 1); return
                         }
-                        currPos++
+
+                        '}' -> {
+                            queueOrSetSeparator(ClosingCurlySep, currPos - 1); return
+                        }
+
+                        '[' -> {
+                            queueOrSetSeparator(OpeningBracketSep, currPos - 1); return
+                        }
+
+                        ']' -> {
+                            queueOrSetSeparator(ClosingBracketSep, currPos - 1); return
+                        }
+
+                        ',' -> {
+                            queueOrSetSeparator(CommaSep, currPos - 1); return
+                        }
+
+                        ':' -> {
+                            queueOrSetSeparator(ColonSep, currPos - 1); return
+                        }
+
+                        '"' -> {
+                            // entering string
+                            state = InString
+                            queueOrSetSeparator(OpeningQuotesSep, currPos - 1)
+                            return
+                        }
+
+                        else -> charWriter.write(char)
                     }
-                    charsRead = reader.read(buffer)
+
+                    InString -> when (char) {
+                        '\\' -> state = Escaping
+                        '"' -> {
+                            state = OutString
+                            queueOrSetSeparator(ClosingQuotesSep, currPos - 1)
+                            return
+                        }
+
+                        else -> charWriter.write(char)
+                    }
+
+                    Escaping -> when (char) {
+                        '\\' -> charWriter.write('\\').also { state = InString }
+                        '/' -> charWriter.write('/').also { state = InString }
+                        '"' -> charWriter.write('"').also { state = InString }
+                        'n' -> charWriter.write('\n').also { state = InString }
+                        'f' -> charWriter.write('\t').also { state = InString }
+                        't' -> charWriter.write('\t').also { state = InString }
+                        'r' -> charWriter.write('\r').also { state = InString }
+                        'b' -> charWriter.write('\b').also { state = InString }
+                        'u' -> {
+                            state = Unicode
+                        }
+
+                        else -> error("wrongly escaped char '\\$char' inside a Json string")
+                    }
+
+                    Unicode -> {
+                        unicodeCharacterPointString += char
+                        if (unicodeCharacterPointString.length == 4) {
+                            val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
+                                ?: error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
+                            charWriter.write(unicodeChar)
+                            unicodeCharacterPointString = ""
+                            state = InString
+                        }
+                    }
                 }
             }
-            yieldValue(currToken, currPos)
-        }.peekingIterator().let { TokensStream(it).asSuccess() }
-
-    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: ChunkedWriter, pos: Int) {
-        if (!currWord.isEmpty()) {
-            val text = currWord.toString()
-            yield(Value(text, pos - text.length))
-            currWord.clear()
         }
     }
 }

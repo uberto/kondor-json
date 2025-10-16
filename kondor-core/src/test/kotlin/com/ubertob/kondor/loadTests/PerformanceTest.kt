@@ -197,6 +197,50 @@ lazy parsing 3961 ms
   - Invoices: 3055-3228ms → 1166-1329ms (2.4-2.6x speedup)
   - Strings: 4248-4305ms → 1240-1392ms (3.1-3.4x speedup)
 
+15 Oct 2025
+JFileInfo
+serialization 140 ms
+serialization compact 135 ms
+total parsing 293 ms
+total parsing NEW 276 ms
+tokenizing 102 ms
+parsing up to JsonNode 151 ms
+marshalling 54 ms
+lazy parsing 432 ms
+
+String Array
+serialization 761 ms
+serialization compact 766 ms
+total parsing 791 ms
+tokenizing 782 ms
+parsing from tokens to value 13 ms
+parsing from tokens to JsonNode 15 ms
+marshalling 2 ms
+lazy parsing 1669 ms
+
+without sequence/yield
+
+string array
+serialization 745 ms
+serialization compact 790 ms
+total parsing 829 ms
+tokenizing 809 ms
+parsing from tokens to value 10 ms
+parsing from tokens to JsonNode 12 ms
+marshalling 3 ms
+lazy parsing 1332 ms
+
+file info
+serialization 142 ms
+serialization compact 135 ms
+total parsing 286 ms
+total parsing NEW 253 ms
+tokenizing 123 ms
+parsing up to JsonNode 206 ms
+marshalling 56 ms
+lazy parsing 274 ms
+
+
 */
 
 @Disabled
