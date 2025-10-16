@@ -27,7 +27,10 @@ class JsonLexerLazy(val inputStream: InputStream) {
             val currToken = ChunkedStringWriter(256)
             var state = OutString
             var unicodeCharacterPointString = ""
-            var currPos = 1
+            var currLine = 1
+            var currColumn = 1
+            var tokenStartLine = 1
+            var tokenStartColumn = 1
 
             val reader = inputStream.reader(Charset.forName("UTF-8"))
             val buffer = CharArray(BUFFER_SIZE)
@@ -43,44 +46,55 @@ class JsonLexerLazy(val inputStream: InputStream) {
                         when (state) {
                             OutString ->
                                 when (char) {
-                                    ' ', '\t', '\n', '\r', '\b' -> yieldValue(currToken, currPos)
+                                    ' ', '\t', '\r', '\b' -> yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                    '\n' -> {
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        currLine++
+                                        currColumn = 0
+                                    }
                                     '{' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningCurlySep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(OpeningCurlySep(Location(currLine, currColumn)))
                                     }
 
                                     '}' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ClosingCurlySep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(ClosingCurlySep(Location(currLine, currColumn)))
                                     }
 
                                     '[' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningBracketSep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(OpeningBracketSep(Location(currLine, currColumn)))
                                     }
 
                                     ']' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ClosingBracketSep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(ClosingBracketSep(Location(currLine, currColumn)))
                                     }
 
                                     ',' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(CommaSep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(CommaSep(Location(currLine, currColumn)))
                                     }
 
                                     ':' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(ColonSep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(ColonSep(Location(currLine, currColumn)))
                                     }
 
                                     '"' -> {
-                                        yieldValue(currToken, currPos)
-                                        yield(OpeningQuotesSep)
+                                        yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                        yield(OpeningQuotesSep(Location(currLine, currColumn)))
                                         state = InString
                                     }
 
-                                    else -> currToken.write(char)
+                                    else -> {
+                                        if (currToken.isEmpty()) {
+                                            tokenStartLine = currLine
+                                            tokenStartColumn = currColumn
+                                        }
+                                        currToken.write(char)
+                                    }
                                 }
 
                             InString -> when (char) {
@@ -89,12 +103,18 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                 }
 
                                 '"' -> {
-                                    yieldValue(currToken, currPos)
-                                    yield(ClosingQuotesSep)
+                                    yieldValue(currToken, tokenStartLine, tokenStartColumn)
+                                    yield(ClosingQuotesSep(Location(currLine, currColumn)))
                                     state = OutString
                                 }
 
-                                else -> currToken.write(char)
+                                else -> {
+                                    if (currToken.isEmpty()) {
+                                        tokenStartLine = currLine
+                                        tokenStartColumn = currColumn
+                                    }
+                                    currToken.write(char)
+                                }
                             }
 
                             Escaping -> when (char) {
@@ -127,18 +147,18 @@ class JsonLexerLazy(val inputStream: InputStream) {
                                 }
                             }
                         }
-                        currPos++
+                        currColumn++
                     }
                     charsRead = reader.read(buffer)
                 }
             }
-            yieldValue(currToken, currPos)
+            yieldValue(currToken, tokenStartLine, tokenStartColumn)
         }.peekingIterator().let { TokensStream(it).asSuccess() }
 
-    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: ChunkedWriter, pos: Int) {
+    private suspend fun SequenceScope<KondorToken>.yieldValue(currWord: ChunkedWriter, line: Int, column: Int) {
         if (!currWord.isEmpty()) {
             val text = currWord.toString()
-            yield(Value(text, pos - text.length))
+            yield(Value(text, Location(line, column)))
             currWord.clear()
         }
     }
@@ -161,16 +181,19 @@ operator fun StringBuilder.plusAssign(c: Char) {
 
 class JsonLexerEager(val jsonStr: CharSequence) {
 
-    fun MutableList<KondorToken>.addValue(charWriter: ChunkedWriter, startPos: Int) {
+    fun MutableList<KondorToken>.addValue(charWriter: ChunkedWriter, line: Int, column: Int) {
         if (!charWriter.isEmpty()) {
             val text = charWriter.toString()
-            add(Value(text, startPos - text.length))
+            add(Value(text, Location(line, column)))
             charWriter.clear()
         }
     }
 
     fun tokenize(): JsonOutcome<TokensStream> {
-        var pos = 1
+        var currLine = 1
+        var currColumn = 1
+        var tokenStartLine = 1
+        var tokenStartColumn = 1
         val charWriter = ChunkedStringWriter(256)
         var state = OutString
         var unicodeCharacterPointString = ""
@@ -179,46 +202,58 @@ class JsonLexerEager(val jsonStr: CharSequence) {
             when (state) {
                 OutString ->
                     when (char) {
-                        ' ', '\t', '\n', '\r', '\b' ->
-                            tokens.addValue(charWriter, pos)
+                        ' ', '\t', '\r', '\b' ->
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+
+                        '\n' -> {
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            currLine++
+                            currColumn = 0
+                        }
 
                         '{' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(OpeningCurlySep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(OpeningCurlySep(Location(currLine, currColumn)))
                         }
 
                         '}' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(ClosingCurlySep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(ClosingCurlySep(Location(currLine, currColumn)))
                         }
 
                         '[' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(OpeningBracketSep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(OpeningBracketSep(Location(currLine, currColumn)))
                         }
 
                         ']' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(ClosingBracketSep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(ClosingBracketSep(Location(currLine, currColumn)))
                         }
 
                         ',' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(CommaSep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(CommaSep(Location(currLine, currColumn)))
                         }
 
                         ':' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(ColonSep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(ColonSep(Location(currLine, currColumn)))
                         }
 
                         '"' -> {
-                            tokens.addValue(charWriter, pos)
-                            tokens.add(OpeningQuotesSep)
+                            tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                            tokens.add(OpeningQuotesSep(Location(currLine, currColumn)))
                             state = InString
                         }
 
-                        else -> charWriter.write(char)
+                        else -> {
+                            if (charWriter.isEmpty()) {
+                                tokenStartLine = currLine
+                                tokenStartColumn = currColumn
+                            }
+                            charWriter.write(char)
+                        }
                     }
 
                 InString -> when (char) {
@@ -227,12 +262,18 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     }
 
                     '"' -> {
-                        tokens.addValue(charWriter, pos)
-                        tokens.add(ClosingQuotesSep)
+                        tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
+                        tokens.add(ClosingQuotesSep(Location(currLine, currColumn)))
                         state = OutString
                     }
 
-                    else -> charWriter.write(char)
+                    else -> {
+                        if (charWriter.isEmpty()) {
+                            tokenStartLine = currLine
+                            tokenStartColumn = currColumn
+                        }
+                        charWriter.write(char)
+                    }
                 }
 
                 Escaping -> when (char) {
@@ -248,7 +289,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     else -> return parsingFailure(
                         "a valid Json",
                         "wrongly escaped char '\\$char' inside a Json string after '${charWriter.takeLast(10)}'",
-                        pos,
+                        Location(currLine, currColumn),
                         NodePathRoot,
                         "Invalid Json"
                     ).also { state = InString }
@@ -268,7 +309,7 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                                         10
                                     )
                                 }'",
-                                pos,
+                                Location(currLine, currColumn),
                                 NodePathRoot,
                                 "Invalid Json"
                             )
@@ -280,9 +321,9 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     }
                 }
             }
-            pos++
+            currColumn++
         }
-        tokens.addValue(charWriter, pos)
+        tokens.addValue(charWriter, tokenStartLine, tokenStartColumn)
         return TokensStream(PeekingIteratorWrapper(tokens.iterator())).asSuccess()
     }
 }

@@ -30,7 +30,6 @@ class JsonParserTest {
             val node = tokens.onRoot().parseJsonNodeBoolean().expectSuccess()
 
             expectThat(node.boolean).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -60,7 +59,6 @@ class JsonParserTest {
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -74,7 +72,6 @@ class JsonParserTest {
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -90,7 +87,6 @@ class JsonParserTest {
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
         repeat(10) {
@@ -106,7 +102,6 @@ class JsonParserTest {
             val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
             expectThat(node.num).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
     }
@@ -123,7 +118,6 @@ class JsonParserTest {
         val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
         expectThat(node.num).isEqualTo(value)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
 
@@ -139,7 +133,6 @@ class JsonParserTest {
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -154,7 +147,6 @@ class JsonParserTest {
         val node = tokens.onRoot().parseJsonNodeString().expectSuccess()
 
         expectThat(node.text).isEqualTo(value)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -173,7 +165,6 @@ class JsonParserTest {
 //            println("-> ${node.text}")
 
             expectThat(node.text).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -193,7 +184,6 @@ class JsonParserTest {
 //            println("-> ${node.text}")
 
             expectThat(node.text).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
     }
 
@@ -213,7 +203,6 @@ class JsonParserTest {
 //            println("-> ${node.text}")
 
             expectThat(node.text).isEqualTo(value)
-            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
         }
 
     }
@@ -227,7 +216,6 @@ class JsonParserTest {
 
         tokens.onRoot().parseJsonNodeNull().expectSuccess()
 
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
 
@@ -244,7 +232,6 @@ class JsonParserTest {
 
         expectThat(nodes.elements.count()).isEqualTo(3)
         expectThat(nodes.render()).isEqualTo("""["abc","def"]""")
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -257,7 +244,6 @@ class JsonParserTest {
         val nodes = tokens.onRoot().parseJsonNodeArray().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("[[],[]]")
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -271,7 +257,6 @@ class JsonParserTest {
 
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -284,7 +269,6 @@ class JsonParserTest {
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
         expectThat(nodes.render()).isEqualTo("{}")
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
     @Test
@@ -300,11 +284,8 @@ class JsonParserTest {
 
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
     }
 
-    private fun lastPosRead(tokens: TokensStream): Int =
-        tokens.lastPosRead()
 
     @Test
     fun `parse an object with JsonNode field`() {

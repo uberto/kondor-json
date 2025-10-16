@@ -15,25 +15,26 @@ fun KondorToken.sameValueAs(text: String): Boolean = when (this) {
 
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
-fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
+fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", Location(0, 0))
 
 
-private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
+private fun parsingError(expected: String, actual: String, location: Location, path: NodePath, details: String) =
     InvalidJsonError(
-        path, "at position $position: expected $expected but found $actual - $details"
+        path, "at $location: expected $expected but found $actual - $details"
     )
 
 fun parsingError(
-    expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String
-): JsonError = parsingError(expected, actual.desc, tokenPos(actual, lastPosRead), path, details)
+    expected: String, actual: KondorToken, path: NodePath, details: String
+): JsonError = parsingError(expected, actual.desc, actual.location, path, details)
 
-private fun tokenPos(token: KondorToken, lastPosRead: Int) = if (token is Value) token.pos else lastPosRead
+fun parsingFailure(expected: String, actual: String, location: Location, path: NodePath, details: String) =
+    parsingError(expected, actual, location, path, details).asFailure()
 
-fun parsingFailure(expected: String, actual: String, position: Int, path: NodePath, details: String) =
-    parsingError(expected, actual, position, path, details).asFailure()
+fun parsingFailure(expected: String, actual: KondorToken, path: NodePath, details: String) =
+    parsingError(expected, actual, path, details).asFailure()
 
-fun parsingFailure(expected: String, actual: KondorToken, lastPosRead: Int, path: NodePath, details: String) =
-    parsingError(expected, actual, lastPosRead, path, details).asFailure()
+fun parsingFailure(expected: String, actual: Location, path: NodePath, details: String) =
+    parsingError(expected, "end of file", actual, path, details).asFailure()
 
 
 fun TokensPath.parseJsonNodeBoolean(): JsonOutcome<JsonNodeBoolean> = TokensPath::boolean.invoke(this)
@@ -119,8 +120,7 @@ fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
     keyValue { (tokens, innerPath) ->
         TokensPath(tokens, innerPath).parseNewNode() ?: parsingFailure(
             "a valid node",
-            "nothing",
-            tokens.lastPosRead(),
+            tokens.lastToken(),
             innerPath,
             "invalid Json"
         )
@@ -144,13 +144,13 @@ fun <T> TokensPath.keyValue(contentParser: (TokensPath) -> JsonOutcome<T>): Json
 
 private fun TokensPath.parseOptionalKeyNode(): JsonOutcome<String>? = parseNewNode()?.transformFailure {
     parsingError(
-        "a valid key", tokens.lastToken(), tokens.lastPosRead(), path, "key missing in object field"
+        "a valid key", tokens.lastToken(), path, "key missing in object field"
     )
 }?.bind { takeKey(it) }
 
 private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> = when (keyNode) {
     is JsonNodeString -> keyNode.text.asSuccess()
-    else -> parsingFailure("not a key", keyNode.toString(), tokens.lastPosRead(), path, "invalid Json")
+    else -> parsingFailure("not a key", tokens.lastToken(), path, "invalid Json")
 }
 
 fun <T> TokensPath.commaSeparated(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
@@ -169,7 +169,7 @@ fun <T> commaSeparated(
 
 private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next().let { token ->
     if (token.sameValueAs("null")) JsonNodeNull.asSuccess()
-    else parsingFailure("a Null", token, tokens.lastPosRead(), path, "valid values: null")
+    else parsingFailure("a Null", token, path, "valid values: null")
 }
 
 fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
@@ -178,10 +178,10 @@ fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Json
             if ((token as? Separator)?.sep == separator)
                 token.asSuccess()
             else
-                parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
+                parsingFailure(separator.name, token, path, "invalid Json")
         }
     } else {
-        parsingFailure(separator.name, "end of file", tokens.lastPosRead(), path, "invalid Json")
+        parsingFailure(separator.name, tokens.lastToken().location, path, "invalid Json")
     }
 
 
@@ -210,7 +210,7 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
                 OpeningCurly -> parseJsonNodeObject()
                 ClosingBracket, ClosingCurly -> null //no more nodes
                 ClosingQuotes, Comma, Colon -> parsingError(
-                    "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
+                    "a new node", t, path, "${t.desc} in wrong position"
                 ).asFailure()
             }
         }
@@ -220,10 +220,10 @@ fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = w
     is Value -> when (token.text) {
         "true" -> true.asSuccess()
         "false" -> false.asSuccess()
-        else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
+        else -> parsingFailure("a Boolean", token, path, "valid values: false, true")
     }
 
-    else -> parsingFailure("a Boolean", token, tokens.lastPosRead(), path, "valid values: false, true")
+    else -> parsingFailure("a Boolean", token, path, "valid values: false, true")
 }
 
 fun <T> parseNumber(
@@ -231,23 +231,22 @@ fun <T> parseNumber(
     path: NodePath,
     converter: (String) -> JsonOutcome<T>
 ): JsonOutcome<T> {
-    val position = tokens.lastPosRead()
     return when (val token = tokens.peek()) {
         is Value ->
             try {
                 tokens.next() //commit on the peek NOOP
                 converter(token.text)
             } catch (nfe: NumberFormatException) {
-                parsingFailure("a valid Number", token.desc, position, path, "NumberFormatException ${nfe.message}")
+                parsingFailure("a valid Number", token.desc, token.location, path, "NumberFormatException ${nfe.message}")
             } catch (e: Exception) {
-                parsingFailure("a Number or NaN", token.desc, position, path, e.message.orEmpty())
+                parsingFailure("a Number or NaN", token.desc, token.location, path, e.message.orEmpty())
             }
 
         is OpeningQuotesSep -> //case NaN Infinity -> letting the converter try
             parseString(tokens, path)
                 .bind { converter(it) }
 
-        else -> parsingFailure("a Number value", token, position, path, "not a valid number")
+        else -> parsingFailure("a Number value", token, path, "not a valid number")
     }
 }
 
@@ -265,7 +264,7 @@ private fun stringOrEmpty(
     when (val token = tokens.peek()) {
         is Value -> token.text.asSuccess().also { tokens.next() }
         else -> if (allowEmpty) "".asSuccess() else parsingFailure(
-            "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"
+            "a non empty String", token, path, "invalid Json"
         )
     }
 
@@ -306,7 +305,7 @@ else when (val t = tokens.peek()) {
         OpeningQuotes, OpeningBracket, OpeningCurly -> converter(tokens, path)
         ClosingBracket, ClosingCurly -> null //no more nodes
         ClosingQuotes, Comma, Colon -> parsingError(
-            "a new json value", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
+            "a new json value", t, path, "${t.desc} in wrong position"
         ).asFailure()
     }
 }
