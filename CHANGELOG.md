@@ -3,7 +3,7 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.3.6.0 - 10 October 2025
+### v.3.6.1 - 19 October 2025
 
 Kondor-core: Correctly parse Unicode control characters (Thanks Attiliano Fonseca)
 
