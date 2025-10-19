@@ -27,10 +27,7 @@ sed -i "s/$ver/$1/g" README.md build.gradle.kts
 ./gradlew publish -p kondor-jackson
 
 
-# Make the deployment visible in Central Publisher Portal
-# The OSSRH Staging API compatibility service requires a manual step to transfer
-# the uploaded repository to the Central Portal. See:
-# https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
+# Make sure you are authenticated on https://central.sonatype.com/publishing before launching this
 
 # Read Central token username/password from Gradle properties or environment
 # Expected property names: nexusUsername / nexusPassword
