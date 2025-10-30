@@ -1,20 +1,15 @@
 package com.ubertob.kondor.json
 
-
 import com.ubertob.kondor.json.JsonStyle.Companion.appendObjectValue
 import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.json.parser.TokensStream
-import com.ubertob.kondor.json.parser.sameValueAs
 import com.ubertob.kondor.json.schema.objectSchema
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
-import com.ubertob.kondor.outcome.bind
 import java.util.concurrent.atomic.AtomicReference
 
 typealias NamedNode = Pair<String, JsonNode>
 
 typealias NodeWriter<T> = (MutableFieldMap, T) -> MutableFieldMap
-
 
 interface ObjectNodeConverter<T : Any> : JsonConverter<T, JsonNodeObject> {
     override val _nodeType get() = ObjectNode
@@ -67,6 +62,10 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
     private val appenders: List<(T) -> List<NamedAppender>> = mutableListOf()
     fun getProperties(): List<JsonProperty<*>> = properties.get()
 
+    private val propertyByName: Map<String, JsonProperty<*>> by lazy { getProperties().associateBy { it.propName } }
+
+    fun getPropertyByName(name: String): JsonProperty<*>? = propertyByName[name]
+
     private fun registerWriter(writer: NodeWriter<T>) {
         nodeWriters.getAndUpdate { list -> list + writer }
     }
@@ -79,37 +78,16 @@ abstract class ObjectNodeConverterProperties<T : Any> : ObjectNodeConverterWrite
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun <FT> registerPropertyHack(jsonProperty: JsonProperty<FT>, binder: (T) -> Any) =
-        registerProperty(jsonProperty, binder as (T) -> FT)
 
-
-    override fun fieldAppenders(valueObject: T): List<NamedAppender> =
-        appenders.flatMap { it(valueObject) }
+    override fun fieldAppenders(valueObject: T): List<NamedAppender> = appenders.flatMap { it(valueObject) }
 
     override fun schema(): JsonNodeObject = objectSchema(properties.get())
 
-    protected fun parseField(fieldName: String, tokensStream: TokensStream, nodePath: NodePath): JsonOutcome<Any?> {
-        return resolveConverter(fieldName, nodePath)
-            .bind { conv ->
-                //!!! a better solution to the null is to delegate it to the converter should also consider null in resolveConverter!!!
-
-                if (tokensStream.peek().sameValueAs("null")) {
-                    tokensStream.next()
-                    null.asSuccess()
-                } else {
-                    conv.fromTokens(tokensStream, nodePath)
-                }
-            }
-
-    }
-
     override fun resolveConverter(
         fieldName: String,
-        nodePath: NodePath
+        nodePath: NodePath,
     ): JsonOutcome<JsonConverter<*, *>> {
-        val properties = getProperties()
-        val property = properties.find { it.propName == fieldName }
+        val property = getPropertyByName(fieldName)
 
         return if (property == null) {
             JsonPropertyError(
