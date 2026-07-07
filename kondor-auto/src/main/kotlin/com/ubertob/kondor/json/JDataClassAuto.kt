@@ -69,18 +69,85 @@ abstract class JDataClassAuto<T : Any>(val klazz: KClass<T>) : JDataClass<T>(kla
     // Basic mapping from Kotlin types to built-in converters
     @Suppress("UNCHECKED_CAST")
     private fun getConverterForKType(kType: KType): JsonConverter<Any?, out JsonNode> {
-        val rawClass = (kType.classifier as? KClass<*>)?.java
+        val kClassifier = kType.classifier as? KClass<*>
+        val rawClass = kClassifier?.java
             ?: (kType.javaType as? Class<*>)
             ?: throw IllegalArgumentException("Unsupported Kotlin type: $kType")
 
-        return when (rawClass) {
-            Int::class.java, Integer::class.java -> JInt as JsonConverter<Any?, out JsonNode>
-            Long::class.java, java.lang.Long::class.java -> JLong as JsonConverter<Any?, out JsonNode>
-            Float::class.java, java.lang.Float::class.java -> JFloat as JsonConverter<Any?, out JsonNode>
-            Double::class.java, java.lang.Double::class.java -> JDouble as JsonConverter<Any?, out JsonNode>
-            String::class.java, java.lang.String::class.java -> JString as JsonConverter<Any?, out JsonNode>
-            Boolean::class.java, java.lang.Boolean::class.java -> JBoolean as JsonConverter<Any?, out JsonNode>
-            else -> throw IllegalArgumentException("Unsupported field type: $rawClass. Please use explicit JDataClass mapping for complex or custom types.")
-        } // TODO: add BigDecimal, BigInteger, enums, date/time, nested data classes, collections, etc.
+        when (rawClass) {
+            Int::class.java, Integer::class.java -> return JInt as JsonConverter<Any?, out JsonNode>
+            Long::class.java, java.lang.Long::class.java -> return JLong as JsonConverter<Any?, out JsonNode>
+            Float::class.java, java.lang.Float::class.java -> return JFloat as JsonConverter<Any?, out JsonNode>
+            Double::class.java, java.lang.Double::class.java -> return JDouble as JsonConverter<Any?, out JsonNode>
+            String::class.java, java.lang.String::class.java -> return JString as JsonConverter<Any?, out JsonNode>
+            Boolean::class.java, java.lang.Boolean::class.java -> return JBoolean as JsonConverter<Any?, out JsonNode>
+            java.math.BigDecimal::class.java -> return JBigDecimal as JsonConverter<Any?, out JsonNode>
+            java.math.BigInteger::class.java -> return JBigInteger as JsonConverter<Any?, out JsonNode>
+            java.time.LocalDate::class.java -> return com.ubertob.kondor.json.datetime.JLocalDate as JsonConverter<Any?, out JsonNode>
+            java.time.LocalDateTime::class.java -> return com.ubertob.kondor.json.datetime.JLocalDateTime as JsonConverter<Any?, out JsonNode>
+            java.time.LocalTime::class.java -> return com.ubertob.kondor.json.datetime.JLocalTime as JsonConverter<Any?, out JsonNode>
+            java.time.Instant::class.java -> return com.ubertob.kondor.json.datetime.JInstant as JsonConverter<Any?, out JsonNode>
+            java.time.Duration::class.java -> return com.ubertob.kondor.json.datetime.JDuration as JsonConverter<Any?, out JsonNode>
+            java.time.ZoneId::class.java -> return com.ubertob.kondor.json.datetime.JZoneId as JsonConverter<Any?, out JsonNode>
+        }
+
+        // Enums
+        if (rawClass.isEnum) {
+            val enumK = kClassifier as KClass<out Enum<*>>
+            return JEnumClass(enumK) as JsonConverter<Any?, out JsonNode>
+        }
+
+        // Collections: handle via KType classifier to preserve Kotlin types
+        if (kClassifier == List::class || kClassifier == MutableList::class) {
+            val arg = kType.arguments.firstOrNull()?.type
+                ?: throw IllegalArgumentException("List has no element type: $kType")
+            val elemConv = getConverterForKType(arg)
+            val isElemNullable = arg.isMarkedNullable
+            return if (isElemNullable)
+                JNullableList(elemConv as JsonConverter<Any, out JsonNode>) as JsonConverter<Any?, out JsonNode>
+            else
+                JList(elemConv as JsonConverter<Any, out JsonNode>) as JsonConverter<Any?, out JsonNode>
+        }
+        if (kClassifier == Set::class || kClassifier == MutableSet::class) {
+            val arg = kType.arguments.firstOrNull()?.type
+                ?: throw IllegalArgumentException("Set has no element type: $kType")
+            if (arg.isMarkedNullable) {
+                throw IllegalArgumentException("Set with nullable elements is not supported: $kType")
+            }
+            val elemConv = getConverterForKType(arg)
+            return JSet(elemConv as JsonConverter<Any, out JsonNode>) as JsonConverter<Any?, out JsonNode>
+        }
+        if (kClassifier == Map::class || kClassifier == MutableMap::class) {
+            val keyType = kType.arguments.getOrNull(0)?.type
+                ?: throw IllegalArgumentException("Map has no key type: $kType")
+            val valueType = kType.arguments.getOrNull(1)?.type
+                ?: throw IllegalArgumentException("Map has no value type: $kType")
+
+            // Key: support String and Enums out of the box
+            val keyRaw = (keyType.classifier as? KClass<*>)?.java
+            val valueConv = getConverterForKType(valueType)
+
+            return when {
+                keyRaw == String::class.java || keyRaw == java.lang.String::class.java ->
+                    JMap(valueConv as JsonConverter<Any, out JsonNode>) as JsonConverter<Any?, out JsonNode>
+
+                keyRaw != null && keyRaw.isEnum -> {
+                    val enumK = keyType.classifier as KClass<out Enum<*>>
+                    JMap(JEnumClass(enumK), valueConv as JsonConverter<Any, out JsonNode>) as JsonConverter<Any?, out JsonNode>
+                }
+
+                else -> throw IllegalArgumentException("Unsupported Map key type: $keyType. Only String or Enum keys are supported by JDataClassAuto.")
+            }
+        }
+
+        // Nested data classes: create an automatic converter
+        if (kClassifier != null && kClassifier.isData) {
+            @Suppress("UNCHECKED_CAST")
+            val nestedK = kClassifier as KClass<Any>
+            val auto = object : JDataClassAuto<Any>(nestedK) {}
+            return auto as JsonConverter<Any?, out JsonNode>
+        }
+
+        throw IllegalArgumentException("Unsupported field type: $rawClass. Please use explicit JDataClass mapping for complex or custom types.")
     }
 }
