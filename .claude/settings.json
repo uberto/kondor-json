@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Edit(./**)",
+      "Write(./**)",
+      "Glob",
+      "Grep",
+      "Bash"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git tag:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(./gradlew publish:*)",
+      "Bash(gh release:*)",
+      "Bash(gh api:*)",
+      "Bash(gh pr merge:*)",
+      "Read(~/.ssh/**)",
+      "Read(~/.gnupg/**)",
+      "Read(~/.gradle/gradle.properties)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/bash-guard.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
