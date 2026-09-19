@@ -7,7 +7,7 @@ fi
 
 # Steps:
 # verify it's all working with a
-./gradlew clean build
+./gradlew clean build || { echo "Build failed, not releasing"; exit 1; }
 
 # update the version in build.gradle.kts
 ver=$(./gradlew -q printVersion)
@@ -15,8 +15,21 @@ ver=$(./gradlew -q printVersion)
 echo currrent: $ver
 
 echo updating to: $1
-# update=ing the README.md and gradle
-sed -i "s/$ver/$1/g" README.md build.gradle.kts
+# updating the README.md, CLAUDE.md and gradle
+# only touch the version declarations: escape regex metachars in the old version and sed specials in the new one, and
+# anchor on the surrounding syntax, so other text containing the version (e.g. numbers in examples) is left alone.
+# -i.bak works with both GNU and BSD (macOS) sed
+ver_re=$(printf '%s' "$ver" | sed 's/[.[\*^$/]/\\&/g')
+new_rep=$(printf '%s' "$1" | sed 's/[&/\]/\\&/g')
+sed -i.bak "s/version = \"$ver_re\"/version = \"$new_rep\"/" build.gradle.kts
+sed -i.bak -e "s/<version>$ver_re<\/version>/<version>$new_rep<\/version>/" -e "s/:kondor-core:$ver_re'/:kondor-core:$new_rep'/" README.md
+sed -i.bak "s/^Current version: $ver_re$/Current version: $new_rep/" CLAUDE.md
+rm -f build.gradle.kts.bak README.md.bak CLAUDE.md.bak
+
+if ! grep -qF "version = \"$1\"" build.gradle.kts || ! grep -qF "<version>$1</version>" README.md; then
+  echo "Version not updated to $1 in build.gradle.kts/README.md, not releasing"
+  exit 1
+fi
 
 # launch:
 ./gradlew publish -p kondor-outcome
@@ -27,10 +40,7 @@ sed -i "s/$ver/$1/g" README.md build.gradle.kts
 ./gradlew publish -p kondor-jackson
 
 
-# Make the deployment visible in Central Publisher Portal
-# The OSSRH Staging API compatibility service requires a manual step to transfer
-# the uploaded repository to the Central Portal. See:
-# https://central.sonatype.org/publish/publish-portal-ossrh-staging-api/
+# Make sure you are authenticated on https://central.sonatype.com/publishing before launching this
 
 # Read Central token username/password from Gradle properties or environment
 # Expected property names: nexusUsername / nexusPassword

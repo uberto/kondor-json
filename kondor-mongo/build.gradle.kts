@@ -38,6 +38,8 @@ testing {
                 all {
                     testTask.configure {
                         maxHeapSize = "2g"
+                        // rerun the tests when the Mongo image override changes
+                        inputs.property("mongoTestImage", System.getenv("MONGO_TEST_IMAGE") ?: "")
                         testLogging {
 //                            showStandardStreams = true
                             events = setOf(
