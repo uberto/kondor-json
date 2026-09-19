@@ -5,6 +5,7 @@ rationale when appropriate:
 
 ### v.4.0.2 - 19 September 2026
 
+Kondor-core: fixed parsing of empty Json objects `{}` in JMap and JObj (e.g. empty maps and objects with only null fields)
 Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`
 Docs: fixed error-handling examples in README (`fromJson` instead of the non-existent `parseJson`)
 Build: release script only updates the version declarations instead of every matching string in README

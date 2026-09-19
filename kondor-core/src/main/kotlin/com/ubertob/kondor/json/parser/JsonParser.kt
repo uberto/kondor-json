@@ -185,6 +185,9 @@ fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Json
     }
 
 
+private fun isNext(separator: KondorSeparator, tokens: TokensStream): Boolean =
+    tokens.hasNext() && (tokens.peek() as? Separator)?.sep == separator
+
 private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
         if ((currToken as? Separator)?.sep == separator)
@@ -285,7 +288,10 @@ fun parseFields(
     fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
 ): JsonOutcome<FieldsValuesMap> =
     commaSeparated(tokens, path) { t, p, i ->
-        parseString(t, p)
+        //empty object: checked only before the first field, so a trailing comma is still an error
+        if (i == 0 && isNext(ClosingCurly, t))
+            null
+        else parseString(t, p)
             .bindAndIgnore {
                 take(Colon, t, p)
             }.bind { key ->
