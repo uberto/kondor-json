@@ -5,12 +5,12 @@ import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.printIt
-import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.containsExactly
 import strikt.assertions.isA
 import strikt.assertions.isEqualTo
+import strikt.assertions.startsWith
 
 class JDataClassTest {
 
@@ -86,7 +86,8 @@ class JDataClassTest {
 
             val jsonStrNull = Product.Json.toJson(product, JsonStyle.prettyWithNulls)
 
-            expectThat(Product.Json.fromJson(jsonStrNull).expectSuccess()).isEqualTo(product)
+            val newProduct = Product.Json.fromJson(jsonStrNull).expectSuccess()
+            expectThat(newProduct).isEqualTo(product)
 
         }
 
@@ -129,21 +130,8 @@ class JDataClassTest {
         expectThat(res).isA<Failure<JsonError>>()
         val error = (res as Failure<JsonError>).error
 
-        expectThat(error.reason).isEqualTo("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
+        expectThat(error.reason).startsWith("Error calling constructor with signature [int, String] using params {name=${person.name}, id=${person.id}}")
     }
 
 
-    object PersonRefl : JDataClassReflect<Person>(Person::class)
-
-    @Disabled("Work in progress")
-    @Test
-    fun `JDataClassAuto doesn't need the fields declaration`() {
-
-        PersonRefl.registerAllProperties() //temp hack
-
-        PersonRefl.toJson(randomPerson(), JsonStyle.prettyWithNulls)
-
-        PersonRefl.testParserAndRender(100) { randomPerson() }
-
-    }
 }

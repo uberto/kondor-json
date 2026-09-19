@@ -118,8 +118,8 @@ class JsonNodeDslTest {
     fun `test nodeObject`() {
         val node = nodeObject("test" toNode "value")
         expectThat(node) {
-            get { _fieldMap.size }.isEqualTo(1)
-            get { _fieldMap["test"]?.asStringValue() }.isEqualTo("value")
+            get { _fieldMap.map.size }.isEqualTo(1)
+            get { _fieldMap.map["test"]?.asStringValue() }.isEqualTo("value")
         }
     }
 

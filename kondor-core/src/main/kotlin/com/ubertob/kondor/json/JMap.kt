@@ -1,14 +1,42 @@
 package com.ubertob.kondor.json
 
-import com.ubertob.kondor.json.jsonnode.JsonNode
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
-import com.ubertob.kondor.json.jsonnode.NodePathSegment
-import com.ubertob.kondor.outcome.failIfNull
+import com.ubertob.kondor.json.jsonnode.*
+import com.ubertob.kondor.json.parser.*
+import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.bind
 
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
-    private val valueConverter: JConverter<V>
-) : ObjectNodeConverterBase<Map<K, V>>() {
+    private val valueConverter: JConverter<V>,
+) : JObj<Map<K, V>>() {
+    override fun fromTokens(
+        tokens: TokensStream,
+        path: NodePath,
+    ): JsonOutcome<Map<K, V>> =
+        surrounded(
+            KondorSeparator.OpeningCurly,
+            { t, p ->
+                parseFields(t, p) { fieldName, tks, nodePath ->
+                    resolveConverter(fieldName, nodePath)
+                        .bind { conv ->
+                            if (tks.peek().sameValueAs("null")) {
+                                tks.next()
+                                null.asSuccess()
+                            } else {
+                                conv.fromTokens(tks, nodePath)
+                            }
+                        }
+                }
+            },
+            KondorSeparator.ClosingCurly,
+        )(tokens, path)
+            .bind { fieldMap ->
+                fromFieldValues(fieldMap, path)
+            }
+
+    // always return type:object assuming the map is representing an object. We don't know its properties.
+    override fun schema(): JsonNodeObject = JsonNodeObject(FieldNodeMap(mapOf("type" to JsonNodeString("object"))))
+
     companion object {
         operator fun <V : Any> invoke(valueConverter: JConverter<V>): JMap<String, V> =
             JMap(
@@ -16,43 +44,67 @@ class JMap<K : Any, V : Any>(
                     override val cons: (String) -> String = { it }
                     override val render: (String) -> String = { it }
                 },
-                valueConverter
+                valueConverter,
             )
 
-        operator fun invoke(): JMap<String, String> =
-            JMap(JString)
+        operator fun invoke(): JMap<String, String> = JMap(JString)
     }
 
-    override fun JsonNodeObject.deserializeOrThrow() =
-        _fieldMap.entries.associate { (key, value) ->
-            val newPath = NodePathSegment(key, _path)
-            keyConverter.cons(key) to
-                    valueConverter.fromJsonNodeBase(value, newPath)
-                        .failIfNull { ConverterJsonError(newPath, "Found null node in map!") }
-                        .orThrow()
+    override fun resolveConverter(
+        fieldName: String,
+        nodePath: NodePath,
+    ): JsonOutcome<JsonConverter<*, *>> = valueConverter.asSuccess()
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Map<K, V> =
+        getMap()
+            .entries
+            .associate { (key, value) ->
+                val keyValue = keyConverter.cons(key)
+                keyValue to (value as V)
+            }
+
+    override fun fromFieldNodeMap(
+        fieldNodeMap: FieldNodeMap,
+        path: NodePath,
+    ): JsonOutcome<Map<K, V>> =
+        tryFromNode(path) {
+            fieldNodeMap.map.entries.associate { (key, jsonNode) ->
+                val newPath = NodePathSegment(key, path)
+
+                val value =
+                    valueConverter
+                        .fromJsonNodeBase(jsonNode, newPath)
+                        .orThrow() as V
+                keyConverter.cons(key) to value
+            }
         }
 
-
     private fun valueAppender(value: V?): ValueAppender? =
-        if (value == null) null
-        else { style, off ->
-            valueConverter.appendValue(this, style, off, value)
+        if (value == null) {
+            null
+        } else {
+            { style, off ->
+                valueConverter.appendValue(this, style, off, value)
+            }
         }
 
     override fun fieldAppenders(valueObject: Map<K, V>): List<NamedAppender> =
         valueObject
             .map { (key, value) ->
                 keyConverter.render(key) to valueAppender(value)
-            }
-            .sortedBy { it.first }
+            }.sortedBy { it.first }
 
-    override fun convertFields(valueObject: Map<K, V>): Map<String, JsonNode> =
-        valueObject
-            .map { (key, value) ->
-                val keyString = keyConverter.render(key)
-                keyString to valueConverter.toJsonNode(value)
-            }
-            .sortedBy { it.first }
-            .toMap()
-
+    override fun convertFields(valueObject: Map<K, V>): FieldNodeMap {
+        val result =
+            FieldNodeMap(
+                valueObject
+                    .map { (key, value) ->
+                        val keyString = keyConverter.render(key)
+                        val jsonNode = valueConverter.toJsonNode(value)
+                        keyString to jsonNode
+                    }.sortedBy { it.first }
+                    .toMap(),
+            )
+        return result
+    }
 }

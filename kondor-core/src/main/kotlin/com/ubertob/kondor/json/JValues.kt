@@ -219,7 +219,6 @@ abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, Jso
 
 }
 
-
 abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T
     abstract val render: (T) -> String
@@ -239,4 +238,3 @@ abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
         parseString(tokens, path, true)
             .bind { str -> Outcome.tryOrFail { cons(str) }.transformFailure { err -> ConverterJsonError(path, err.msg) } }
 }
-

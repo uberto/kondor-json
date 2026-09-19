@@ -1,19 +1,18 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendNode
-import com.ubertob.kondor.json.jsonnode.*
-import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.JsonNodeNull
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.ObjectNode
 
-object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
+object JJsonNode : JAny<JsonNodeObject>() {
     override val _nodeType = ObjectNode
     override fun toJsonNode(value: JsonNodeObject): JsonNodeObject =
         value
 
-    override fun fromFieldNodeMap(fieldMap: FieldNodeMap, path: NodePath): JsonOutcome<JsonNodeObject> =
-        JsonNodeObject.buildForParsing(fieldMap, path).asSuccess()
-
     override fun fieldAppenders(valueObject: JsonNodeObject): List<NamedAppender> =
-        valueObject._fieldMap
+        valueObject._fieldMap.map
             .map { (key, value) ->
                 key to valueAppender(value)
             }
@@ -24,4 +23,6 @@ object JJsonNode : ObjectNodeConverter<JsonNodeObject> {
             null
         else
             { style, off -> appendNode(node, style, off) }
+
+    override fun JsonNodeObject.deserializeOrThrow(): JsonNodeObject? = this
 }

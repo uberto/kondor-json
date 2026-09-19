@@ -86,15 +86,16 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomExpenseReport()
+
+            val jsonStr = JExpenseReport.toJson(value)
+
+            expectThat(JExpenseReport.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
             val json = JExpenseReport.toJsonNode(value)
 
             val actual = JExpenseReport.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
-
-            val jsonStr = JExpenseReport.toJson(value)
-
-            expectThat(JExpenseReport.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
@@ -104,17 +105,19 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = randomNotes()
+
+            val jsonStr = JNotes.toJson(value, pretty)
+
+//            println("jsonStr: $jsonStr")
+
+            expectThat(JNotes.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
             val json = JNotes.toJsonNode(value)
 
             val actual = JNotes.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JNotes.toJson(value, pretty)
-
-//            println(jsonStr)
-
-            expectThat(JNotes.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
@@ -123,15 +126,16 @@ class JValuesExtraTest {
         repeat(10) {
             val value = randomTasks()
 
+            val jsonStr = JTasks.toJson(value, pretty)
+
+            expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+
             val json = JTasks.toJsonNode(value)
 
             val actual = JTasks.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JTasks.toJson(value, pretty)
-
-            expectThat(JTasks.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
@@ -197,8 +201,6 @@ class JValuesExtraTest {
         )
         val jsonPretty = JInvoice.toJson(invoice, pretty)
 
-        expectThat(JInvoice.fromJson(jsonPretty).expectSuccess()).isEqualTo(invoice)
-
         expectThat(jsonPretty).isEqualTo(
             """|{
                 |  "created_date": "2024-09-25",
@@ -226,6 +228,9 @@ class JValuesExtraTest {
                 |  "vat-to-pay": false
                 |}""".trimMargin()
         )
+
+        expectThat(JInvoice.fromJson(jsonPretty).expectSuccess()).isEqualTo(invoice)
+
     }
 
 
@@ -293,6 +298,44 @@ class JValuesExtraTest {
             val jsonStr = JSelectedFile.toJson(value)
 
             expectThat(JSelectedFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json SelectedFile old format`() {
+        repeat(10) {
+            val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
+            val jsonStr = JSelectedFile.toJson(value)
+            val result = JSelectedFile.fromJson(jsonStr).expectSuccess()
+            expectThat(result).isEqualTo(value)
+        }
+    }
+
+    @Test
+    fun `Json FileInfo new format`() {
+
+        val fileInfo = FileInfo(
+            "file name",
+            Instant.parse("2021-07-01T10:15:30Z"),
+            false,
+            1234,
+            "/home/"
+        )
+
+        val json = JFileInfoNew.toJson(fileInfo)
+
+        val obj = JFileInfoNew.fromJson(json).expectSuccess()
+        expectThat(obj).isEqualTo(fileInfo)
+
+    }
+
+    @Test
+    fun `Json SelectedFile new format`() {
+        repeat(10) {
+            val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
+            val jsonStr = JSelectedFileNew.toJson(value)
+            val result = JSelectedFileNew.fromJson(jsonStr).expectSuccess()
+            expectThat(result).isEqualTo(value)
         }
     }
 
@@ -419,6 +462,3 @@ class JValuesExtraTest {
         }
     }
 }
-
-
-

@@ -1,12 +1,15 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.appendText
-import com.ubertob.kondor.json.jsonnode.JsonNode
+import com.ubertob.kondor.json.jsonnode.FieldNodeMap
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
 import com.ubertob.kondor.json.schema.sealedSchema
 
-abstract class PolymorphicConverter<T : Any> : ObjectNodeConverterBase<T>() {
+//TODO PolymorphicConverter should inherit from ObjectNodeConverterProperties
+//TODO a new JSealed like that doesn't need JsonNode but requires discriminatorFiel to be the first field
+
+abstract class PolymorphicConverter<T : Any> : JAny<T>() {
     abstract fun extractTypeName(obj: T): String
     abstract val subConverters: Map<String, ObjectNodeConverter<out T>>
 
@@ -26,7 +29,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         JsonNodeString(extractTypeName(obj))
 
     override fun JsonNodeObject.deserializeOrThrow(): T? {
-        val discriminatorNode = _fieldMap[discriminatorFieldName]
+        val discriminatorNode = _fieldMap.map[discriminatorFieldName]
             ?: defaultConverter?.let { return it.fromFieldNodeMap(_fieldMap, _path).orThrow() }
             ?: error("expected discriminator field \"$discriminatorFieldName\" not found")
 
@@ -35,19 +38,19 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
         return converter.fromFieldNodeMap(_fieldMap, _path).orThrow()
     }
 
-    override fun convertFields(valueObject: T): Map<String, JsonNode> =
+    override fun convertFields(valueObject: T): FieldNodeMap =
         extractTypeName(valueObject).let { typeName ->
             findSubTypeConverter(typeName)
                 ?.toJsonNode(valueObject)
                 ?._fieldMap
-                ?.also { (it as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
+                ?.also { (it.map as MutableMap)[discriminatorFieldName] = discriminatorFieldNode(valueObject) }
                 ?: error("subtype not known $typeName")
         }
 
 
     override fun fieldAppenders(valueObject: T): List<NamedAppender> =
         extractTypeName(valueObject).let { typeName ->
-            mutableListOf(appendTypeName(discriminatorFieldName, typeName))
+            mutableListOf(appendTypeName(typeName))
                 .apply {
                     addAll(
                         converterFromTypename(typeName, valueObject)
@@ -59,7 +62,7 @@ abstract class JSealed<T : Any> : PolymorphicConverter<T>() {
     private fun converterFromTypename(typeName: String, valueObject: T) =
         findSubTypeConverter(typeName)?.fieldAppenders(valueObject)
 
-    private fun appendTypeName(discriminatorFieldName: String, typeName: String): NamedAppender =
+    private fun appendTypeName(typeName: String): NamedAppender =
         discriminatorFieldName to { app: CharWriter, style: JsonStyle, _: Int ->
             app.appendText(typeName)
         }

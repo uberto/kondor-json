@@ -296,7 +296,7 @@ class JsonParserTest {
 
         val nodes = tokens.onRoot().parseJsonNodeObject().expectSuccess()
 
-        expectThat(nodes._fieldMap.size).isEqualTo(3)
+        expectThat(nodes._fieldMap.map.size).isEqualTo(3)
 
         val expected = """{"id":123,"name":"Ann"}"""
         expectThat(nodes.render()).isEqualTo(expected)
@@ -325,18 +325,18 @@ class JsonParserTest {
         expectThat(objWithDynamicAttr) {
             get { id }.isEqualTo(123)
             get { name }.isEqualTo("Ann")
-            get { attributes._fieldMap["aString"] }.isEqualTo(
+            get { attributes._fieldMap.map.get("aString") }.isEqualTo(
                 JsonNodeString(
                     "String"
                 )
             )
-            get { attributes._fieldMap["aObj"] }.isA<JsonNodeObject>()
+            get { attributes._fieldMap.map.get("aObj") }.isA<JsonNodeObject>()
         }
 
-        expectThat(objWithDynamicAttr.attributes._fieldMap["aObj"] as? JsonNodeObject).isNotNull()
+        expectThat(objWithDynamicAttr.attributes._fieldMap.map.get("aObj") as? JsonNodeObject).isNotNull()
             .and {
-                get { (_fieldMap["aNestedString"] as? JsonNodeString)?.text }.isEqualTo("NestedString")
-                get { (_fieldMap["aNestedNum"] as JsonNodeNumber).num.toInt() }.isEqualTo(123123)
+                get { (_fieldMap.map.get("aNestedString") as? JsonNodeString)?.text }.isEqualTo("NestedString")
+                get { (_fieldMap.map.get("aNestedNum") as JsonNodeNumber).num.toInt() }.isEqualTo(123123)
             }
     }
 

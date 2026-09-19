@@ -71,8 +71,8 @@ object KondorBson {
             is JsonNodeBoolean -> writer.writeBoolean(value.boolean)
             is JsonNodeNumber -> writer.writeDouble(value.num.toDouble())
             is JsonNodeObject -> {
-                if (value._fieldMap.keys.contains("\$oid"))
-                    writer.writeObjectId(ObjectId(value._fieldMap["\$oid"].asStringValue()))
+                if (value._fieldMap.map.keys.contains("\$oid"))
+                    writer.writeObjectId(ObjectId(value._fieldMap.map["\$oid"].asStringValue()))
                 else
                     encodeNormalObject(writer, value)
             }
@@ -83,7 +83,7 @@ object KondorBson {
 
     private fun encodeNormalObject(writer: BsonDocumentWriter, value: JsonNodeObject) {
         writer.writeStartDocument()
-        value._fieldMap.forEach { (fieldName, node) ->
+        value._fieldMap.map.forEach { (fieldName, node) ->
             writer.writeName(fieldName)
             encodeValue(writer, node)
         }

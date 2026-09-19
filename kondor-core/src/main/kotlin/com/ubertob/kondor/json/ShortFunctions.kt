@@ -139,12 +139,12 @@ inline fun <PT : Any, reified T : Any> obj(converter: JConverter<T>, noinline bi
         JFieldMaybe(binder, converter)
 
 @JvmName("bindFlattenObject")
-inline fun <PT : Any, reified T : Any> JAny<PT>.flatten(
+inline fun <PT : Any, reified T : Any> ObjectNodeConverterProperties<PT>.flatten(  //!!! path doesn't work for JObj
         converter: ObjectNodeConverter<T>,
         noinline binder: PT.() -> T
 ) =
         JFieldFlatten(binder, converter, this)
 
 @JvmName("bindFlattenJsonNode")
-fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonNodeObject) =
+fun <PT : Any> JAny<PT>.flatten(binder: PT.() -> JsonNodeObject) = //works only on JAny, not JObj
         JFieldFlatten(binder, JJsonNode, this)

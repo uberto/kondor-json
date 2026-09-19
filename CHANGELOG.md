@@ -3,9 +3,12 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.3.6.1 - 19 October 2025
+### v.4.0.2 - 19 September 2026
 
-Kondor-core: Correctly parse Unicode control characters (Thanks Attiliano Fonseca)
+Kondor-core: fixed parsing of empty Json objects `{}` in JMap and JObj (e.g. empty maps and objects with only null fields)
+Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`
+Docs: fixed error-handling examples in README (`fromJson` instead of the non-existent `parseJson`)
+Build: release script only updates the version declarations instead of every matching string in README
 
 ### v.3.5.2 - 7 May 2025
 

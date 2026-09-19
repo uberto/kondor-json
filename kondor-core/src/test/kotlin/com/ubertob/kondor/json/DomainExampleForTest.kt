@@ -83,20 +83,30 @@ fun randomObjectWithDynamicAttr(): DynamicAttr = DynamicAttr(
 )
 
 fun randomNodeFields(): FieldNodeMap =
-    mapOf(
-        "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
-        "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
-        "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
+    FieldNodeMap(
+        mapOf(
+            "bool_f" to JsonNodeBoolean(Random.nextBoolean()),
+            "double_f" to JsonNodeNumber(Random.nextDouble().toBigDecimal()),
+            "string_f" to JsonNodeString(randomString(uppercase, 1, 10))
+        )
     )
 
 //------------
 
+data class SimpleObject(val string: String) {
+    object Json : JObj<SimpleObject>() {
+        val str by str(SimpleObject::string)
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): SimpleObject =
+            SimpleObject(+str)
+    }
+}
+
 sealed class Customer()
 data class Person(val id: Int, val name: String) : Customer() {
-    object Json : JAny<Person>() {
+    object Json : JObj<Person>() {
         val id by num(Person::id)
         val name by str(Person::name)
-        override fun JsonNodeObject.deserializeOrThrow() = Person(
+        override fun FieldsValues.deserializeOrThrow(path: NodePath) = Person(
             id = +id,
             name = +name
         )
@@ -109,6 +119,7 @@ object AnonymousCustomer : Customer()
 data class GraphNode(val name: String, val nodeType: String, val path: String)
 
 //converters
+
 
 object JStringList : JArrayConverter<List<String>> by JList(JString)
 
@@ -127,12 +138,12 @@ object JGraphNode : JAny<GraphNode>() {
 }
 
 
-object JPerson : JAny<Person>() {
+object JPerson : JObj<Person>() {
 
     private val id by num(Person::id)
     private val name by str(Person::name)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Person(
             id = +id,
             name = +name
@@ -155,14 +166,14 @@ data class Product(val id: Int, val shortDesc: String, val longDesc: String, val
     }
 }
 
-object JProduct : JAny<Product>() {
+object JProduct : JObj<Product>() {
 
     private val id by num(Product::id)
     private val long_description by str(Product::longDesc)
     private val `short-desc` by str(Product::shortDesc)
     private val price by num(Product::price)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Product(
             id = +id,
             shortDesc = +`short-desc`,
@@ -208,12 +219,12 @@ data class Invoice(
     }
 }
 
-object JCompany : JAny<Company>() {
+object JCompany : JObj<Company>() {
 
     private val name by str(Company::name)
     private val tax_type by str(Company::taxType)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Company(
             name = +name,
             taxType = +tax_type
@@ -241,7 +252,7 @@ object JCustomer : JSealed<Customer>() {
 }
 
 
-object JInvoice : JAny<Invoice>() {
+object JInvoice : JObj<Invoice>() {
 
     private val id by str(::InvoiceId, Invoice::id)
     private val `vat-to-pay` by bool(Invoice::vat)
@@ -251,7 +262,7 @@ object JInvoice : JAny<Invoice>() {
     private val created_date by str(Invoice::created)
     private val paid_datetime by num(Invoice::paid)
 
-    override fun JsonNodeObject.deserializeOrThrow(): Invoice =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Invoice =
         Invoice(
             id = +id,
             vat = +`vat-to-pay`,
@@ -266,12 +277,12 @@ object JInvoice : JAny<Invoice>() {
 
 data class Money(val currency: Currency, val amount: BigInteger)
 
-object JMoney : JAny<Money>() {
+object JMoney : JObj<Money>() {
 
     private val ccy by str(Money::currency)
     private val amount by num(Money::amount)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Money(
             currency = +ccy,
             amount = +amount
@@ -280,25 +291,25 @@ object JMoney : JAny<Money>() {
 
 data class ExpenseReport(val person: Person, val expenses: Map<String, Money>)
 
-object JExpenseReport : JAny<ExpenseReport>() {
+object JExpenseReport : JObj<ExpenseReport>() {
 
     private val person by obj(JPerson, ExpenseReport::person)
     private val expenses by obj(JMap(JMoney), ExpenseReport::expenses)
-
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         ExpenseReport(
             person = +person,
             expenses = +expenses
         )
+
 }
 
 data class Notes(val updated: Instant, val thingsToDo: Map<String, String>)
 
-object JNotes : JAny<Notes>() {
+object JNotes : JObj<Notes>() {
     private val updated by str(Notes::updated)
     private val things_to_do by obj(JMap(JString), Notes::thingsToDo)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         Notes(
             updated = +updated,
             thingsToDo = +things_to_do
@@ -369,6 +380,24 @@ object JFileInfo : JAny<FileInfo>() {
         )
 }
 
+object JFileInfoNew : JObj<FileInfo>() {
+    val file_name by str(FileInfo::name)
+    val creation_date by num(FileInfo::date)
+    val is_dir by bool(FileInfo::isDir)
+    val size by num(JLong, FileInfo::size)
+    val folder_path by str(FileInfo::folderPath)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        FileInfo(
+            name = +file_name,
+            date = +creation_date,
+            isDir = +is_dir,
+            size = +size,
+            folderPath = +folder_path
+        )
+}
+
+
 data class MetadataFile(val filename: String, val metadata: Map<String, String>)
 
 object JMetadataFile : JAny<MetadataFile>() {
@@ -395,18 +424,29 @@ object JSelectedFile : JAny<SelectedFile>() {
             selected = +selected,
             file = +file_info,
         )
+}
 
+object JSelectedFileNew : JObj<SelectedFile>() {
+
+    private val selected by bool(SelectedFile::selected)
+    private val file by obj(JFileInfoNew, SelectedFile::file)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): SelectedFile =
+        SelectedFile(
+            selected = +selected,
+            file = +file
+        )
 }
 
 
 data class UserFile(val user: Person, val file: SelectedFile)
 
-object JUserFile : JAny<UserFile>() {
+object JUserFile : JObj<UserFile>() {
 
     val user by obj(JPerson, UserFile::user)
     val file by obj(JSelectedFile, UserFile::file)
 
-    override fun JsonNodeObject.deserializeOrThrow() =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         UserFile(
             user = +user,
             file = +file

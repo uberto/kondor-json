@@ -1,22 +1,18 @@
 package com.ubertob.kondor.mongo.core
 
 import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 
 const val DB_NAME = "MongoKondorTest"
 
-private fun resolveMongoTestImage(): String {
-    // Allow override from environment for edge cases (e.g., corporate registries)
-    val override = System.getenv("MONGO_TEST_IMAGE")
-    if (!override.isNullOrBlank()) return override
-
-    // Default to a multi-arch image tag that works on Linux/Windows/macOS (Apple Silicon and Intel)
-    // Testcontainers will pull the correct platform variant via Docker's manifest list.
-    return "mongo:6.0.14"
-}
+// multi-arch image (amd64/arm64), can be overridden with MONGO_TEST_IMAGE, e.g. to use a mirror registry
+private val mongoTestImage: DockerImageName =
+    DockerImageName.parse(System.getenv("MONGO_TEST_IMAGE")?.takeUnless { it.isBlank() } ?: "mongo:6.0.14")
+        .asCompatibleSubstituteFor("mongo")
 
 fun mongoForTests() =
-    MongoDBContainer(resolveMongoTestImage())
+    MongoDBContainer(mongoTestImage)
         .apply {
             start()
         }

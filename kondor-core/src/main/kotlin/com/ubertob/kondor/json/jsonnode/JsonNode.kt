@@ -12,8 +12,13 @@ import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.onFailure
 
 typealias EntryJsonNode = Map.Entry<String, JsonNode>
-typealias FieldNodeMap = Map<String, JsonNode>
-typealias FieldMap = Map<String, Any?>
+
+data class FieldNodeMap(val map: Map<String, JsonNode>)
+
+data class FieldsValuesMap(private val map: Map<String, Any?>) : FieldsValues {
+    override fun getValue(fieldName: String): Any? = map[fieldName]
+    override fun getMap(): Map<String, Any?> = map
+}
 
 sealed class JsonNode(val nodeKind: NodeKind<*>)
 
@@ -29,10 +34,12 @@ data class JsonNodeArray(val elements: Iterable<JsonNode>) : JsonNode(ArrayNode)
 
 data class JsonNodeObject(val _fieldMap: FieldNodeMap) : JsonNode(ObjectNode) {
 
+    constructor(map: Map<String, JsonNode>) : this(FieldNodeMap(map))
+
     companion object {
         @Suppress("DEPRECATION")
-        internal fun buildForParsing(fieldMap: FieldNodeMap, path: NodePath): JsonNodeObject =
-            JsonNodeObject(fieldMap, path) //we are forced to use the deprecated constructor
+        internal fun buildForParsing(fieldMap: Map<String, JsonNode>, path: NodePath): JsonNodeObject =
+            JsonNodeObject(FieldNodeMap(fieldMap), path) //we are forced to use the deprecated constructor
     }
 
     internal var _path: NodePath = NodePathRoot //hack to get the current path during parsing without breaking changes.
@@ -43,11 +50,22 @@ data class JsonNodeObject(val _fieldMap: FieldNodeMap) : JsonNode(ObjectNode) {
         this._path = _path
     }
 
-    val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.entries.filter { it.value.nodeKind != NullNode } }
+    val notNullFields: List<EntryJsonNode> by lazy { _fieldMap.map.entries.filter { it.value.nodeKind != NullNode } }
 
     operator fun <T> JsonProperty<T>.unaryPlus(): T =
         getter(_fieldMap, path = _path)
             .onFailure { throw JsonParsingException(it) }
+}
+
+interface FieldsValues {
+
+    fun getValue(fieldName: String): Any?
+
+    fun getMap(): Map<String, Any?>
+
+    @Suppress("UNCHECKED_CAST")
+    operator fun <T> JsonProperty<T>.unaryPlus(): T = getValue(propName) as T
+
 }
 
 

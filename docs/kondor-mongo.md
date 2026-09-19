@@ -275,6 +275,12 @@ graph LR
     style G fill:#e3f2fd
 ```
 
+## Testing
+
+The module tests use Testcontainers, so they need a running Docker daemon: `./gradlew :kondor-mongo:test`.
+They run against the multi-arch `mongo:6.0.14` image by default; set `MONGO_TEST_IMAGE` to use another image (for
+example from a mirror registry). See `kondor-mongo/README.md` for per-platform Docker setup.
+
 ## Performance Considerations
 
 ### Advantages

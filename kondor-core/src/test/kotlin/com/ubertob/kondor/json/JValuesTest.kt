@@ -5,7 +5,6 @@ import com.ubertob.kondor.randomList
 import com.ubertob.kondor.randomString
 import com.ubertob.kondor.text
 import com.ubertob.kondortools.expectSuccess
-import com.ubertob.kondortools.printIt
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.contains
@@ -203,6 +202,21 @@ class JValuesTest {
         }
     }
 
+    @Test
+    fun `Json Simple Object and back`() {
+
+        val value = SimpleObject("abc123")
+        val json = SimpleObject.Json.toJson(value)
+
+        val actual = SimpleObject.Json.fromJson(json).expectSuccess()
+
+        expectThat(actual).isEqualTo(value)
+
+        val jsonNode = SimpleObject.Json.toJsonNode(value)
+        val actualFromNode = SimpleObject.Json.fromJsonNode(jsonNode, NodePathRoot).expectSuccess()
+        expectThat(actualFromNode).isEqualTo(value)
+
+    }
 
     @Test
     fun `Json Person and back`() {
@@ -254,7 +268,7 @@ class JValuesTest {
 
             expectThat(actual).isEqualTo(product)
 
-            val jsonStr = JProduct.toJson(product).printIt()
+            val jsonStr = JProduct.toJson(product)
 
             expectThat(JProduct.fromJson(jsonStr).expectSuccess()).isEqualTo(product)
 
@@ -421,10 +435,3 @@ class JValuesTest {
         expectThat(JDouble.fromJson(negInfJson).expectSuccess()).isEqualTo(negInfValue)
     }
 }
-
-
-//Possible extensions:
-// add Converters for all java.time, GUUID, URI, etc.
-// add un-typed option JObject<Any>
-// add constant fields (ignoring Json content)
-// add support to serialize calculated fields

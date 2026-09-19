@@ -34,25 +34,24 @@ internal fun arraySchema(itemsConverter: JsonConverter<*, *>): JsonNodeObject =
 internal fun objectSchema(properties: Iterable<JsonProperty<*>>): JsonNodeObject {
 
     val reqProp = mutableListOf<String>()
-    val pmap = properties.flatMap { prop ->
+    val pmap: Map<String, JsonNode> = properties.flatMap { prop ->
 
         when (prop) {
             is JsonPropMandatory<*, *> -> listOf(prop.propName to prop.converter.schema()).also { reqProp.add(prop.propName) }
             is JsonPropMandatoryFlatten<*> -> prop.converter.schemaProperties()
                 .also { reqProp.addAll(prop.converter.schemaRequiredProperties()) }
+
             is JsonPropOptional<*, *> -> listOf(prop.propName to prop.converter.schema())
         }
 
     }.toMap()
-    val propNode = JsonNodeObject(pmap)
 
     val map = mapOf(
         "type" to "object".asNode(),
-        "properties" to propNode,
+        "properties" to pmap.asNode(),
         "required" to reqProp.asNode()
     )
-
-    return JsonNodeObject(map)
+    return JsonNodeObject(FieldNodeMap(map))
 }
 
 fun sealedSchema(
@@ -60,10 +59,11 @@ fun sealedSchema(
     subConverters: Map<String, ObjectNodeConverter<*>>
 ): JsonNodeObject {
     val subMaps: List<JsonNode> = subConverters.map { (name, conv) ->
-        val required = conv.schema()._fieldMap["required"]
-        conv.schema()._fieldMap["properties"]
+        val required = conv.schema()._fieldMap.map["required"]
+        conv.schema()._fieldMap.map["properties"]
             .let { it as JsonNodeObject }
-            .let { it._fieldMap + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }.asNode()
+            .let { it._fieldMap.map + (discriminatorFieldName to listOf("type" to "string", "const" to name).asNode()) }
+            .asNode()
             .let { mapOf("properties" to it) }
             .let {
                 if (required != null && (required as JsonNodeArray).elements.count() > 0)
@@ -79,20 +79,20 @@ fun sealedSchema(
         "oneOf" to subMaps.asNodes()
     )
 
-    return JsonNodeObject(map)
+    return JsonNodeObject(FieldNodeMap(map))
 }
 
 
 private fun ObjectNodeConverter<*>.schemaProperties(): List<Pair<String, JsonNode>> =
-    (schema()._fieldMap["properties"] as JsonNodeObject)._fieldMap.entries.map { it.key to it.value }
+    (schema()._fieldMap.map["properties"] as JsonNodeObject)._fieldMap.map.entries.map { it.key to it.value }
 
 private fun ObjectNodeConverter<*>.schemaRequiredProperties(): List<String> =
-    (schema()._fieldMap["required"] as JsonNodeArray).elements.map { (it as JsonNodeString).text }
+    (schema()._fieldMap.map["required"] as JsonNodeArray).elements.map { (it as JsonNodeString).text }
 
 internal fun String.asNode() = JsonNodeString(this)
 internal fun List<String>.asNode() = JsonNodeArray(this.map { it.asNode() })
 internal fun List<JsonNode>.asNodes() = JsonNodeArray(this)
-internal fun FieldNodeMap.asNode() = JsonNodeObject(this)
+internal fun Map<String, JsonNode>.asNode() = JsonNodeObject(FieldNodeMap(this))
 internal fun List<Pair<String, String>>.asNode() = JsonNodeObject(
-    map { it.first to it.second.asNode() }.toMap()
+    FieldNodeMap(map { it.first to it.second.asNode() }.toMap())
 )

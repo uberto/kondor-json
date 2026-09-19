@@ -13,7 +13,6 @@ fun KondorToken.sameValueAs(text: String): Boolean = when (this) {
     is Value -> this.text == text
 }
 
-
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
 fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
@@ -58,7 +57,6 @@ fun TokensPath.parseJsonNodeObject(): JsonOutcome<JsonNodeObject> =
         OpeningCurly, TokensPath::jsonObject, ClosingCurly
     )()
 
-
 typealias JsonParser<T> = TokensPath.() -> JsonOutcome<T>
 typealias JsonParserFromTokens<T> = (TokensStream, NodePath) -> JsonOutcome<T>
 
@@ -66,13 +64,12 @@ fun <T> surroundedForNodes(
     openingToken: KondorSeparator, takeContent: JsonParser<T>, closingToken: KondorSeparator
 ): JsonParser<T> = {
     val middle = { _: KondorToken, middle: T, _: KondorToken -> middle }
-
     middle `!` take(openingToken, tokens, path) `*` takeContent() `*` take(closingToken, tokens, path)
 }
 
 fun <T> surrounded(
     openingToken: KondorSeparator, takeContent: JsonParserFromTokens<T>, closingToken: KondorSeparator
-): JsonParserFromTokens<T> = { tokens, path ->  //!!! add test for null object {}
+): JsonParserFromTokens<T> = { tokens, path ->
     take(openingToken, tokens, path)
         .bind { takeContent(tokens, path) }
         .bindAndIgnore {
@@ -81,21 +78,24 @@ fun <T> surrounded(
 }
 
 fun <T> parseValues(
-    tokens: TokensStream, path: NodePath, parseFun: (TokensStream, NodePath) -> JsonOutcome<T>?
+    tokens: TokensStream, path: NodePath,
+    parseFun: (TokensStream, NodePath, Int) -> JsonOutcome<Pair<T?, Boolean>>
 ): JsonOutcome<List<T>> {
-    var arrayIndex = 0
     val values = ArrayList<T>(128)
+    var index = 0
+    var shouldContinue = true
 
-    while (true) {
-        parseFun(tokens, newSegment(path, arrayIndex++))?.let { outcome ->
-            val value = outcome.onFailure { return it.asFailure() }
-            values.add(value)
-        } ?: break
+    while (shouldContinue) {
+        shouldContinue = parseFun(tokens, path, index++)
+            .transform { (value, continueParsing) ->
+                value?.let { values.add(it) }
+                continueParsing
+            }
+            .onFailure { return it.asFailure() }
     }
+
     return values.asSuccess()
 }
-
-private fun newSegment(path: NodePath, nodeNumber: Int): NodePath = NodePathSegment("[$nodeNumber]", path)
 
 fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
     parseBoolean(tokens, path)
@@ -115,24 +115,30 @@ fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
 
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSeparated { parseNewNode() }.transform { JsonNodeArray(it) }
 
-fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated(withParentNode {
-    keyValue {
-        parseNewNode() ?: parsingFailure("a valid node", "nothing", tokens.lastPosRead(), path, "invalid Json")
+fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
+    keyValue { (tokens, innerPath) ->
+        TokensPath(tokens, innerPath).parseNewNode() ?: parsingFailure(
+            "a valid node",
+            "nothing",
+            tokens.lastPosRead(),
+            innerPath,
+            "invalid Json"
+        )
     }
-}).transform(::checkForDuplicateKeys).transform { JsonNodeObject(it.toMap()) }
+}).transform { JsonNodeObject(FieldNodeMap(sortKeys(it).toMap())) }
 
-private fun checkForDuplicateKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
+private fun sortKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
     pairs.sortedBy { it.first }
 
 
-fun <T> withParentNode(f: TokensPath.() -> JsonOutcome<T>?): TokensPath.() -> JsonOutcome<T>? =
-    { f(copy(path = path.parent())) }
-
-
-fun <T> TokensPath.keyValue(contentParser: TokensPath.() -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
+fun <T> TokensPath.keyValue(contentParser: (TokensPath) -> JsonOutcome<T>): JsonOutcome<Pair<String, T>>? =
     parseOptionalKeyNode()?.bind { key ->
-        take(Colon, tokens, path)
-            .bind { contentParser(copy(path = NodePathSegment(key, path))) }
+        val newPath = NodePathSegment(key, path)
+        take(Colon, tokens, newPath)
+            .bind {
+                val tk: TokensPath = copy(path = newPath)
+                contentParser(tk)
+            }
             .transform { value -> key to value }
     }
 
@@ -148,13 +154,16 @@ private fun TokensPath.takeKey(keyNode: JsonNode): JsonOutcome<String> = when (k
 }
 
 fun <T> TokensPath.commaSeparated(contentParser: TokensPath.() -> JsonOutcome<T>?): JsonOutcome<List<T>> =
-    commaSeparated(tokens, path) { t, p -> TokensPath(t, p).contentParser() }
+    commaSeparated(tokens, path) { t, p, i -> TokensPath(t, p).contentParser() }
 
 fun <T> commaSeparated(
-    tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath) -> JsonOutcome<T>?
-): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p ->
-    contentParser(t, p)?.bindAndIgnore {
-        takeOrNull(Comma, t, p) ?: null.asSuccess()
+    tokens: TokensStream, path: NodePath, contentParser: (TokensStream, NodePath, Int) -> JsonOutcome<T>?
+): JsonOutcome<List<T>> = parseValues(tokens, path) { t, p, i ->
+    val parsedValue = contentParser(t, p, i)
+        ?: return@parseValues (null to false).asSuccess()
+
+    parsedValue.transform { value ->
+        value to (takeOrNull(Comma, t, p) != null)
     }
 }
 
@@ -166,13 +175,18 @@ private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next()
 fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
     if (tokens.hasNext()) {
         tokens.next().let { token ->
-            if ((token as? Separator)?.sep == separator) token.asSuccess()
-            else parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
+            if ((token as? Separator)?.sep == separator)
+                token.asSuccess()
+            else
+                parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
         }
     } else {
         parsingFailure(separator.name, "end of file", tokens.lastPosRead(), path, "invalid Json")
     }
 
+
+private fun isNext(separator: KondorSeparator, tokens: TokensStream): Boolean =
+    tokens.hasNext() && (tokens.peek() as? Separator)?.sep == separator
 
 private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken>? =
     tokens.peek().let { currToken ->
@@ -182,24 +196,27 @@ private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: N
             null
     }
 
-fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? = if (!tokens.hasNext()) null
-else when (val t = tokens.peek()) {
-    is Value -> when (t.text) {
-        "null" -> parseJsonNodeNull()
-        "false", "true" -> parseJsonNodeBoolean()
-        else -> parseJsonNodeNum()
-    }
+fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
+    if (!tokens.hasNext())
+        null
+    else
+        when (val t = tokens.peek()) {
+            is Value -> when (t.text) {
+                "null" -> parseJsonNodeNull()
+                "false", "true" -> parseJsonNodeBoolean()
+                else -> parseJsonNodeNum()
+            }
 
-    is Separator -> when (t.sep) {
-        OpeningQuotes -> parseJsonNodeString()
-        OpeningBracket -> parseJsonNodeArray()
-        OpeningCurly -> parseJsonNodeObject()
-        ClosingBracket, ClosingCurly -> null //no more nodes
-        ClosingQuotes, Comma, Colon -> parsingError(
-            "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
-        ).asFailure()
-    }
-}
+            is Separator -> when (t.sep) {
+                OpeningQuotes -> parseJsonNodeString()
+                OpeningBracket -> parseJsonNodeArray()
+                OpeningCurly -> parseJsonNodeObject()
+                ClosingBracket, ClosingCurly -> null //no more nodes
+                ClosingQuotes, Comma, Colon -> parsingError(
+                    "a new node", tokens.lastToken(), tokens.lastPosRead(), path, "${t.desc} in wrong position"
+                ).asFailure()
+            }
+        }
 
 
 fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = when (val token = tokens.next()) {
@@ -221,7 +238,7 @@ fun <T> parseNumber(
     return when (val token = tokens.peek()) {
         is Value ->
             try {
-                tokens.next()
+                tokens.next() //commit on the peek NOOP
                 converter(token.text)
             } catch (nfe: NumberFormatException) {
                 parsingFailure("a valid Number", token.desc, position, path, "NumberFormatException ${nfe.message}")
@@ -260,23 +277,30 @@ fun <T> parseArray(
     path: NodePath,
     converter: (TokensStream, NodePath) -> JsonOutcome<T>
 ): JsonOutcome<List<T>> =
-    commaSeparated(tokens, path) { t, p -> parseNewValue(t, p, converter) }
+    commaSeparated(tokens, path) { t, p, i -> parseNewValue(t, newSegment(p, i), converter) }
+
+
+private fun newSegment(path: NodePath, nodeNumber: Int): NodePath = NodePathSegment("[$nodeNumber]", path)
 
 fun parseFields(
     tokens: TokensStream,
     path: NodePath,
-    fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any>
-): JsonOutcome<Map<String, Any>> =
-    commaSeparated(tokens, path) { t, p ->
-        parseString(t, p)
+    fieldParser: (String, TokensStream, NodePath) -> JsonOutcome<Any?>
+): JsonOutcome<FieldsValuesMap> =
+    commaSeparated(tokens, path) { t, p, i ->
+        //empty object: checked only before the first field, so a trailing comma is still an error
+        if (i == 0 && isNext(ClosingCurly, t))
+            null
+        else parseString(t, p)
             .bindAndIgnore {
-                take(Comma, t, p)
+                take(Colon, t, p)
             }.bind { key ->
-                fieldParser(key, t, p)
+                val fieldPath = NodePathSegment(key, path)
+                fieldParser(key, t, fieldPath)
                     .transform { key to it }
             }
     }.bind {
-        it.toMap().asSuccess()
+        FieldsValuesMap(it.toMap()).asSuccess()
     }
 
 fun <T> parseNewValue(

@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 plugins {
     `common-kotlin`
     id("java-library")
+    id("java-test-fixtures")
     id("maven-publish")
     id("signing")
 }
@@ -19,6 +20,9 @@ java {
 dependencies {
     api(project(":kondor-outcome"))
     implementation(libs.kotlin.jdk8)
+
+    testFixturesImplementation(libs.kotlin.jdk8)
+    testFixturesImplementation(libs.justify)
 }
 
 @Suppress("UnstableApiUsage")

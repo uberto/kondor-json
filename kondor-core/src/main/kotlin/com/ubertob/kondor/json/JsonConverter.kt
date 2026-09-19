@@ -7,7 +7,6 @@ import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parsingError
-import com.ubertob.kondor.json.parser.parsingFailure
 import com.ubertob.kondor.json.schema.valueSchema
 import com.ubertob.kondor.outcome.*
 import java.io.InputStream
@@ -89,12 +88,6 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             .failIf({ tokens.hasNext() }) {
                 parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
             }
-
-    fun T.checkForJsonTail(tokens: TokensStream) = //TODO remove it after replacing with FailIf everywhere
-        if (tokens.hasNext())
-            parsingFailure("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
-        else
-            asSuccess()
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)

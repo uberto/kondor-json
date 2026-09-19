@@ -37,4 +37,3 @@ private infix fun String.appendNode(next: String): String = if (this == ROOT_NOD
 
 
 fun TokensStream.onRoot(): TokensPath = TokensPath(this, NodePathRoot)
-

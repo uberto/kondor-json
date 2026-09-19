@@ -23,14 +23,14 @@ Maven
 <dependency>
    <groupId>com.ubertob.kondor</groupId>
     <artifactId>kondor-core</artifactId>
-    <version>3.6.1</version>
+    <version>4.0.2</version>
 </dependency>
 ```
 
 Gradle
 
 ```groovy
-implementation 'com.ubertob.kondor:kondor-core:3.6.1'
+implementation 'com.ubertob.kondor:kondor-core:4.0.2'
 ```
 
 ## The Video Presentation
@@ -65,7 +65,7 @@ And we want to render it to this Json:
 
 ```json
 {
-  "creation_date": 162513.6.1000,
+  "creation_date": 1625134530000,
    "file_name": "filename",
    "folder_path": "/tmp",
    "is_dir": false,
@@ -262,12 +262,12 @@ object JProduct : JAny<Product>() { // 2
 When failing to parse a Json, Kondor is not throwing any exception, instead `fromJson` and `fromJsonNode` methods return
 an `Outcome<T>` instead of a simple `T`. Why is that?
 
-`Outcome` is an example of the *Either* monad specialized for error handling patterns, if you are not familiar with it, here there are 5 ways to handle errors depending on the case:
+`Outcome` is an example of the *Either* monad specialized for error handling patterns, if you are not familiar with it, here there are 4 ways to handle errors depending on the case:
 
 1. orThrow()
 
 ```kotlin
-JCustomer.parseJson(jsonString).orThrow()
+JCustomer.fromJson(jsonString).orThrow()
 ```
 
 this throws an exception if there is an error.
@@ -275,7 +275,7 @@ this throws an exception if there is an error.
 1. orNull()
 
 ```kotlin
-JCustomer.parseJson(jsonString).orNull()
+JCustomer.fromJson(jsonString).orNull()
    ?.let { customer ->
       //do something only if successful
    }
@@ -286,7 +286,7 @@ this returns null if there is an error, it's not great because the error is lost
 1. onFailure{}
 
 ```kotlin
-val customer = JCustomer.parseJson(jsonString)
+val customer = JCustomer.fromJson(jsonString)
    .onFailure { error ->
       log(error)
       return
@@ -298,7 +298,7 @@ using `onFailure` we can return from the calling function (non-local return) in 
 1. transform{} + recover{}
 
 ```kotlin
-val htmlPage = JCustomer.parseJson(jsonString)
+val htmlPage = JCustomer.fromJson(jsonString)
    .transform { customer ->
       display(customer)
    }.recover { error ->

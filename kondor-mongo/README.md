@@ -142,11 +142,7 @@ Steps:
 
 Notes:
 - The tests use the image `mongo:6.0.14`, which has native ARM64 support and works on Apple Silicon and Intel Macs.
-- If using Colima and you prefer x86_64 images (slower), you can start with: `colima start --arch x86_64`.
 - Testcontainers needs to start helper containers (Ryuk). If you see permission errors, ensure your user can access the Docker socket and that the runtime is running.
-- To enable container reuse across test runs (optional), create a file `~/.testcontainers.properties` with:
-  `testcontainers.reuse.enable=true`
-  Then, start your Docker runtime once and keep it running between test runs.
 
 Troubleshooting:
 - "Cannot connect to Docker": make sure Docker Desktop/Orbstack/Colima is running.
