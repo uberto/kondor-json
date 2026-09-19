@@ -10,7 +10,10 @@ automatically map JSON fields to data class properties.
 
 ### Automatic Data Class Conversion
 
-- **JDataClass**: Base class for automatic data class converters
+- **JDataClass**: Data class converter where you declare the fields, and the constructor is called by position
+- **JDataClassWithNames**: Like `JDataClass`, but the constructor parameters are bound by name, so the fields can be
+  declared in any order and, when parsing with `fromJson`, default parameter values are used for missing fields
+- **JDataClassAuto**: Data class converter with no declarations at all, the Json field names are the property names
 - **Reflection-based instantiation**: Uses Kotlin reflection to create instances
 - **Field mapping**: Automatically maps JSON fields to constructor parameters
 - **Order preservation**: Maintains field declaration order for constructor matching
@@ -78,26 +81,22 @@ graph TB
 sequenceDiagram
     participant App as Application
     participant JDC as JDataClass
+    participant Obj as JObj parsing
     participant Refl as Reflection
-    participant Core as Core Converter
-    Note over App, Core: Converter Definition
+    Note over App, Refl: Converter Definition
     App ->> JDC: object PersonJson : JDataClass<Person>
     JDC ->> JDC: val name by str(Person::name)
     JDC ->> JDC: val age by num(Person::age)
-    Note over App, Core: Deserialization
+    Note over App, Refl: Deserialization
     App ->> JDC: fromJson(jsonString)
-    JDC ->> Core: parseJsonObject(json)
-    Core -->> JDC: JsonNodeObject
-    JDC ->> JDC: extractFields(node)
-    JDC ->> Refl: findConstructor(Person::class)
-    Refl -->> JDC: Constructor<Person>
-    JDC ->> JDC: buildInstance(fields, constructor)
+    JDC ->> Obj: fromTokens(tokens)
+    Obj -->> JDC: FieldsValues (field name to value)
+    JDC ->> Refl: first constructor of Person
+    JDC ->> JDC: buildInstance(values in field order)
     JDC -->> App: Person(name="John", age=30)
-    Note over App, Core: Serialization
+    Note over App, Refl: Serialization
     App ->> JDC: toJson(person)
-    JDC ->> JDC: serialize(person)
-    JDC ->> Core: createJsonObject(fields)
-    Core -->> JDC: JsonNodeObject
+    JDC ->> JDC: write each field with its converter
     JDC -->> App: JSON String
 ```
 
@@ -116,7 +115,7 @@ flowchart TD
     D --> I[Parameter Mapping]
     H --> I
     I --> J{All Required Fields Present?}
-    J -->|Yes| K[Constructor.newInstance()]
+    J -->|Yes| K["Constructor.newInstance()"]
 J -->|No|L[Fill Nullable with null]
 L --> K
 
@@ -161,7 +160,7 @@ data class Person(val name: String, val age: Int, val email: String?)
 object PersonJson : JDataClass<Person>(Person::class) {
     val name by str(Person::name)
     val age by num(Person::age)
-    val email by str(Person::email).optional()
+    val email by str(Person::email) // nullable properties are optional in Json
 }
 
 // Usage
@@ -183,7 +182,7 @@ object AddressJson : JDataClass<Address>(Address::class) {
 
 object PersonJson : JDataClass<Person>(Person::class) {
     val name by str(Person::name)
-    val address by AddressJson(Person::address)
+    val address by obj(AddressJson, Person::address)
 }
 ```
 
@@ -194,17 +193,49 @@ data class Team(val name: String, val members: List<String>, val leader: String?
 
 object TeamJson : JDataClass<Team>(Team::class) {
     val name by str(Team::name)
-    val members by array(JValues.str)(Team::members)
-    val leader by str(Team::leader).optional()
+    val members by array(JString, Team::members)
+    val leader by str(Team::leader)
 }
 ```
+
+### Converters Without Field Declarations
+
+```kotlin
+data class Person(val id: Int, val name: String)
+
+object PersonJson : JDataClassAuto<Person>(Person::class)
+
+val json = PersonJson.toJson(Person(1, "Alice")) // {"id": 1, "name": "Alice"}
+```
+
+### Binding the Constructor by Name
+
+```kotlin
+data class Settings(val theme: String, val fontSize: Int = 12, val nickname: String?)
+
+object SettingsJson : JDataClassWithNames<Settings>(Settings::class) {
+    val nickname by str(Settings::nickname) // any order
+    val theme by str(Settings::theme)
+    val fontSize by num(Settings::fontSize)
+}
+```
+
+The field names must be the same as the constructor parameter names: a field with a different name (e.g. `font_size`)
+is not bound, and the parameter falls back to its default value, or to `null`.
+
+Default values are only used when parsing with `fromJson`. When the converter is used through a `JsonNode` (e.g.
+`fromJsonNode`, or as a subtype inside a `JSealed`), a missing mandatory field fails and a missing nullable field is
+`null`.
+
+Note: `JDataClassWithNames` has no dedicated tests yet.
 
 ## Design Considerations
 
 ### Constructor Parameter Order
 
-The module relies on the Kotlin design principle that property declarations in data classes match constructor parameter
-order. This eliminates the need for complex name-based matching while maintaining type safety.
+`JDataClass` relies on the fields being declared in the same order as the data class constructor parameters. This
+avoids name-based matching, but reordering the fields breaks the converter. `JDataClassWithNames` binds by name
+instead, at the cost of some more reflection.
 
 ### Nullable Field Handling
 

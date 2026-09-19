@@ -2,283 +2,121 @@
 
 ## Purpose
 
-The `kondor-outcome` module provides functional error handling capabilities for the KondorJson library. It implements
-the `Outcome` type, which represents computations that can either succeed with a value or fail with an error, enabling
-composable and type-safe error handling throughout the JSON processing pipeline.
-
-## Responsibilities
-
-### Functional Error Handling
-
-- **Outcome Type**: Provides `Outcome<E, T>` as a functional alternative to exceptions
-- **Error Composition**: Enables chaining of operations that might fail
-- **Type Safety**: Ensures errors are handled explicitly at compile time
-- **Monadic Operations**: Supports functional programming patterns like `map`, `flatMap`, and `fold`
-
-### JSON-Specific Error Types
-
-- **JsonError Hierarchy**: Defines specific error types for JSON processing failures
-- **Path Tracking**: Maintains location information for errors within JSON structures
-- **Error Aggregation**: Supports collecting multiple errors from complex operations
-- **Error Transformation**: Enables mapping between different error types
+The `kondor-outcome` module provides `Outcome<E, T>`, a small Either type for error handling without exceptions. Every
+Kondor operation that can fail (parsing, conversion, database access) returns an `Outcome`. The module has no
+dependencies and can be used on its own.
 
 ## Key Components
 
-```mermaid
-graph TB
-    subgraph "Outcome Type System"
-        A[Outcome<E, T>] --> B[Success<T>]
-        A --> C[Failure<E>]
-    end
+All in `com.ubertob.kondor.outcome`.
 
-    subgraph "JSON Error Hierarchy"
-        D[JsonError] --> E[InvalidJsonError]
-        D --> F[ConverterJsonError]
-        D --> G[MissingFieldError]
-        D --> H[CustomError]
-    end
+| Component                       | Role                                                                                |
+|---------------------------------|-------------------------------------------------------------------------------------|
+| `Outcome<E : OutcomeError, T>`  | Sealed interface: either `Success<T>` (with `value`) or `Failure<E>` (with `error`) |
+| `OutcomeError`                  | Interface for the errors, with a `msg: String`                                      |
+| `MessageError`                  | A simple `OutcomeError` with just a message (`"text".asFailure()`)                  |
+| `ThrowableError`                | Wraps an exception, produced by `Outcome.tryOrFail { ... }`                         |
+| `OutcomeException`              | The exception thrown by `orThrow()`, carrying the `OutcomeError`                    |
+| `UnitOutcome`, `BaseOutcome<T>` | Aliases for `Outcome<OutcomeError, Unit>` and `Outcome<OutcomeError, T>`            |
 
-    subgraph "Functional Operations"
-        I[map] --> J[Transform Success]
-        K[flatMap] --> L[Chain Operations]
-        M[fold] --> N[Handle Both Cases]
-        O[recover] --> P[Error Recovery]
-    end
+Kondor's Json errors (`JsonError` and its subclasses) are defined in `kondor-core`, and `JsonOutcome<T>` is an alias for
+`Outcome<JsonError, T>`. MongoDB errors (`MongoError`) are in `kondor-mongo`.
 
-    B --> I
-    B --> K
-    A --> M
-    C --> O
-    style A fill: #e8f5e8
-    style D fill: #fff3e0
-    style I fill: #e3f2fd
-```
+## Main Operations
 
-## Integration with Other Modules
+| Operation                            | Meaning                                                                       |
+|--------------------------------------|-------------------------------------------------------------------------------|
+| `value.asSuccess()`                  | Creates a success                                                             |
+| `error.asFailure()`                  | Creates a failure from an `OutcomeError`                                      |
+| `transform { }`                      | Maps the success value (like `map`)                                           |
+| `bind { }`                           | Chains an operation returning an `Outcome` (like `flatMap`)                   |
+| `transformFailure { }`               | Maps the error                                                                |
+| `bindFailure { }`                    | Tries an alternative `Outcome` when failed                                    |
+| `recover { }`                        | Returns the value, or computes one from the error                             |
+| `onFailure { }`                      | Returns the value, or runs a block that must exit (`return`, `throw`)         |
+| `orNull()` / `orThrow()`             | Returns the value, or `null` / throws `OutcomeException`                      |
+| `failIf`, `failUnless`, `failIfNull` | Turns a success into a failure when a condition holds                         |
+| `withSuccess`, `withFailure`         | Runs a side effect and returns the same `Outcome`                             |
+| `combine`, `Outcome.transform2`      | Combines two independent outcomes                                             |
+| `` `!` `` and `` `*` ``              | Applicative style: applies a function to several outcomes                     |
+| `traverse`, `extractList`            | From a list of values/outcomes to an outcome of a list (stops at first error) |
 
-### Dependencies
-
-- **Kotlin Standard Library**: Uses functional programming constructs
-- No external dependencies (foundation utility module)
-
-### Used By
-
-- **kondor-core**: All JSON operations return `JsonOutcome<T>` (alias for `Outcome<JsonError, T>`)
-- **kondor-auto**: Data class conversion operations use Outcome for error handling
-- **kondor-mongo**: Database operations return Outcome types for error handling
-- **kondor-tools**: Schema generation uses Outcome for validation results
-
-## Error Handling Flow
-
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant Op1 as Operation 1
-    participant Op2 as Operation 2
-    participant Op3 as Operation 3
-    Note over App, Op3: Success Chain
-    App ->> Op1: execute()
-    Op1 -->> App: Success(value1)
-    App ->> Op2: execute(value1)
-    Op2 -->> App: Success(value2)
-    App ->> Op3: execute(value2)
-    Op3 -->> App: Success(finalValue)
-    Note over App, Op3: Failure Chain
-    App ->> Op1: execute()
-    Op1 -->> App: Success(value1)
-    App ->> Op2: execute(value1)
-    Op2 -->> App: Failure(error)
-    Note right of App: Chain stops, error propagated
-    App ->> App: handle(error)
-```
-
-## Functional Composition Patterns
-
-```mermaid
-flowchart TD
-    A[Initial Value] --> B[Operation 1]
-    B --> C{Success?}
-    C -->|Yes| D[Operation 2]
-    C -->|No| E[Error 1]
-    D --> F{Success?}
-    F -->|Yes| G[Operation 3]
-    F -->|No| H[Error 2]
-    G --> I{Success?}
-    I -->|Yes| J[Final Success]
-    I -->|No| K[Error 3]
-    E --> L[Error Handling]
-    H --> L
-    K --> L
-    L --> M[Recovery Strategy]
-    M --> N[Alternative Path]
-    style A fill: #e8f5e8
-    style J fill: #e8f5e8
-    style L fill: #ffebee
-    style N fill: #fff3e0
-```
-
-## Error Type Hierarchy
-
-```mermaid
-classDiagram
-    class JsonError {
-        <<abstract>>
-        +path: NodePath
-        +msg: String
-        +toString() String
-    }
-
-    class InvalidJsonError {
-        +position: Int
-        +expected: String
-        +actual: String
-    }
-
-    class ConverterJsonError {
-        +expectedType: String
-        +actualType: String
-        +value: String?
-    }
-
-    class MissingFieldError {
-        +fieldName: String
-        +availableFields: Set<String>
-    }
-
-    class CustomError {
-        +details: String
-        +cause: Throwable?
-    }
-
-    JsonError <|-- InvalidJsonError
-    JsonError <|-- ConverterJsonError
-    JsonError <|-- MissingFieldError
-    JsonError <|-- CustomError
-```
+There are also `map`, `filter` and `flatMap` for an `Outcome` containing an `Iterable`: they work on the elements of
+the list, not on the `Outcome` itself.
 
 ## Usage Examples
 
-### Basic Outcome Operations
+### Basic Operations
 
 ```kotlin
-// Creating outcomes
-val success: Outcome<String, Int> = 42.asSuccess()
-val failure: Outcome<String, Int> = "Error message".asFailure()
+data class NegativeValue(val value: Int) : OutcomeError {
+    override val msg = "Negative value: $value"
+}
 
-// Transforming success values
-val doubled = success.map { it * 2 } // Success(84)
+fun checkPositive(value: Int): Outcome<NegativeValue, Int> =
+    if (value >= 0) value.asSuccess() else NegativeValue(value).asFailure()
 
-// Chaining operations that might fail
-val result = success
-    .flatMap { value ->
-        if (value > 0) (value * 2).asSuccess()
-        else "Negative value".asFailure()
-    }
-    .map { it.toString() }
+val result: Outcome<NegativeValue, String> =
+    checkPositive(21)
+        .transform { it * 2 }
+        .bind { checkPositive(it) }
+        .transform { "The answer is $it" }
 ```
 
-### JSON Processing with Outcomes
+### Json Parsing
 
 ```kotlin
-val jsonResult: JsonOutcome<Person> = PersonJson.fromJson(jsonString)
+val person: JsonOutcome<Person> = JPerson.fromJson(jsonString)
 
-// Handle both success and failure cases
-val message = jsonResult.fold(
-    onFailure = { error -> "Failed to parse: ${error.msg}" },
-    onSuccess = { person -> "Parsed: ${person.name}" }
-)
+// get the value or use a default
+val name: String = person.transform { it.name }.recover { error -> "unknown (${error.msg})" }
 
-// Chain JSON operations
-val processedResult = jsonResult
-    .flatMap { person -> validatePerson(person) }
-    .flatMap { person -> savePerson(person) }
-    .map { person -> "Successfully processed ${person.name}" }
+// exit early from the calling function
+fun greet(json: String): String {
+    val p = JPerson.fromJson(json).onFailure { return "Invalid person: ${it.msg}" }
+    return "Hello ${p.name}"
+}
 ```
 
-### Error Recovery
+### Error Types
 
 ```kotlin
-val result = PersonJson.fromJson(jsonString)
+val message: String = JPerson.fromJson(jsonString)
+    .transform { "Parsed ${it.name}" }
     .recover { error ->
         when (error) {
-            is MissingFieldError -> createDefaultPerson().asSuccess()
-            is InvalidJsonError -> tryAlternativeParser(jsonString)
-            else -> error.asFailure()
+            is InvalidJsonError -> "Not valid Json: ${error.msg}"
+            is JsonPropertyError -> "Problem with field ${error.propertyName}"
+            is ConverterJsonError -> "Cannot convert: ${error.msg}"
         }
     }
 ```
 
-### Collecting Multiple Errors
+`JsonError` is sealed, so the `when` is exhaustive without an `else`.
+
+### Many Values
 
 ```kotlin
-fun validatePersons(persons: List<String>): Outcome<List<JsonError>, List<Person>> {
-    val results = persons.map { PersonJson.fromJson(it) }
-    val errors = results.mapNotNull { it.failureOrNull() }
-    val successes = results.mapNotNull { it.successOrNull() }
-
-    return if (errors.isEmpty()) {
-        successes.asSuccess()
-    } else {
-        errors.asFailure()
-    }
-}
+val people: JsonOutcome<List<Person>> = jsonStrings.traverse { JPerson.fromJson(it) }
 ```
 
-## Monadic Laws and Properties
-
-The Outcome type follows monadic laws, ensuring predictable composition:
-
-```mermaid
-graph TD
-    A[Left Identity] --> B[return(a).flatMap(f) ≡ f(a)]
-C[Right Identity] --> D[m.flatMap(return) ≡ m]
-E[Associativity] --> F[m.flatMap(f).flatMap(g) ≡ m.flatMap(x => f(x).flatMap(g))]
-
-G[Functor Laws] --> H[map(id) ≡ id]
-G --> I[map(f).map(g) ≡ map(g ∘ f)]
-
-style A fill: #e8f5e8
-style C fill:#e8f5e8
-style E fill: #e8f5e8
-style G fill: #fff3e0
-```
-
-## Performance Considerations
-
-### Advantages
-
-- **No Exception Overhead**: Avoids the performance cost of exception throwing/catching
-- **Explicit Error Handling**: Compile-time verification that errors are handled
-- **Composable Operations**: Efficient chaining without intermediate exception handling
-- **Memory Efficiency**: Lightweight wrapper around success/failure values
-
-### Design Trade-offs
-
-- **Explicit Handling Required**: All error cases must be explicitly handled
-- **Learning Curve**: Requires understanding of functional programming concepts
-- **Verbose Syntax**: More verbose than exception-based error handling in some cases
-
-## Integration Patterns
-
-### With Coroutines
+`traverse` stops at the first failure and returns it. To collect all the errors, map to a list of outcomes and
+separate them:
 
 ```kotlin
-suspend fun processJsonAsync(json: String): JsonOutcome<ProcessedData> =
-    withContext(Dispatchers.IO) {
-        PersonJson.fromJson(json)
-            .flatMap { person -> validatePersonAsync(person) }
-            .flatMap { person -> savePersonAsync(person) }
-    }
+val results: List<JsonOutcome<Person>> = jsonStrings.map { JPerson.fromJson(it) }
+val errors: List<JsonError> = results.filterIsInstance<Failure<JsonError>>().map { it.error }
 ```
 
-### With Nullable Types
+### Wrapping Code That Throws
 
 ```kotlin
-fun JsonOutcome<T>.orNull(): T? = successOrNull()
-
-fun T?.asOutcome(error: () -> JsonError): JsonOutcome<T> =
-    this?.asSuccess() ?: error().asFailure()
+val number: Outcome<ThrowableError, Int> = Outcome.tryOrFail { text.toInt() }
 ```
 
-This module provides the foundation for robust, functional error handling throughout the KondorJson ecosystem, enabling
-applications to handle JSON processing errors in a type-safe and composable manner.
+## Design Notes
+
+- Errors are values: they can be transformed, combined and reported without stack unwinding.
+- `Success` and `Failure` are value classes, so an `Outcome` adds very little overhead.
+- `orThrow()` exists for tests and for boundaries where an exception is required (e.g. a framework callback); in the
+  rest of the code prefer `transform`, `bind` and `recover`.

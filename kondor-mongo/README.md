@@ -57,7 +57,7 @@ object FlatDocs : TypedTable<SimpleFlatDoc>(JSimpleFlatDoc) {
 To query a document from a collection, use the `find` method provided by the `TypedTable` class:
 
 ```kotlin
-fun docQuery(index: Int): MongoReader<SimpleFlatDoc> =
+fun docQuery(index: Int): MongoOperation<SimpleFlatDoc> =
     mongoOperation {
         FlatDocs.find(JSimpleFlatDoc.index eq index)
             .firstOrNull()
@@ -71,7 +71,7 @@ MongoDB filters operations are translated in infix operation over the Kondor con
 To write a document into a collection, use the `insertOne` method provided by the `TypedTable` class:
 
 ```kotlin
-fun docWriter(doc: SimpleFlatDoc): MongoReader<Unit> =
+fun docWriter(doc: SimpleFlatDoc): MongoOperation<Unit> =
     mongoOperation {
         FlatDocs.insertOne(doc)
     }
@@ -82,7 +82,7 @@ fun docWriter(doc: SimpleFlatDoc): MongoReader<Unit> =
 To update a document based on an attribute, use the `updateMany` method and provide a filter and an update method:
 
 ```kotlin
-fun updateMany(indexes: List<Int>): MongoReader<Long> =
+fun updateMany(indexes: List<Int>): MongoOperation<Long> =
     mongoOperation {
         FlatDocs.updateMany(
             JSimpleFlatDoc.index `in` indexes,
@@ -96,7 +96,7 @@ fun updateMany(indexes: List<Int>): MongoReader<Long> =
 To delete all elements in a collection, use the `drop` method on the `TypedTable` without any parameter:
 
 ```kotlin
-val cleanUp: MongoReader<Unit> = mongoOperation {
+val cleanUp: MongoOperation<Unit> = mongoOperation {
     FlatDocs.drop()
 }
 ```
@@ -119,7 +119,13 @@ fun `add and query doc safely`() {
 ```
 
 In the above example, we compose the `cleanUp`, `docWriter`, and `docQuery` operations into a single operation using
-the `+` operator.
+the `+` operator, and `onMongo` is the executor that runs it:
+
+```kotlin
+val onMongo = MongoExecutorDbClient.fromConnectionString(MongoConnection("mongodb://localhost:27017"), "MyDatabase")
+```
+
+An operation can also be run with `operation exec onMongo`. Both return a `MongoOutcome<T>`.
 
 Technically speaking, if you really want to know, each database operation returns a `Reader` monad and we are composing
 them using Kleisli arrows.

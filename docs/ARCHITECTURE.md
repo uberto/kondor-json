@@ -56,17 +56,21 @@ sequenceDiagram
     Client->>Converter: fromJson(jsonString)
     Converter->>Tokenizer: tokenize(jsonString)
     Tokenizer-->>Converter: TokensStream
-    Converter->>Parser: parseJsonNode(tokens)
-    Parser-->>Converter: JsonNode
-    Converter->>Converter: fromJsonNode(node)
+    alt JObj, JMap, arrays and values
+        Converter->>Converter: fromTokens(tokens)
+    else JAny, JSealed
+        Converter->>Parser: parseJsonNode(tokens)
+        Parser-->>Converter: JsonNode
+        Converter->>Converter: fromJsonNode(node)
+    end
     Converter-->>Client: T (typed object)
     
     Note over Client,JsonNode: Serialization Flow (Object → JSON)
     Client->>Converter: toJson(object)
-    Converter->>Converter: toJsonNode(object)
-    Converter-->>JsonNode: JsonNode
-    JsonNode->>JsonNode: render(style)
-    JsonNode-->>Client: JSON String
+    Converter->>Converter: appendValue(writer, style, object)
+    Converter-->>Client: JSON String
+    Client->>Converter: toJsonNode(object)
+    Converter-->>JsonNode: JsonNode (only when a tree is needed)
 ```
 
 ## Core Component Interaction
@@ -78,7 +82,7 @@ graph LR
     end
     
     subgraph "Tokenization"
-        B[JsonLexer]
+        B[JsonLexerEager / JsonLexerLazy]
         C[KondorToken]
         D[TokensStream]
     end
@@ -96,14 +100,14 @@ graph LR
     A --> B
     B --> C
     C --> D
-    D --> E
+    D -->|JAny, JSealed| E
     E --> F
     F --> G
+    D -->|JObj, JMap, values| G
     G --> H
     
-    H --> G
-    G --> F
-    F --> A
+    H -->|toJson: direct rendering| G
+    G --> A
     
     style A fill:#e3f2fd
     style H fill:#e8f5e8
@@ -151,6 +155,10 @@ flowchart TD
 
 ## Converter Type Hierarchy
 
+Simplified: the intermediate classes `ObjectNodeConverterBase` and `ObjectNodeConverterWriters` (between
+`ObjectNodeConverter` and `ObjectNodeConverterProperties`) and `PolymorphicConverter` (between `JAny` and `JSealed`) are
+not shown.
+
 ```mermaid
 classDiagram
     class JsonConverter~T, JN~ {
@@ -160,35 +168,44 @@ classDiagram
         +fromJsonNode(node: JN, path: NodePath) JsonOutcome~T~
         +toJsonNode(value: T) JN
     }
-    
+
     class ObjectNodeConverter~T~ {
-        +deserializeOrThrow(path: NodePath) JsonOutcome~T~
-        +serialize(value: T) JsonNodeObject
+        <<interface>>
+        +fromFieldNodeMap(fieldNodeMap: FieldNodeMap, path: NodePath) JsonOutcome~T~
     }
-    
-    class JDataClass~T~ {
-        +buildInstance(args: ObjectFields, path: NodePath) JsonOutcome~T~
-        +properties: List~JsonProperty~T, *~~
+
+    class ObjectNodeConverterProperties~T~ {
+        <<abstract>>
+        +getProperties() List~JsonProperty~
+        +getPropertyByName(name: String) JsonProperty?
     }
-    
-    class JValues {
-        +str: JsonConverter~String, JsonNodeString~
-        +num: JsonConverter~Number, JsonNodeNumber~
-        +bool: JsonConverter~Boolean, JsonNodeBoolean~
-        +array~T~: JsonConverter~List~T~, JsonNodeArray~
+
+    class JObj~T~ {
+        <<abstract>>
+        +FieldsValues.deserializeOrThrow(path: NodePath) T
     }
-    
+
+    class JAny~T~ {
+        <<abstract>>
+        +JsonNodeObject.deserializeOrThrow() T?
+    }
+
+    class JSealed~T~ {
+        <<abstract>>
+        +discriminatorFieldName: String
+        +subConverters: Map~String, ObjectNodeConverter~
+    }
+
     JsonConverter <|-- ObjectNodeConverter
-    ObjectNodeConverter <|-- JDataClass
-    JsonConverter <|-- JValues
-    
-    class JField~T~ {
-        +fieldName: String
-        +converter: JsonConverter~T, *~
-        +isOptional: Boolean
-    }
-    
-    JDataClass --> JField : uses
+    ObjectNodeConverter <|-- ObjectNodeConverterProperties
+    ObjectNodeConverterProperties <|-- JObj : parses from tokens
+    ObjectNodeConverterProperties <|-- JAny : parses through JsonNode
+    JAny <|-- JSealed
+    JObj <|-- JMap
+    JObj <|-- JInstance
+    JObj <|-- JDataClass
+    JDataClass <|-- JDataClassAuto
+    JObj <|-- JDataClassWithNames
 ```
 
 ## Error Handling Flow
@@ -202,7 +219,7 @@ flowchart TD
     D --> E{Error Type}
     E -->|Parsing| F[InvalidJsonError]
     E -->|Conversion| G[ConverterJsonError]
-    E -->|Missing Field| H[MissingFieldError]
+    E -->|Property| H[JsonPropertyError]
     
     F --> I[NodePath + Position Info]
     G --> J[NodePath + Type Mismatch]

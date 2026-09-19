@@ -10,6 +10,59 @@ Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Sili
 Docs: fixed error-handling examples in README (`fromJson` instead of the non-existent `parseJson`)
 Build: release script only updates the version declarations instead of every matching string in README
 
+### v.4.0.0 / v.4.0.1 - Kondor 4 (2025-2026)
+
+Kondor 4 introduces a faster way to parse objects directly from the Json tokens, without building the intermediate
+`JsonNode` tree. See [MigrationToV4.md](kondor-core/MigrationToV4.md) for how to upgrade.
+
+New:
+
+Kondor-core: `JObj<T>`, a new object converter parsing directly from tokens. Fields are declared as with `JAny`, and the
+deserialization is `override fun FieldsValues.deserializeOrThrow(path: NodePath)`
+Kondor-auto: `JDataClassAuto<T>`, a converter for data classes that needs no field declarations at all (uses reflection)
+Kondor-auto: `JDataClassWithNames<T>`, binds the constructor parameters by name instead of position, supporting default
+and nullable parameters
+
+Breaking changes:
+
+Kondor-core: `JMap`, `JInstance` and `JDataClass` are now based on `JObj`; `JJsonNode` and `JSealed` are based on `JAny`
+Kondor-core: `JObj` converters (including `JDataClass` and `JInstance`) fail on unknown Json fields, while `JAny` ignores
+them
+Kondor-core: `JsonNodeObject._fieldMap` is now a `FieldNodeMap` wrapper (use `_fieldMap.map` for the plain map),
+`asObjFieldMap()` returns a `Map<String, JsonNode>` and `convertFields` returns a `FieldNodeMap`
+Kondor-core: the experimental 3.x `JObj.deserFieldMapOrThrow(fieldMap)` is replaced by
+`FieldsValues.deserializeOrThrow(path)`
+Kondor-core: removed the deprecated `checkForJsonTail`
+Kondor-auto: removed `JAnyAuto` and `JDataClassReflect`; use `JDataClass` or the new `JDataClassAuto`, which doesn't need
+`registerAllProperties`
+Kondor-core: several internal classes changed (see the migration notes if you subclass `ObjectNodeConverter` directly)
+
+Performance:
+
+Kondor-core: objects parsed with `JObj` skip the `JsonNode` intermediate step
+Kondor-core: `JsonLexerLazy` (used to parse from an `InputStream`) buffers its input and no longer uses coroutines
+
+Known limitations:
+
+Kondor-core: a `flatten` field in a `JObj` is rendered correctly, but `fromJson` fails on the flattened fields; use `JAny`
+for converters with `flatten`
+
+Fixes:
+
+Kondor-core: correct error paths for arrays and nested objects, no duplicated fields in error paths
+Kondor-core: nullable fields parsed from tokens, `VersionedConverter` and schema generation work with the new parsing
+
+### v.3.6.1 - 19 October 2025
+
+all: publishing on the new Maven Central Publisher Portal
+
+### v.3.6.0 - 4 October 2025
+
+Kondor-core: strings with unicode control characters are correctly rendered and parsed (thanks altiliano)
+Kondor-core: more tests for BigInteger, BigDecimal, NaN and Infinity
+Kondor-outcome: documentation and missing tests
+Kondor-mongo: tests work on MacOs
+
 ### v.3.5.2 - 7 May 2025
 
 Kondor-core: Solidus escaped as Json standard (Thanks Nat Pryce)

@@ -41,11 +41,12 @@ A live code presentation to see how to use Kondor and some insights on how it wo
 
 ## What's Changed Recently
 
-- It's not easy to insert existing Json inside a converter
-- New Kondor-mongo to reuse the converters working with MongoDb
-- Automatic JsonSchema generation from any converter
-- Code generation of converters from data classes
-- JMap works with any type as key (thanks to Alistair O'Neill)
+Kondor 4 (see the [CHANGELOG](CHANGELOG.md) and the [migration notes](kondor-core/MigrationToV4.md)):
+
+- New `JObj` converter that parses objects directly from the Json tokens, faster than `JAny`
+- `JDataClassAuto` (kondor-auto) maps data classes without declaring any field
+- Faster parsing from an `InputStream`
+- `JAny` converters keep working as before
 
 ## Quick Start
 
@@ -91,14 +92,14 @@ val json: String = JFileInfo.toJson(fileInfo)
 To write the converter we use a simple DSL:
 
 ```kotlin
-object JFileInfo : JAny<FileInfo>() {
+object JFileInfo : JObj<FileInfo>() {
    val file_name by str(FileInfo::name)
    val creation_date by num(FileInfo::date)
    val is_dir by bool(FileInfo::isDir)
    val size by num(FileInfo::size)
    val folder_path by str(FileInfo::folderPath)
 
-   override fun JsonNodeObject.deserializeOrThrow() =
+   override fun FieldsValues.deserializeOrThrow(path: NodePath) =
       FileInfo(
          name = +file_name,
          date = +creation_date,
@@ -110,6 +111,10 @@ object JFileInfo : JAny<FileInfo>() {
 ```
 
 Each field (id,name) need to be associated to a decoder and a field in the mapped object. Then we need to explicitly define the function for the deserialization.
+
+`JObj` parses the Json directly from the tokens. Converters written for Kondor 3.x extend `JAny` and override
+`JsonNodeObject.deserializeOrThrow()` instead: they still work, but they are slower because they build a `JsonNode`
+tree first. `JAny` is still needed in a few cases, like `JSealed`.
 
 ### Why Converters?
 
@@ -192,6 +197,21 @@ Or you can open Kotlin REPL and type it, or you can make a Kotlin script to writ
 
 Not all the types are supported by the code generator (yet) but it gives a good try.
 
+### Converters Without Field Declarations
+
+If you don't need to control the Json format, the `kondor-auto` module can map a data class using reflection, with
+the Json field names equal to the property names:
+
+```kotlin
+data class Person(val id: Int, val name: String)
+
+object JPersonAuto : JDataClassAuto<Person>(Person::class)
+```
+
+Reflection makes them slower than hand-written converters, so they are best suited for tests and prototypes.
+`JDataClass` and `JDataClassWithNames` are in between: you declare the fields, but not the constructor call.
+See [docs/kondor-auto.md](docs/kondor-auto.md).
+
 ### Tests Utils
 
 In the module `kondor-tools` there are also some useful functions for testing:
@@ -230,14 +250,14 @@ Let's analyze an example in details:
 ```kotlin
 data class Product(val id: Int, val shortDesc: String, val longDesc: String, val price: Double?) // 1
 
-object JProduct : JAny<Product>() { // 2
+object JProduct : JObj<Product>() { // 2
 
    val id by num(Product::id) // 3
    val long_description by str(Product::longDesc) // 4
    val `short-desc` by str(Product::shortDesc) // 5
    val price by num(Product::price) // 6
 
-   override fun JsonNodeObject.deserializeOrThrow() = // 7
+   override fun FieldsValues.deserializeOrThrow(path: NodePath) = // 7
       Product( // 8
          id = +id, //9 
          shortDesc = +`short-desc`,
@@ -248,12 +268,12 @@ object JProduct : JAny<Product>() { // 2
 ```
 
 1. This is the class we want to serialize/deserialize
-2. Here we define the converter, inheriting from a `JAny<T>` where `T` is our type. If we want to serialize a collection we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
+2. Here we define the converter, inheriting from a `JObj<T>` where `T` is our type. If we want to serialize a collection we can start from `JList` or `JSet` and so on, we can also create new abstract converters.
 3. Inside the converter we need to define the fields as they will be saved in Json. For each field we need to specify the getter for the serialization, inside a function that represent the kind of Json node (boolean, number, string,array, object) and the specific converter needed for its type. If the converter or the getter is not correct it won't compile.
 4. The name of the field is taken from the variable name, `long_description` in this case
 5. Using ticks we can also use names illegal for variables in Kotlin
 6. Nullable/optional fields are handled automatically.
-7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can leave the method empty. 
+7. We then need to define the method to create our objects from Json fields. If we are only interested in serialization we can just throw an exception there. The `path` parameter is the position of the object in the Json, useful for error messages.
 8. Here we use the class constructor, but we could have used any function that return a `Product`
 9. To get the value from the fields we use the `unaryplus` operator. It is easy to spot any mistake since we match the name of parameter with the fields.
 
@@ -411,11 +431,11 @@ data class Company(val name: String, val taxType: TaxType) : Customer()
 You just need to map each converter to a string and (optionally) specifiy the name of the discriminator field:
 
 ```kotlin
-object JCustomer : JSealed<Customer> {
+object JCustomer : JSealed<Customer>() {
 
     override val discriminatorFieldName = "type"
    
-    override val subtypesJObject: Map<String, JObject<out Customer>> =
+    override val subConverters: Map<String, ObjectNodeConverter<out Customer>> =
         mapOf(
             "private" to JPerson,
             "company" to JCompany
@@ -830,8 +850,6 @@ TODO: comparison of performance
 - A DSL for Java
 
 - Generating random values from the converters
-
-- Add a converter that use Jackson to simplify the migration/adoption
 
 - Add integration with Snodge for fuzzy testing
 

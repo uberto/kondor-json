@@ -10,9 +10,11 @@ depend on.
 
 ### JSON Processing Pipeline
 
-- **Tokenization**: Converts JSON strings into a stream of tokens using `JsonLexer`
-- **Parsing**: Transforms tokens into `JsonNode` tree structures using `JsonParser`
-- **Serialization**: Renders `JsonNode` trees back to JSON strings with configurable formatting
+- **Tokenization**: Converts JSON strings (`JsonLexerEager`) or input streams (`JsonLexerLazy`) into a stream of tokens
+- **Parsing**: Transforms tokens directly into domain objects (`JObj`, `JMap`, arrays and values), or into `JsonNode`
+  tree structures using `JsonParser` when the converter needs them (`JAny`, `JSealed`)
+- **Serialization**: Writes objects directly as JSON text with configurable formatting (`JsonStyle`); `JsonNode` trees
+  can be rendered the same way
 
 ### Core Abstractions
 
@@ -23,6 +25,8 @@ depend on.
 
 ### Built-in Converters
 
+- **JObj**: Object converter parsing directly from the tokens (fastest, recommended)
+- **JAny**: Object converter parsing through a `JsonNodeObject` (compatible with Kondor 3.x)
 - **JValues**: Primitive type converters (string, number, boolean, null)
 - **JArray**: List and array converters
 - **JMap**: Map converters for key-value structures
@@ -49,7 +53,8 @@ graph TB
     end
 
     subgraph "Conversion Layer"
-        E --> F[JsonConverter]
+        E -->|JAny, JSealed| F[JsonConverter]
+        C -->|JObj, JMap: direct| F
         F --> G[Kotlin Objects]
     end
 
@@ -91,23 +96,25 @@ graph TB
 sequenceDiagram
     participant App as Application
     participant Conv as JsonConverter
-    participant Lex as JsonLexer
+    participant Lex as JsonLexerEager
     participant Parse as JsonParser
     participant Node as JsonNode
     Note over App, Node: Deserialization (JSON → Object)
     App ->> Conv: fromJson("{"name":"John"}")
     Conv ->> Lex: tokenize(jsonString)
     Lex -->> Conv: TokensStream
-    Conv ->> Parse: parseJsonNode(tokens)
-    Parse -->> Conv: JsonNodeObject
-    Conv ->> Conv: fromJsonNode(node)
+    alt JObj, JMap, arrays and values
+        Conv ->> Conv: fromTokens(tokens)
+    else JAny, JSealed
+        Conv ->> Parse: parseJsonNode(tokens)
+        Parse -->> Conv: JsonNodeObject
+        Conv ->> Conv: fromJsonNode(node)
+    end
     Conv -->> App: Person(name="John")
     Note over App, Node: Serialization (Object → JSON)
     App ->> Conv: toJson(Person("John"))
-    Conv ->> Conv: toJsonNode(person)
-    Conv -->> Node: JsonNodeObject
-    Node ->> Node: render(JsonStyle.pretty)
-    Node -->> App: "{\n \"name\": \"John\"\n}"
+    Conv ->> Conv: appendValue(writer, JsonStyle.pretty, person)
+    Conv -->> App: "{\n \"name\": \"John\"\n}"
 ```
 
 ## Error Handling Strategy
@@ -122,7 +129,7 @@ graph TD
     D --> E{Error Type}
     E --> F[InvalidJsonError<br/>Malformed JSON]
     E --> G[ConverterJsonError<br/>Type Mismatch]
-    E --> H[MissingFieldError<br/>Required Field Missing]
+    E --> H[JsonPropertyError<br/>Property Missing or Unknown]
     F --> I[NodePath + Position]
     G --> J[NodePath + Expected vs Actual]
     H --> K[NodePath + Field Name]
@@ -137,6 +144,8 @@ graph TD
 
 ### Optimization Features
 
+- **Direct token parsing**: `JObj` builds the domain object from the tokens, skipping the `JsonNode` tree
+- **Buffered lazy lexer**: `JsonLexerLazy` reads the `InputStream` through a buffer
 - **ChunkedStringWriter**: Reduces string concatenation overhead
 - **Immutable JsonNodes**: Safe for concurrent access
 - **Lazy evaluation**: Deferred processing where possible
@@ -146,35 +155,46 @@ graph TD
 ### Basic Converter Definition
 
 ```kotlin
-object PersonConverter : JsonConverter<Person, JsonNodeObject> {
-    override val _nodeType = ObjectNode
+data class Person(val name: String, val age: Int)
 
-    private val name = JField(Person::name, JValues.str)
-    private val age = JField(Person::age, JValues.num)
+object JPerson : JObj<Person>() {
+    private val name by str(Person::name)
+    private val age by num(Person::age)
 
-    override fun fromNullableJsonNode(node: JsonNodeObject?, path: NodePath) =
-        node?.let {
-            Person(
-                name = name.fromJson(it, path).orThrow(),
-                age = age.fromJson(it, path).orThrow()
-            ).asSuccess()
-        } ?: null.asSuccess()
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        Person(
+            name = +name,
+            age = +age
+        )
+}
 
-    override fun toJsonNode(value: Person) = JsonNodeObject(
-        name.toJson(value),
-        age.toJson(value)
-    )
+val json: String = JPerson.toJson(Person("John", 42))
+val person: JsonOutcome<Person> = JPerson.fromJson(json)
+```
+
+The same converter as a `JAny`, the Kondor 3.x style, which parses through a `JsonNodeObject`:
+
+```kotlin
+object JPersonAny : JAny<Person>() {
+    private val name by str(Person::name)
+    private val age by num(Person::age)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        Person(
+            name = +name,
+            age = +age
+        )
 }
 ```
 
 ### Error Handling
 
 ```kotlin
-val result: JsonOutcome<Person> = PersonConverter.fromJson(jsonString)
-result.fold(
-    onFailure = { error -> println("Parse error: ${error.msg}") },
-    onSuccess = { person -> println("Parsed: $person") }
-)
+val person: Person = JPerson.fromJson(jsonString)
+    .onFailure { error ->
+        println("Parse error: ${error.msg}")
+        return
+    }
 ```
 
 This module forms the foundation that enables type-safe, functional JSON processing throughout the KondorJson ecosystem.

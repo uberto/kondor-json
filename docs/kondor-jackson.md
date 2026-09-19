@@ -2,227 +2,96 @@
 
 ## Purpose
 
-The `kondor-jackson` module provides integration between KondorJson and the Jackson JSON processing library. It allows
-KondorJson converters to be used within Jackson-based applications and enables interoperability between the two JSON
-processing approaches.
-
-## Responsibilities
-
-### Jackson Integration
-
-- **Converter Bridging**: Adapts KondorJson converters to work with Jackson's `JsonSerializer` and `JsonDeserializer`
-- **ObjectMapper Integration**: Enables registration of KondorJson converters with Jackson's `ObjectMapper`
-- **Type Safety Preservation**: Maintains KondorJson's type safety within Jackson's framework
-- **Error Handling Translation**: Converts between KondorJson and Jackson error models
-
-### Interoperability Features
-
-- **Bidirectional Conversion**: Supports both serialization and deserialization through Jackson
-- **Configuration Compatibility**: Works with Jackson's configuration and feature settings
-- **Performance Optimization**: Leverages Jackson's optimized processing while using KondorJson's type safety
-- **Annotation Support**: Compatible with Jackson annotations where applicable
+The `kondor-jackson` module helps projects that use Jackson to adopt Kondor gradually. It converts between Kondor's
+`JsonNode` tree and Jackson's `JsonNode` tree, so the two libraries can exchange Json without going through a string.
+It does not register anything in an `ObjectMapper`: it is a small set of extension functions.
 
 ## Key Components
 
-```mermaid
-graph TB
-    subgraph "KondorJson Side"
-        A[JsonConverter<T>] --> B[KondorJson Logic]
-        B --> C[Type-Safe Conversion]
-    end
-    
-    subgraph "Jackson Integration Layer"
-        D[KondorJsonSerializer] --> E[Jackson Adapter]
-        F[KondorJsonDeserializer] --> E
-        E --> G[Error Translation]
-    end
-    
-    subgraph "Jackson Side"
-        H[ObjectMapper] --> I[JsonGenerator]
-        H --> J[JsonParser]
-        I --> K[JSON Output]
-        J --> L[JSON Input]
-    end
-    
-    A --> D
-    A --> F
-    E --> H
-    
-    style A fill:#e8f5e8
-    style E fill:#fff3e0
-    style H fill:#e3f2fd
-```
+All the functions are in `com.ubertob.kondor.jackson` (`KondorAdaptors.kt`). In the code below, Jackson's node is
+imported as `JJsonNode` and Kondor's as `KJsonNode`, as in the module itself.
+
+### From Kondor to Jackson
+
+| Function                                                   | Result                                     |
+|------------------------------------------------------------|--------------------------------------------|
+| `ObjectNodeConverter<T>.toJacksonJsonNode(value: T)`       | a Jackson `ObjectNode` for a domain object |
+| `T.intoJacksonJsonNode(converter: ObjectNodeConverter<T>)` | the same, called on the value              |
+| `KJsonNode.toJacksonJsonNode()`                            | the equivalent Jackson `JsonNode`          |
+
+There are also specific overloads for each Kondor node (`JsonNodeString`, `JsonNodeNumber`, `JsonNodeBoolean`,
+`JsonNodeNull`, `JsonNodeArray`, `JsonNodeObject`), which accept an optional `JsonNodeFactory`.
+
+### From Jackson to Kondor
+
+| Function                        | Result                                    |
+|---------------------------------|-------------------------------------------|
+| `JJsonNode.toKondorJsonNode()`  | the equivalent Kondor `JsonNode`          |
+| `ObjectNode.toKondorJsonNode()` | a `JsonNodeObject`, ready for a converter |
+
+and the specific overloads for `TextNode`, `NumericNode`, `BooleanNode`, `NullNode` and `ArrayNode`.
 
 ## Integration with Other Modules
 
-### Dependencies
-
-- **kondor-core**: Uses core converter interfaces and JSON processing
-- **Jackson Core**: Integrates with Jackson's serialization framework
-- **kondor-outcome**: Uses functional error handling
-
-### Used By
-
-- **kondor-examples**: Demonstrates Jackson integration patterns
-- **Enterprise Applications**: Applications already using Jackson infrastructure
-- **Spring Boot Applications**: Integration with Spring's Jackson configuration
-
-## Integration Workflow
-
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant OM as ObjectMapper
-    participant KJS as KondorJsonSerializer
-    participant KC as KondorConverter
-    participant JG as JsonGenerator
-    
-    Note over App,JG: Serialization via Jackson
-    App->>OM: writeValueAsString(object)
-    OM->>KJS: serialize(object, generator)
-    KJS->>KC: toJsonNode(object)
-    KC-->>KJS: JsonNode
-    KJS->>KJS: writeJsonNode(node, generator)
-    KJS->>JG: writeStartObject(), writeField(), etc.
-    JG-->>OM: JSON bytes
-    OM-->>App: JSON String
-    
-    Note over App,JG: Deserialization via Jackson
-    App->>OM: readValue(json, Class)
-    OM->>KJS: deserialize(parser, context)
-    KJS->>KJS: parseToJsonNode(parser)
-    KJS->>KC: fromJsonNode(node)
-    KC-->>KJS: Typed Object
-    KJS-->>OM: Object
-    OM-->>App: Typed Object
-```
-
-## Configuration and Setup
-
-```mermaid
-flowchart TD
-    A[ObjectMapper Creation] --> B[Module Registration]
-    B --> C[Converter Registration]
-    C --> D[Configuration]
-    
-    E[KondorJson Converter] --> F[Wrap in Jackson Adapter]
-    F --> G[Register with ObjectMapper]
-    G --> H[Ready for Use]
-    
-    D --> I[Serialization Features]
-    D --> J[Deserialization Features]
-    D --> K[Error Handling Config]
-    
-    I --> L[JSON Output Format]
-    J --> M[Type Handling]
-    K --> N[Exception Translation]
-    
-    style A fill:#e3f2fd
-    style E fill:#e8f5e8
-    style H fill:#f3e5f5
-```
-
-## Error Handling Translation
-
-The module translates between KondorJson's functional error handling and Jackson's exception-based approach:
-
-```mermaid
-graph TD
-    A[KondorJson Operation] --> B{Result Type}
-    
-    B -->|Success<T>| C[Return T to Jackson]
-    B -->|Failure<JsonError>| D[Error Translation]
-    
-    D --> E{Error Type}
-    E --> F[InvalidJsonError] 
-    E --> G[ConverterJsonError]
-    E --> H[MissingFieldError]
-    
-    F --> I[JsonParseException]
-    G --> J[JsonMappingException]
-    H --> K[JsonMappingException]
-    
-    I --> L[Jackson Error Handling]
-    J --> L
-    K --> L
-    
-    style C fill:#e8f5e8
-    style L fill:#ffebee
-```
+- Depends on `kondor-core` and on `jackson-databind`. The Jackson dependency is not exported, so your project needs its
+  own `jackson-databind` dependency (which it will have anyway if it uses Jackson).
+- It is independent from the other Kondor modules.
 
 ## Usage Examples
 
-### Basic ObjectMapper Setup
+### Domain Object to Jackson
 
 ```kotlin
-val objectMapper = ObjectMapper().apply {
-    registerModule(KondorJsonModule())
-    registerKondorConverter(PersonJson)
-    registerKondorConverter(AddressJson)
+data class Person(val id: Int, val name: String)
+
+object JPerson : JObj<Person>() {
+    private val id by num(Person::id)
+    private val name by str(Person::name)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        Person(id = +id, name = +name)
 }
 
-// Use with Jackson APIs
-val json = objectMapper.writeValueAsString(person)
-val person = objectMapper.readValue(json, Person::class.java)
+val person = Person(1, "Alice")
+
+val jacksonNode: ObjectNode = JPerson.toJacksonJsonNode(person)
+// or: person.intoJacksonJsonNode(JPerson)
+
+val json: String = ObjectMapper().writeValueAsString(jacksonNode) // {"id":1,"name":"Alice"}
 ```
 
-### Spring Boot Integration
+### Jackson to Domain Object
 
 ```kotlin
-@Configuration
-class JacksonConfig {
-    
-    @Bean
-    @Primary
-    fun objectMapper(): ObjectMapper {
-        return ObjectMapper().apply {
-            registerModule(KondorJsonModule())
-            // Register your KondorJson converters
-            registerKondorConverter(PersonJson)
-            registerKondorConverter(OrderJson)
-        }
-    }
-}
+val jacksonNode: JJsonNode = ObjectMapper().readTree("""{"id": 1, "name": "Alice"}""")
+
+val person: JsonOutcome<Person> =
+    (jacksonNode as ObjectNode).toKondorJsonNode()
+        .let { JPerson.fromJsonNode(it) }
 ```
 
-### Custom Serializer Registration
+The conversion goes through the Kondor `JsonNode`, so the converter is used via `fromJsonNode` rather than `fromJson`.
+Any object converter works, `JObj` or `JAny`.
+
+### Converting Json Trees
 
 ```kotlin
-val module = SimpleModule().apply {
-    addSerializer(Person::class.java, KondorJsonSerializer(PersonJson))
-    addDeserializer(Person::class.java, KondorJsonDeserializer(PersonJson))
-}
+val kondorNode: KJsonNode = parseJsonNode("""{"tags": ["a", "b"], "size": 12.5}""").orThrow()
 
-objectMapper.registerModule(module)
+val jacksonNode: JJsonNode = kondorNode.toJacksonJsonNode()
+val backToKondor: KJsonNode = jacksonNode.toKondorJsonNode()
 ```
 
-## Performance Considerations
+## Behaviour and Limitations
 
-### Advantages
-
-- **Jackson's Optimizations**: Benefits from Jackson's highly optimized JSON processing
-- **Streaming Support**: Can leverage Jackson's streaming APIs for large datasets
-- **Memory Efficiency**: Uses Jackson's efficient memory management
-
-### Trade-offs
-
-- **Additional Layer**: Introduces adapter overhead between KondorJson and Jackson
-- **Error Translation Cost**: Converting between error models has performance impact
-- **Configuration Complexity**: Requires understanding both Jackson and KondorJson configuration
+- Numbers coming from Jackson are converted to `BigDecimal`. Kondor number converters accept them, but a
+  `JsonNodeNumber` built from Jackson is not `equals` to one holding an `Int` or a `Double`.
+- Jackson nodes without a Json equivalent (binary, POJO and missing nodes) are rejected with an
+  `IllegalArgumentException`: these functions don't return an `Outcome`.
+- Only the tree is converted: Jackson settings (naming strategies, annotations, custom serializers) are not involved.
 
 ## Use Cases
 
-### Migration Scenarios
-
-- **Gradual Migration**: Allows incremental adoption of KondorJson in Jackson-based applications
-- **Library Integration**: Enables KondorJson converters in libraries that must support Jackson
-- **Framework Compatibility**: Works with frameworks that expect Jackson serializers
-
-### Hybrid Approaches
-
-- **Type-Safe Subsets**: Use KondorJson for critical type-safe conversions within Jackson ecosystem
-- **Custom Serialization**: Leverage KondorJson's converter composition within Jackson workflows
-- **Error Handling**: Benefit from KondorJson's superior error reporting in Jackson applications
-
-This module serves as a bridge between KondorJson's functional, type-safe approach and Jackson's widespread ecosystem
-adoption, enabling the best of both worlds in enterprise applications.
+- **Gradual migration**: keep an existing Jackson-based HTTP or messaging layer, and use Kondor converters for the
+  domain objects.
+- **Hybrid code**: pass a Kondor-rendered object to an API that expects a Jackson `JsonNode`, or the other way round.

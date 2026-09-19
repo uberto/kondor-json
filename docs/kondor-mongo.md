@@ -2,300 +2,108 @@
 
 ## Purpose
 
-The `kondor-mongo` module provides seamless integration between KondorJson converters and MongoDB operations. It enables
-type-safe document mapping, query building, and CRUD operations while leveraging KondorJson's converter system for
-consistent JSON handling.
+The `kondor-mongo` module stores and reads domain objects in MongoDB using the same Kondor converters used for Json.
+Database operations are plain values (`MongoOperation<T>`) that can be composed and then run by an executor, which
+returns an `Outcome` instead of throwing exceptions. It is built on the official MongoDB Java sync driver.
 
-## Responsibilities
-
-### MongoDB Document Mapping
-
-- **Document Conversion**: Maps between Kotlin objects and MongoDB BSON documents
-- **Type-Safe Queries**: Provides type-safe query building using KondorJson field definitions
-- **Collection Operations**: Wraps MongoDB collection operations with converter-aware methods
-- **Index Management**: Supports index creation using type-safe field references
-
-### BSON Integration
-
-- **BSON Compatibility**: Converts between JsonNode and BSON document formats
-- **ObjectId Handling**: Provides converters for MongoDB ObjectId types
-- **Date/Time Support**: Handles MongoDB date types with proper conversion
-- **Binary Data**: Supports MongoDB binary data types through specialized converters
+See also [kondor-mongo/README.md](../kondor-mongo/README.md) for a step-by-step introduction.
 
 ## Key Components
 
-```mermaid
-graph TB
-    subgraph "KondorJson Layer"
-        A[JsonConverter<T>] --> B[Type-Safe Objects]
-        C[JField Definitions] --> D[Query Building]
-    end
-    
-    subgraph "Mongo Integration Layer"
-        E[MongoCollection<T>] --> F[Document Mapping]
-        G[QueryBuilder] --> H[BSON Queries]
-        I[BsonConverter] --> J[BSON Documents]
-    end
-    
-    subgraph "MongoDB Layer"
-        K[MongoDB Driver] --> L[Database Operations]
-        M[BSON Documents] --> N[MongoDB Storage]
-    end
-    
-    A --> E
-    C --> G
-    B --> I
-    F --> K
-    H --> K
-    J --> M
-    
-    style A fill:#e8f5e8
-    style E fill:#fff3e0
-    style K fill:#e3f2fd
-```
+All in `com.ubertob.kondor.mongo.core` and `com.ubertob.kondor.mongo.json`.
 
-## Integration with Other Modules
-
-### Dependencies
-
-- **kondor-core**: Uses core converter interfaces and JSON processing
-- **kondor-outcome**: Uses functional error handling for database operations
-- **MongoDB Driver**: Integrates with official MongoDB Kotlin driver
-- **BSON Library**: Handles BSON document conversion
-
-### Used By
-
-- **kondor-examples**: Demonstrates MongoDB integration patterns
-- **Data Layer Applications**: Applications requiring type-safe MongoDB operations
-- **Microservices**: Services using MongoDB as primary data store
-
-## Database Operations Workflow
-
-```mermaid
-sequenceDiagram
-    participant App as Application
-    participant MC as MongoCollection<T>
-    participant Conv as Converter
-    participant Driver as MongoDB Driver
-    participant DB as MongoDB
-    
-    Note over App,DB: Insert Operation
-    App->>MC: insert(person)
-    MC->>Conv: toJsonNode(person)
-    Conv-->>MC: JsonNode
-    MC->>MC: jsonNodeToBson(node)
-    MC->>Driver: insertOne(bsonDoc)
-    Driver->>DB: INSERT document
-    DB-->>Driver: InsertResult
-    Driver-->>MC: InsertResult
-    MC-->>App: InsertResult
-    
-    Note over App,DB: Query Operation
-    App->>MC: find(PersonJson.name eq "John")
-    MC->>MC: buildBsonFilter(query)
-    MC->>Driver: find(bsonFilter)
-    Driver->>DB: FIND documents
-    DB-->>Driver: List<BsonDocument>
-    Driver-->>MC: List<BsonDocument>
-    MC->>Conv: fromJsonNode(bsonToJsonNode(doc))
-    Conv-->>MC: Person
-    MC-->>App: List<Person>
-```
-
-## Type-Safe Query Building
-
-```mermaid
-flowchart TD
-    A[JField Definition] --> B[Query Expression]
-    B --> C[BSON Filter Builder]
-    C --> D[MongoDB Query]
-    
-    E[PersonJson.name] --> F[eq("John")]
-    F --> G[Filters.eq("name", "John")]
-    G --> H[BSON Filter]
-    
-    I[PersonJson.age] --> J[gt(25)]
-    J --> K[Filters.gt("age", 25)]
-    K --> L[BSON Filter]
-    
-    H --> M[Combined Query]
-    L --> M
-    M --> N[MongoDB Find Operation]
-    
-    style A fill:#e8f5e8
-    style D fill:#e3f2fd
-    style N fill:#f3e5f5
-```
-
-## Error Handling
-
-The module provides comprehensive error handling for database operations:
-
-```mermaid
-graph TD
-    A[MongoDB Operation] --> B{Result Type}
-    
-    B -->|Success| C[Return Success<T>]
-    B -->|Database Error| D[MongoDB Exception]
-    B -->|Conversion Error| E[JsonError]
-    
-    D --> F{Exception Type}
-    F --> G[DuplicateKeyException]
-    F --> H[MongoTimeoutException]
-    F --> I[MongoWriteException]
-    
-    E --> J[ConverterJsonError]
-    E --> K[InvalidJsonError]
-    
-    G --> L[DatabaseError]
-    H --> L
-    I --> L
-    J --> L
-    K --> L
-    
-    L --> M[Outcome.Failure]
-    C --> N[Outcome.Success]
-    
-    style C fill:#e8f5e8
-    style M fill:#ffebee
-```
+| Component                          | Role                                                                                 |
+|------------------------------------|--------------------------------------------------------------------------------------|
+| `TypedTable<T>(converter)`         | A collection of `T`, mapped with an object converter (a `JAny`, see below)           |
+| `BsonTable`                        | A collection of raw `BsonDocument`, without a converter                              |
+| `MongoOperation<T>`                | An operation on the database, not yet executed (a Reader over `MongoSession`)        |
+| `mongoOperation { ... }`           | Builds an operation; inside the block you can call the `MongoSession` methods        |
+| `mongoCalculation { input -> ...}` | Builds a function from an input to an operation, for composition                     |
+| `MongoSession`                     | The operations available on a table: `insertOne`, `find`, `updateMany`, `bulkWrite`… |
+| `MongoExecutor`                    | Runs an operation; `MongoExecutorDbClient` is the implementation using `MongoClient` |
+| `MongoConnection`                  | Connection string and timeout, used to create a `MongoExecutorDbClient`             |
+| `MongoOutcome<T>`                  | `Outcome<MongoError, T>`, the result of running an operation                         |
+| Filters (`eq`, `lt`, `gt`, `in`…)  | Infix functions on the converter fields, producing Mongo `Bson` filters              |
+| `JObjectId`                        | Converter for MongoDB `ObjectId`, with the `str(...)` field function                 |
 
 ## Usage Examples
 
-### Collection Setup
+### Defining a Collection
 
 ```kotlin
-data class Person(val name: String, val age: Int, val email: String?)
+data class Person(val id: Int, val name: String)
 
-object PersonJson : JDataClass<Person>(Person::class) {
+object JPerson : JAny<Person>() {
+    val id by num(Person::id)
     val name by str(Person::name)
-    val age by num(Person::age)
-    val email by str(Person::email).optional()
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        Person(id = +id, name = +name)
 }
 
-// MongoDB collection with KondorJson converter
-val database = MongoClient.create().getDatabase("myapp")
-val personCollection = database.getKondorCollection("persons", PersonJson)
+object People : TypedTable<Person>(JPerson) {
+    override val collectionName: String = "People"
+}
 ```
 
-### CRUD Operations
+The converter fields are public so they can be used in filters.
+
+Use `JAny` converters for tables: MongoDB adds an `_id` field to every document, which a `JAny` ignores, while a `JObj`
+rejects fields it doesn't declare. With a `JObj`, declare the `_id` field in the converter.
+
+### Writing and Querying
 
 ```kotlin
-// Insert
-val person = Person("John", 30, "john@example.com")
-val insertResult = personCollection.insertOne(person).orThrow()
+fun addPerson(person: Person): MongoOperation<Unit> =
+    mongoOperation {
+        People.insertOne(person)
+    }.ignoreValue()
 
-// Find with type-safe queries
-val adults = personCollection.find(
-    PersonJson.age gte 18
-).toList().orThrow()
+fun findPerson(id: Int): MongoOperation<Person?> =
+    mongoOperation {
+        People.find(JPerson.id eq id).firstOrNull()
+    }
 
-// Update
-val updateResult = personCollection.updateMany(
-    PersonJson.name eq "John",
-    set(PersonJson.age, 31)
-).orThrow()
-
-// Delete
-val deleteResult = personCollection.deleteMany(
-    PersonJson.email.isNull()
-).orThrow()
+fun renameAll(ids: List<Int>): MongoOperation<Long> =
+    mongoOperation {
+        People.updateMany(JPerson.id `in` ids, Updates.set("name", "renamed"))
+    }
 ```
 
-### Complex Queries
+### Composing and Running
 
 ```kotlin
-// Compound queries
-val query = and(
-    PersonJson.age gte 18,
-    PersonJson.age lt 65,
-    PersonJson.email.exists()
+val onMongo = MongoExecutorDbClient.fromConnectionString(
+    MongoConnection("mongodb://localhost:27017"),
+    "MyDatabase"
 )
 
-val workingAge = personCollection.find(query).toList().orThrow()
-
-// Aggregation pipeline
-val pipeline = listOf(
-    match(PersonJson.age gte 18),
-    group(PersonJson.name, sum("count", 1)),
-    sort(descending("count"))
-)
-
-val aggregationResult = personCollection.aggregate(pipeline).toList().orThrow()
+val result: MongoOutcome<Person?> = onMongo(addPerson(Person(1, "Alice")) + findPerson(1))
 ```
 
-### Index Management
+Operations are combined with `+` (or `combineWith` and `bind`), and nothing touches the database until the combined
+operation is executed by calling the executor: `onMongo(operation)`, or `operation exec onMongo` when the result is not
+nullable.
 
-```kotlin
-// Create indexes using type-safe field references
-personCollection.createIndex(
-    ascending(PersonJson.name, PersonJson.age)
-).orThrow()
+`find` returns a lazy `Sequence`: consume it inside the operation (`firstOrNull()`, `toList()`...), otherwise the
+documents are read, and conversion errors thrown, after the executor has returned.
 
-// Compound index with options
-personCollection.createIndex(
-    compoundIndex(
-        ascending(PersonJson.email),
-        descending(PersonJson.age)
-    ),
-    IndexOptions().unique(true)
-).orThrow()
-```
+## Error Handling
 
-## BSON Type Mapping
+Running an operation returns `MongoOutcome<T>`, with an error from the sealed `MongoError`. `MongoErrorException`
+wraps any exception thrown while running the operation: driver errors (connection, writes...), and also documents that
+the converter could not read inside `find` and the other query methods. `MongoConversionError` is the error returned by
+`MongoTable.fromBsonDoc`.
 
-```mermaid
-graph LR
-    subgraph "KondorJson Types"
-        A[JsonNodeString]
-        B[JsonNodeNumber]
-        C[JsonNodeBoolean]
-        D[JsonNodeArray]
-        E[JsonNodeObject]
-        F[JsonNodeNull]
-    end
-    
-    subgraph "BSON Types"
-        G[BsonString]
-        H[BsonNumber]
-        I[BsonBoolean]
-        J[BsonArray]
-        K[BsonDocument]
-        L[BsonNull]
-    end
-    
-    A <--> G
-    B <--> H
-    C <--> I
-    D <--> J
-    E <--> K
-    F <--> L
-    
-    style A fill:#e8f5e8
-    style G fill:#e3f2fd
-```
+## BSON Conversion
+
+`TypedTable` writes objects with the converter's `toJsonNode`, then converts the node to BSON
+(`JsonNodeObject.toBsonDocument()`). It reads documents by rendering them as Mongo extended Json (`BsonDocument.toJson()`)
+and parsing that with the converter's `fromJson`, so special types appear as objects like `{"$oid": ...}` and
+`{"$date": ...}` (see `MongoSpecialFields` and `JObjectId`).
 
 ## Testing
 
 The module tests use Testcontainers, so they need a running Docker daemon: `./gradlew :kondor-mongo:test`.
 They run against the multi-arch `mongo:6.0.14` image by default; set `MONGO_TEST_IMAGE` to use another image (for
 example from a mirror registry). See `kondor-mongo/README.md` for per-platform Docker setup.
-
-## Performance Considerations
-
-### Advantages
-
-- **Type Safety**: Compile-time verification of field names and types
-- **Converter Reuse**: Same converters work for JSON APIs and MongoDB storage
-- **Query Optimization**: Type-safe queries prevent runtime errors
-- **Index Utilization**: Proper index usage through field references
-
-### Optimization Features
-
-- **Lazy Evaluation**: Deferred query execution where possible
-- **Batch Operations**: Support for bulk insert/update operations
-- **Connection Pooling**: Leverages MongoDB driver's connection management
-- **Document Streaming**: Efficient processing of large result sets
-
-This module enables applications to use MongoDB as a document store while maintaining the type safety and functional
-programming benefits of KondorJson throughout the data layer.
