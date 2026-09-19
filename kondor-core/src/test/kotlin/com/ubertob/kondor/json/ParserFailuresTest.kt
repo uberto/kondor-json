@@ -1,6 +1,9 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
+import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
@@ -431,5 +434,102 @@ class ParserFailuresTest {
         expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format For input string: \"id-123\"")
     }
 
-    //TODO add test for jmap with mixed node types
+    @Test
+    fun `JObj reports a missing mandatory field like JAny does`() {
+        val json = """{"name": "alice"}"""
+
+        val objError = JPerson.fromJson(json).expectFailure()
+        val anyError = JPersonAny.fromJson(json).expectFailure()
+
+        expectThat(objError.msg).isEqualTo("Error reading property <id> of node <[root]> Not found key 'id'. Keys found: [name]")
+        expectThat(objError.msg).isEqualTo(anyError.msg)
+    }
+
+    @Test
+    fun `JObj reports the same keys as JAny when several fields are present`() {
+        val json = """{"subUser": {"id": 2, "name": "Bob"}, "name": "Frank"}"""
+
+        val objError = JUserNested.fromJson(json).expectFailure()
+        val anyError = JUserNestedAny.fromJson(json).expectFailure()
+
+        expectThat(objError.msg).isEqualTo(anyError.msg)
+    }
+
+    @Test
+    fun `JObj reports the first declared missing field when several are missing`() {
+        val error = JUserNested.fromJson("""{"name": "Frank"}""").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error reading property <id> of node <[root]> Not found key 'id'. Keys found: [name]")
+    }
+
+    @Test
+    fun `JAny and JObj both accept a missing optional field`() {
+        val json = """{"id": 1, "short-desc": "s", "long_description": "l"}"""
+        val expected = Product(1, "s", "l", null)
+
+        expectThat(Product.Json.fromJson(json).expectSuccess()).isEqualTo(expected)
+        expectThat(JProduct.fromJson(json).expectSuccess()).isEqualTo(expected)
+    }
+
+    @Test
+    fun `JObj reports a missing mandatory field in a nested object with its path`() {
+        val json = """{"id": 1, "name": "Frank", "subUser": {"name": "Bob"}}"""
+
+        val error = JUserNested.fromJson(json).expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error reading property <id> of node </subUser> Not found key 'id'. Keys found: [name]")
+    }
+
+    @Test
+    fun `JMap with a null value reports the key`() {
+        val json = """{"a": "x", "b": null}"""
+        val expected = "Error reading property <b> of node </b> Found null for non-nullable"
+
+        expectThat(JMap(JString).fromJson(json).expectFailure().msg).isEqualTo(expected)
+        expectThat(JMap(JString).fromJsonNode(parseJsonNode(json).expectSuccess() as JsonNodeObject, NodePathRoot).expectFailure().msg)
+            .isEqualTo(expected)
+    }
+
+    @Test
+    fun `JMap with a null value in a nested map or from a stream reports the key and path`() {
+        expectThat(JMap(JMap(JString)).fromJson("""{"a": {"b": null}}""").expectFailure().msg)
+            .isEqualTo("Error reading property <b> of node </a/b> Found null for non-nullable")
+        expectThat(JMap(JString).fromJson("""{"b": null}""".byteInputStream()).expectFailure().msg)
+            .isEqualTo("Error reading property <b> of node </b> Found null for non-nullable")
+    }
+
+    @Test
+    fun `JMap with mixed node types reports the wrong value`() {
+        val error = JMap(JString).fromJson("""{"a": "x", "b": 1}""").expectFailure()
+
+        expectThat(error.msg).isEqualTo("Error parsing node </b> at position 17: expected OpeningQuotes but found '1' - invalid Json")
+    }
+}
+
+private object JPersonAny : JAny<Person>() {
+    private val id by num(Person::id)
+    private val name by str(Person::name)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        Person(id = +id, name = +name)
+}
+
+private object JUserNestedAny : JAny<UserNested>() {
+    private val id by num(UserNested::id)
+    private val name by str(UserNested::name)
+    private val subUser by obj(JPerson, UserNested::subUser)
+
+    override fun JsonNodeObject.deserializeOrThrow() =
+        UserNested(id = +id, name = +name, subUser = +subUser)
+}
+
+private data class UserNested(val id: Int, val name: String, val subUser: Person)
+
+private object JUserNested : JObj<UserNested>() {
+    private val id by num(UserNested::id)
+    private val name by str(UserNested::name)
+    private val subUser by obj(JPerson, UserNested::subUser)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        UserNested(id = +id, name = +name, subUser = +subUser)
 }

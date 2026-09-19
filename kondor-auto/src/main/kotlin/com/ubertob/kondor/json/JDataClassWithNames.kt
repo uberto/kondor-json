@@ -37,6 +37,9 @@ annotation class ConstructorByName
 @ConstructorByName
 abstract class JDataClassWithNames<T : Any>(private val kClazz: KClass<T>) : JObj<T>() {
 
+    // missing fields are handled in buildConsParamsMap, using the constructor default values
+    override val failOnMissingMandatoryFields: Boolean = false
+
     private val kConstructor: KFunction<T> by lazy {
         (kClazz.primaryConstructor ?: kClazz.constructors.first()) as KFunction<T>
     }

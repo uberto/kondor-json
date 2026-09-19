@@ -7,6 +7,7 @@ import com.ubertob.kondor.json.parser.parseFields
 import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
+import com.ubertob.kondor.outcome.asSuccess
 import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondor.outcome.traverse
 
@@ -39,9 +40,36 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
             },
             KondorSeparator.ClosingCurly,
         )(tokens, path)
+            .bind { fieldMap -> checkMandatoryFields(fieldMap, path) }
             .bind { fieldMap ->
                 fromFieldValues(fieldMap, path)
             }
+
+    /**
+     * When true (the default), parsing fails if a mandatory field is missing from the Json, before calling
+     * [deserializeOrThrow]. Converters that handle missing fields themselves (e.g. using constructor default values)
+     * can override it to false.
+     */
+    protected open val failOnMissingMandatoryFields: Boolean = true
+
+    // lazy because properties are registered after the constructor of the base class has run
+    private val mandatoryPropNames: List<String> by lazy {
+        getProperties().filterIsInstance<JsonPropMandatory<*, *>>().map { it.propName }
+    }
+
+    // same error as JsonPropMandatory.getter on the JsonNode path, where keys are sorted by the JsonNode parser
+    private fun checkMandatoryFields(fieldValues: FieldsValuesMap, path: NodePath): JsonOutcome<FieldsValuesMap> =
+        mandatoryPropNames
+            .takeIf { failOnMissingMandatoryFields }
+            ?.firstOrNull { !fieldValues.getMap().containsKey(it) }
+            ?.let { missing ->
+                JsonPropertyError(
+                    path,
+                    missing,
+                    "Not found key '$missing'. Keys found: [${fieldValues.getMap().keys.sorted().joinToString()}]"
+                ).asFailure()
+            }
+            ?: fieldValues.asSuccess()
 
     fun fromFieldValues(fieldValues: FieldsValues, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) {

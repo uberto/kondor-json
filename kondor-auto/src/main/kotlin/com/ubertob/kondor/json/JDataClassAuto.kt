@@ -35,10 +35,15 @@ abstract class JDataClassAuto<T : Any>(val klazz: KClass<T>) : JDataClass<T>(kla
 
     init {
         // Auto-register all properties on creation so users don't need to call register manually
-        registerAllProperties()
+        registerConstructorProperties()
     }
 
+    @Deprecated("Properties are registered automatically, calling this is no longer needed", ReplaceWith(""))
     fun registerAllProperties() {
+        // no-op: kept for compatibility with code written for 4.0.0 and 4.0.1
+    }
+
+    private fun registerConstructorProperties() {
         // Register properties in the exact order of constructor parameters
         val constructor = klazz.primaryConstructor ?: klazz.constructors.firstOrNull()
         ?: throw IllegalStateException("No accessible constructor found for $klazz")

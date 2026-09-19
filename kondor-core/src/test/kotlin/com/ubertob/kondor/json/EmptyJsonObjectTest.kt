@@ -12,10 +12,8 @@ import com.ubertob.kondortools.expectSuccess
 import com.ubertob.kondortools.isEquivalentJson
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
-import strikt.assertions.contains
 import strikt.assertions.isEmpty
 import strikt.assertions.isEqualTo
-import strikt.assertions.startsWith
 import java.time.Instant
 
 class EmptyJsonObjectTest {
@@ -102,10 +100,10 @@ class EmptyJsonObjectTest {
     }
 
     @Test
-    fun `JObj with required fields fails converting, not parsing, an empty json object`() {
+    fun `JObj with required fields reports the missing field, not a parsing error, on an empty json object`() {
         val error = JPerson.fromJson("{}").expectFailure()
 
-        expectThat(error.msg).startsWith("Error converting node <[root]>").not().contains("OpeningQuotes")
+        expectThat(error.msg).isEqualTo("Error reading property <id> of node <[root]> Not found key 'id'. Keys found: []")
     }
 
     @Test

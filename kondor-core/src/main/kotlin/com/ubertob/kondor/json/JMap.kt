@@ -3,7 +3,9 @@ package com.ubertob.kondor.json
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.outcome.asSuccess
+import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.bind
+import com.ubertob.kondor.outcome.failIfNull
 
 class JMap<K : Any, V : Any>(
     private val keyConverter: JStringRepresentable<K>,
@@ -20,8 +22,7 @@ class JMap<K : Any, V : Any>(
                     resolveConverter(fieldName, nodePath)
                         .bind { conv ->
                             if (tks.peek().sameValueAs("null")) {
-                                tks.next()
-                                null.asSuccess()
+                                nullValueError(fieldName, nodePath).asFailure()
                             } else {
                                 conv.fromTokens(tks, nodePath)
                             }
@@ -74,10 +75,14 @@ class JMap<K : Any, V : Any>(
                 val value =
                     valueConverter
                         .fromJsonNodeBase(jsonNode, newPath)
-                        .orThrow() as V
+                        .failIfNull { nullValueError(key, newPath) }
+                        .orThrow()
                 keyConverter.cons(key) to value
             }
         }
+
+    private fun nullValueError(key: String, path: NodePath): JsonError =
+        JsonPropertyError(path, key, "Found null for non-nullable")
 
     private fun valueAppender(value: V?): ValueAppender? =
         if (value == null) {
