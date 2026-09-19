@@ -63,6 +63,11 @@ class JDataClassWithNamesTest {
         val fontSize by num(Settings::fontSize)
     }
 
+    private object JSettingsNoFontSize : JDataClassWithNames<Settings>(Settings::class) {
+        val theme by str(Settings::theme)
+        val nickname by str(Settings::nickname)
+    }
+
     @Test
     fun `fields can be declared in any order`() {
         val settings = Settings("dark", 20, "bob")
@@ -73,6 +78,19 @@ class JDataClassWithNamesTest {
     @Test
     fun `missing fields use the default value or null`() {
         expectThat(JSettings.fromJson("""{"theme": "dark"}""").expectSuccess()).isEqualTo(Settings("dark", 12, null))
+    }
+
+    @Test
+    fun `unknown fields are ignored`() {
+        val json = """{"_id": {"oid": "x"}, "theme": "dark", "extra": [1, 2], "nickname": "bob"}"""
+
+        expectThat(JSettings.fromJson(json).expectSuccess()).isEqualTo(Settings("dark", 12, "bob"))
+    }
+
+    @Test
+    fun `a Json field matching a constructor parameter without a converter field is ignored`() {
+        expectThat(JSettingsNoFontSize.fromJson("""{"theme": "dark", "fontSize": 99}""").expectSuccess())
+            .isEqualTo(Settings("dark", 12, null))
     }
 
     @Test

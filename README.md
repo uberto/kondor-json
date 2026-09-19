@@ -523,6 +523,7 @@ object JSelectedFile : JAny<SelectedFile>() {
 }
 ```
 
+The flattened converter reads all the Json fields not declared in `JSelectedFile`, and it works the same way in a `JObj`.
 Note that it only works with non-nullable fields and it requires that there are no fields with same name on `SelectedFile` and `FileInfo`.
 
 ### Storing a Map as Json

@@ -129,7 +129,7 @@ graph TD
     D --> E{Error Type}
     E --> F[InvalidJsonError<br/>Malformed JSON]
     E --> G[ConverterJsonError<br/>Type Mismatch]
-    E --> H[JsonPropertyError<br/>Property Missing or Unknown]
+    E --> H[JsonPropertyError<br/>Property Missing]
     F --> I[NodePath + Position]
     G --> J[NodePath + Expected vs Actual]
     H --> K[NodePath + Field Name]

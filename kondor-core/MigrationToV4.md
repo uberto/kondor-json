@@ -19,9 +19,8 @@ from intermediate types, look at how similar examples are working.
 Moving a converter from `JAny` to `JObj` changes the deserialization function signature: instead of a
 `JsonNodeObject` receiver it has a `FieldsValues` receiver and the current path. The `+field` syntax is the same.
 
-There is also a change of behaviour: a `JObj` fails when the Json contains a field that is not declared in the
-converter (with a `JsonPropertyError` naming the field), while a `JAny` ignores unknown fields. If you need to accept
-unknown fields, keep using `JAny`.
+Like a `JAny`, a `JObj` ignores the Json fields that are not declared in the converter (in 4.0.0 and 4.0.1 a `JObj`
+failed on them).
 
 ```kotlin
 // Kondor 3.x (still valid in 4.x)
@@ -53,8 +52,7 @@ If you used the experimental `JObj` of Kondor 3.x, replace `deserFieldMapOrThrow
 - `JsonNodeObject._fieldMap` is now a `FieldNodeMap`: use `_fieldMap.map` to access the plain `Map<String, JsonNode>`.
 - `asObjFieldMap()` returns a `Map<String, JsonNode>`.
 - Custom `ObjectNodeConverter` implementations must return a `FieldNodeMap` from `convertFields`.
-- `JMap`, `JInstance` and `JDataClass` are now `JObj`; `JJsonNode` and `JSealed` are `JAny`. Since `JObj` rejects
-  unknown fields, `JDataClass` and `JInstance` are now stricter when parsing.
+- `JMap`, `JInstance` and `JDataClass` are now `JObj`; `JJsonNode` and `JSealed` are `JAny`.
 - If you implemented the object converter interfaces directly instead of extending `JAny` or `JObj`:
     - `deserializeOrThrow` moved from `ObjectNodeConverterBase` to `JAny`
     - `ObjectNodeConverter` no longer provides default `fromTokens` and `fromJsonNode`
@@ -67,7 +65,5 @@ If you used the experimental `JObj` of Kondor 3.x, replace `deserFieldMapOrThrow
 
 ## Known Limitations
 
-- A `flatten` field inside a `JObj` is rendered correctly and works with `fromJsonNode`, but `fromJson` fails on the
-  flattened fields (they are reported as unknown). Keep using `JAny` for converters with `flatten` fields.
 - The polymorphic `JSealed` still parses through `JsonNode`; a faster variant requiring the discriminator as first field
   is planned (see `docs/polymorphic-converter-plan.md`).

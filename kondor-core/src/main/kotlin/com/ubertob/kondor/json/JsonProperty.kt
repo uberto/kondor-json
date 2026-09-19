@@ -126,7 +126,8 @@ data class JsonPropMandatoryFlatten<T : Any>(
     val converter: ObjectNodeConverter<T>,
     val parent: ObjectNodeConverterProperties<*>,
 ) : JsonProperty<T>() {
-    private val parentProperties = parent.getProperties().map { it.propName }
+    // lazy because the parent properties declared after the flatten one are not registered yet when this is created
+    private val parentProperties: Set<String> by lazy { parent.getProperties().map { it.propName }.toSet() }
 
     override fun appender(value: T): List<NamedAppender> = converter.fieldAppenders(value)
 

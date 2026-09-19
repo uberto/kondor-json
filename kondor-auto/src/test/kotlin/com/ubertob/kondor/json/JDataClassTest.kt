@@ -49,6 +49,13 @@ class JDataClassTest {
 
 
     @Test
+    fun `unknown fields are ignored`() {
+        val json = """{"_id": {"oid": "x"}, "id": 7, "extra": [1, {"a": null}], "name": "Ann", "last": true}"""
+
+        expectThat(Person.Json.fromJson(json).expectSuccess()).isEqualTo(Person(7, "Ann"))
+    }
+
+    @Test
     fun `json array for a Set of Person`() {
 
         repeat(10) {

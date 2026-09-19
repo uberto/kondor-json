@@ -10,6 +10,10 @@ Kondor-core: a `JObj` missing a mandatory field reports `Not found key` with the
 generic NullPointerException error; converters handling missing fields themselves can override
 `failOnMissingMandatoryFields` (as `JDataClassWithNames` does, to use the constructor default values)
 Kondor-core: a `null` value in a `JMap` reports the key (`Found null for non-nullable`) instead of a generic error
+Kondor-core: `JObj` ignores unknown Json fields like `JAny` (4.0.0 and 4.0.1 failed on them), so `JDataClass`,
+`JInstance` and `JObj` Mongo tables accept the `_id` field; invalid Json in an unknown field is still an error
+Kondor-core: `flatten` fields work in a `JObj`, including `flatten` of a `JsonNodeObject`, reading the undeclared fields;
+a `flatten` field declared before other fields no longer reads them when parsing a `JObj` from a `JsonNode`
 Kondor-auto: `JDataClassAuto.registerAllProperties()` is deprecated and does nothing; calling it registered the
 properties twice
 Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`

@@ -233,7 +233,7 @@ class ParserFailuresTest {
 
         val error = JPerson.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error reading property <fullname> of node <[root]> Not found a property for the Json field 'fullname'. Defined properties: [id, name]")
+        expectThat(error.msg).isEqualTo("Error reading property <name> of node <[root]> Not found key 'name'. Keys found: [fullname, id]")
     }
 
     @Test
@@ -352,7 +352,7 @@ class ParserFailuresTest {
 }"""
         val error = JUserFile.fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error reading property <name??> of node </user> Not found a property for the Json field 'name??'. Defined properties: [id, name]")
+        expectThat(error.msg).isEqualTo("Error reading property <name> of node </user> Not found key 'name'. Keys found: [id, name??]")
     }
 
     @Test
