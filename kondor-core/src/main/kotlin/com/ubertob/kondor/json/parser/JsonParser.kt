@@ -15,6 +15,16 @@ fun KondorToken.sameValueAs(text: String): Boolean = when (this) {
 
 data class TokensPath(val tokens: TokensStream, val path: NodePath)
 
+// the token iterators throw at the end of the input, so a truncated Json must be checked before peeking or reading
+private fun TokensStream.peekOrNull(): KondorToken? = if (hasNext()) peek() else null
+
+private fun TokensStream.nextOrNull(): KondorToken? = if (hasNext()) next() else null
+
+internal fun TokensStream.isNextNull(): Boolean = peekOrNull()?.sameValueAs("null") == true
+
+private fun endOfFileFailure(expected: String, tokens: TokensStream, path: NodePath) =
+    parsingFailure(expected, "end of file", tokens.lastPosRead(), path, "invalid Json")
+
 fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
 
 
@@ -116,15 +126,7 @@ fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
 fun TokensPath.array(): JsonOutcome<JsonNodeArray> = commaSeparated { parseNewNode() }.transform { JsonNodeArray(it) }
 
 fun TokensPath.jsonObject(): JsonOutcome<JsonNodeObject> = commaSeparated({
-    keyValue { (tokens, innerPath) ->
-        TokensPath(tokens, innerPath).parseNewNode() ?: parsingFailure(
-            "a valid node",
-            "nothing",
-            tokens.lastPosRead(),
-            innerPath,
-            "invalid Json"
-        )
-    }
+    keyValue { tokensPath -> tokensPath.parseFieldValue() }
 }).transform { JsonNodeObject(FieldNodeMap(sortKeys(it).toMap())) }
 
 private fun sortKeys(pairs: List<Pair<String, JsonNode>>): List<Pair<String, JsonNode>> =
@@ -167,9 +169,12 @@ fun <T> commaSeparated(
     }
 }
 
-private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.next().let { token ->
-    if (token.sameValueAs("null")) JsonNodeNull.asSuccess()
-    else parsingFailure("a Null", token, tokens.lastPosRead(), path, "valid values: null")
+private fun TokensPath.explicitNull(): JsonOutcome<JsonNodeNull> = tokens.nextOrNull().let { token ->
+    when {
+        token == null -> endOfFileFailure("a Null", tokens, path)
+        token.sameValueAs("null") -> JsonNodeNull.asSuccess()
+        else -> parsingFailure("a Null", token, tokens.lastPosRead(), path, "valid values: null")
+    }
 }
 
 fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken> =
@@ -181,7 +186,7 @@ fun take(separator: KondorSeparator, tokens: TokensStream, path: NodePath): Json
                 parsingFailure(separator.name, token, tokens.lastPosRead(), path, "invalid Json")
         }
     } else {
-        parsingFailure(separator.name, "end of file", tokens.lastPosRead(), path, "invalid Json")
+        endOfFileFailure(separator.name, tokens, path)
     }
 
 
@@ -189,11 +194,18 @@ private fun isNext(separator: KondorSeparator, tokens: TokensStream): Boolean =
     tokens.hasNext() && (tokens.peek() as? Separator)?.sep == separator
 
 private fun takeOrNull(separator: KondorSeparator, tokens: TokensStream, path: NodePath): JsonOutcome<KondorToken>? =
-    tokens.peek().let { currToken ->
+    tokens.peekOrNull().let { currToken ->
         if ((currToken as? Separator)?.sep == separator)
             take(separator, tokens, path)
         else
             null
+    }
+
+// the value of an object field is mandatory, so the end of the input or a closing separator is an error
+internal fun TokensPath.parseFieldValue(): JsonOutcome<JsonNode> =
+    parseNewNode() ?: when (val token = tokens.peekOrNull()) {
+        null -> endOfFileFailure("a valid node", tokens, path)
+        else -> parsingFailure("a valid node", token, tokens.lastPosRead(), path, "invalid Json")
     }
 
 fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
@@ -219,7 +231,8 @@ fun TokensPath.parseNewNode(): JsonOutcome<JsonNode>? =
         }
 
 
-fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = when (val token = tokens.next()) {
+fun parseBoolean(tokens: TokensStream, path: NodePath): JsonOutcome<Boolean> = when (val token = tokens.nextOrNull()) {
+    null -> endOfFileFailure("a Boolean", tokens, path)
     is Value -> when (token.text) {
         "true" -> true.asSuccess()
         "false" -> false.asSuccess()
@@ -235,7 +248,8 @@ fun <T> parseNumber(
     converter: (String) -> JsonOutcome<T>
 ): JsonOutcome<T> {
     val position = tokens.lastPosRead()
-    return when (val token = tokens.peek()) {
+    return when (val token = tokens.peekOrNull()) {
+        null -> endOfFileFailure("a Number", tokens, path)
         is Value ->
             try {
                 tokens.next() //commit on the peek NOOP
@@ -265,7 +279,8 @@ private fun stringOrEmpty(
     tokens: TokensStream,
     path: NodePath
 ): JsonOutcome<String> =
-    when (val token = tokens.peek()) {
+    when (val token = tokens.peekOrNull()) {
+        null -> endOfFileFailure("a String", tokens, path)
         is Value -> token.text.asSuccess().also { tokens.next() }
         else -> if (allowEmpty) "".asSuccess() else parsingFailure(
             "a non empty String", token, tokens.lastPosRead(), path, "invalid Json"

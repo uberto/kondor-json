@@ -107,7 +107,7 @@ class JObjUnknownFieldsTest {
     fun `a missing value in an unknown field reports the path`() {
         val error = JPerson.fromJson("""{"id": 1, "extra": }""").expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node </extra> at position 18: expected a valid node but found nothing - invalid Json")
+        expectThat(error.msg).isEqualTo("Error parsing node </extra> at position 18: expected a valid node but found ClosingCurly - invalid Json")
     }
 
     @Test

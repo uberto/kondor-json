@@ -5,8 +5,7 @@ import com.ubertob.kondor.json.parser.KondorSeparator
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parseFields
-import com.ubertob.kondor.json.parser.parseNewNode
-import com.ubertob.kondor.json.parser.parsingFailure
+import com.ubertob.kondor.json.parser.parseFieldValue
 import com.ubertob.kondor.json.parser.surrounded
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
@@ -48,9 +47,7 @@ abstract class JObj<T : Any> : ObjectNodeConverterProperties<T>() {
             ?: parseUnknownField(tokens, path)
 
     private fun parseUnknownField(tokens: TokensStream, path: NodePath): JsonOutcome<UnknownField> =
-        (TokensPath(tokens, path).parseNewNode()
-            ?: parsingFailure("a valid node", "nothing", tokens.lastPosRead(), path, "invalid Json"))
-            .transform(::UnknownField)
+        TokensPath(tokens, path).parseFieldValue().transform(::UnknownField)
 
     private val flattenProperties: List<JsonPropMandatoryFlatten<*>> by lazy {
         getProperties().filterIsInstance<JsonPropMandatoryFlatten<*>>()

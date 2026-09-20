@@ -14,6 +14,9 @@ Kondor-core: `JObj` ignores unknown Json fields like `JAny` (4.0.0 and 4.0.1 fai
 `JInstance` and `JObj` Mongo tables accept the `_id` field; invalid Json in an unknown field is still an error
 Kondor-core: `flatten` fields work in a `JObj`, including `flatten` of a `JsonNodeObject`, reading the undeclared fields;
 a `flatten` field declared before other fields no longer reads them when parsing a `JObj` from a `JsonNode`
+Kondor-core: truncated Json (e.g. `[1, 2` or `{"a": "b`) returns a parsing error (`expected ... but found end of file`)
+instead of throwing an `EndOfCollection` exception; a missing field value (e.g. `{"a": }`) reports the token found
+instead of `nothing`
 Kondor-auto: `JDataClassAuto.registerAllProperties()` is deprecated and does nothing; calling it registered the
 properties twice
 Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`

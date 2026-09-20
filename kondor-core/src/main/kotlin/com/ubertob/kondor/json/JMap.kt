@@ -21,7 +21,7 @@ class JMap<K : Any, V : Any>(
                 parseFields(t, p) { fieldName, tks, nodePath ->
                     resolveConverter(fieldName, nodePath)
                         .bind { conv ->
-                            if (tks.peek().sameValueAs("null")) {
+                            if (tks.isNextNull()) {
                                 nullValueError(fieldName, nodePath).asFailure()
                             } else {
                                 conv.fromTokens(tks, nodePath)

@@ -2,7 +2,7 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.jsonnode.*
 import com.ubertob.kondor.json.parser.TokensStream
-import com.ubertob.kondor.json.parser.sameValueAs
+import com.ubertob.kondor.json.parser.isNextNull
 import com.ubertob.kondor.outcome.Outcome
 import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
@@ -71,7 +71,7 @@ data class JsonPropMandatory<T : Any, JN : JsonNode>(
         tokens: TokensStream,
         path: NodePath,
     ): Outcome<JsonError, Any?> =
-        if (tokens.peek().sameValueAs("null")) {
+        if (tokens.isNextNull()) {
             JsonPropertyError(path, propName, "Found null for non-nullable").asFailure()
         } else {
             converter.fromTokens(tokens, path).transform { it as Any? }
@@ -93,7 +93,7 @@ data class JsonPropOptional<T, JN : JsonNode>(
         tokens: TokensStream,
         path: NodePath,
     ): Outcome<JsonError, Any?> =
-        if (tokens.peek().sameValueAs("null")) {
+        if (tokens.isNextNull()) {
             tokens.next() // consume the null token
             null.asSuccess()
         } else {
