@@ -207,7 +207,7 @@ When adding converters for new types:
 
 ## Version Information
 
-Current version: 4.0.2
+Current version: 4.1.0
 - Publishing to Maven Central via OSSRH
 - Requires Java 8 runtime (compiles with Java 21 toolchain targeting Java 8)
 - Kotlin 2.1.0

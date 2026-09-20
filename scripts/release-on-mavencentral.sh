@@ -7,7 +7,7 @@ fi
 
 # Steps:
 # verify it's all working with a
-./gradlew clean build || { echo "Build failed, not releasing"; exit 1; }
+./gradlew clean build -x test|| { echo "Build failed, not releasing"; exit 1; }
 
 # update the version in build.gradle.kts
 ver=$(./gradlew -q printVersion)

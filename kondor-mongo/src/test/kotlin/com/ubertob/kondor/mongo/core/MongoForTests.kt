@@ -8,7 +8,7 @@ const val DB_NAME = "MongoKondorTest"
 
 // multi-arch image (amd64/arm64), can be overridden with MONGO_TEST_IMAGE, e.g. to use a mirror registry
 private val mongoTestImage: DockerImageName =
-    DockerImageName.parse(System.getenv("MONGO_TEST_IMAGE")?.takeUnless { it.isBlank() } ?: "mongo:6.0.14")
+    DockerImageName.parse(System.getenv("MONGO_TEST_IMAGE")?.takeUnless { it.isBlank() } ?: "mongo:8.0.32")
         .asCompatibleSubstituteFor("mongo")
 
 fun mongoForTests() =

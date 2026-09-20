@@ -147,13 +147,13 @@ Steps:
 - From the project root, run: `./gradlew :kondor-mongo:test`
 
 Notes:
-- The tests use the image `mongo:6.0.14`, which has native ARM64 support and works on Apple Silicon and Intel Macs.
+- The tests use the image `mongo:8.0.32`, which has native ARM64 support and works on Apple Silicon and Intel Macs.
 - Testcontainers needs to start helper containers (Ryuk). If you see permission errors, ensure your user can access the Docker socket and that the runtime is running.
 
 Troubleshooting:
 - "Cannot connect to Docker": make sure Docker Desktop/Orbstack/Colima is running.
-- "Image not found or platform mismatch": ensure you are on a recent Docker and that the image tag supports your architecture (we pin 6.0.14 for ARM64 support).
-- Network issues when pulling images: try `docker pull mongo:6.0.14` manually to verify connectivity.
+- "Image not found or platform mismatch": ensure you are on a recent Docker and that the image tag supports your architecture (we pin 8.0.32 for ARM64 support).
+- Network issues when pulling images: try `docker pull mongo:8.0.32` manually to verify connectivity.
 
 ## Running tests locally with Docker (Linux)
 
@@ -171,10 +171,10 @@ Troubleshooting:
 
 ## Image/platform notes
 
-- Tests default to `mongo:6.0.14`, a multi-arch image. Docker will pull the correct variant for your platform (amd64/arm64) automatically.
+- Tests default to `mongo:8.0.32`, a multi-arch image. Docker will pull the correct variant for your platform (amd64/arm64) automatically.
 - You can override the image via environment variable if needed (e.g., to use a corporate mirror):
-  - macOS/Linux: `MONGO_TEST_IMAGE=my-registry.example.com/mongo:6.0.14 ./gradlew :kondor-mongo:test`
-  - Windows PowerShell: `$env:MONGO_TEST_IMAGE="my-registry.example.com/mongo:6.0.14"; ./gradlew :kondor-mongo:test`
+  - macOS/Linux: `MONGO_TEST_IMAGE=my-registry.example.com/mongo:8.0.32 ./gradlew :kondor-mongo:test`
+  - Windows PowerShell: `$env:MONGO_TEST_IMAGE="my-registry.example.com/mongo:8.0.32"; ./gradlew :kondor-mongo:test`
 
 ## ToDo
 

@@ -107,5 +107,5 @@ and parsing that with the converter's `fromJson`, so special types appear as obj
 ## Testing
 
 The module tests use Testcontainers, so they need a running Docker daemon: `./gradlew :kondor-mongo:test`.
-They run against the multi-arch `mongo:6.0.14` image by default; set `MONGO_TEST_IMAGE` to use another image (for
+They run against the multi-arch `mongo:8.0.32` image by default; set `MONGO_TEST_IMAGE` to use another image (for
 example from a mirror registry). See `kondor-mongo/README.md` for per-platform Docker setup.
