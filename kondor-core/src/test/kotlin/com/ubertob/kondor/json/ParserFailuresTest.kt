@@ -10,6 +10,7 @@ import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.Test
 import strikt.api.expectThat
 import strikt.assertions.isEqualTo
+import strikt.assertions.startsWith
 
 class ParserFailuresTest {
 
@@ -26,7 +27,7 @@ class ParserFailuresTest {
         val invalidJson = "BOOM"
         val error = parseJsonNode(invalidJson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected a valid Number but found 'BOOM' - NumberFormatException For input string: \"BOOM\"")
+        expectThat(error.msg).isEqualTo("Error parsing node <[root]> at position 0: expected a valid Number but found 'BOOM' - NumberFormatException Character B is neither a decimal digit number, decimal point, nor \"e\" notation exponential mark.")
     }
 
 
@@ -314,7 +315,8 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </items/[0]/price> Wrong number format For input string: \"a string\"")
+        // the detail comes from BigDecimal and changes between Java versions
+        expectThat(error.msg).startsWith("Error converting node </items/[0]/price> Wrong number format ")
     }
 
     object JPersonIncomplete : JAny<Person>() {

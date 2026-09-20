@@ -112,11 +112,20 @@ fun TokensPath.boolean(): JsonOutcome<JsonNodeBoolean> =
         .transform { JsonNodeBoolean(it) }
 
 
+//NaN and Infinity are valid Doubles but not BigDecimals: they are usually written between quotes
+internal val nonFiniteNumbers = mapOf(
+    "NaN" to Double.NaN,
+    "Infinity" to Double.POSITIVE_INFINITY,
+    "+Infinity" to Double.POSITIVE_INFINITY,
+    "-Infinity" to Double.NEGATIVE_INFINITY
+)
+
 fun bigDecimalParser(value: String): JsonOutcome<Number> =
     try {
         BigDecimal(value).asSuccess()
     } catch (e: NumberFormatException) {
-        value.toDouble().asSuccess() //for NaN, Infinity etc that are valid Double but not BigDecimals
+        nonFiniteNumbers[value]?.asSuccess()
+            ?: throw e //the path and the position are known only by the caller, convertNumber
     }
 
 fun TokensPath.number(): JsonOutcome<JsonNodeNumber> =
@@ -250,23 +259,37 @@ fun <T> parseNumber(
     val position = tokens.lastPosRead()
     return when (val token = tokens.peekOrNull()) {
         null -> endOfFileFailure("a Number", tokens, path)
-        is Value ->
-            try {
-                tokens.next() //commit on the peek NOOP
-                converter(token.text)
-            } catch (nfe: NumberFormatException) {
-                parsingFailure("a valid Number", token.desc, position, path, "NumberFormatException ${nfe.message}")
-            } catch (e: Exception) {
-                parsingFailure("a Number or NaN", token.desc, position, path, e.message.orEmpty())
-            }
+        is Value -> {
+            tokens.next() //commit on the peek NOOP
+            convertNumber(token.text, position, path, converter)
+        }
 
         is OpeningQuotesSep -> //case NaN Infinity -> letting the converter try
             parseString(tokens, path)
-                .bind { converter(it) }
+                .bind { text -> convertNumber(text, position, path, converter) }
 
         else -> parsingFailure("a Number value", token, position, path, "not a valid number")
     }
 }
+
+// a converter can throw on any text, quoted or not: quoted values reach here because NaN and Infinity are
+// written between quotes
+private fun <T> convertNumber(
+    text: String,
+    position: Int,
+    path: NodePath,
+    converter: (String) -> JsonOutcome<T>
+): JsonOutcome<T> =
+    try {
+        converter(text)
+    } catch (nfe: NumberFormatException) {
+        parsingFailure(
+            "a valid Number", "'$text'", position, path,
+            "NumberFormatException ${nfe.message ?: "not a valid number"}"
+        )
+    } catch (e: Exception) {
+        parsingFailure("a Number or NaN", "'$text'", position, path, "${e::class.simpleName}: ${e.message.orEmpty()}")
+    }
 
 fun parseString(tokens: TokensStream, path: NodePath, allowEmpty: Boolean = true): JsonOutcome<String> =
     surrounded(

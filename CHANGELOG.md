@@ -23,6 +23,11 @@ error instead of throwing an `IllegalStateException`; when the parser reads as f
 as from a `String`. The new `TokensStream.lexerError()` exposes it, and `TokensStream.toList()` throws a
 `JsonParsingException` instead of silently returning the tokens read so far
 Kondor-core: a unicode escape with a sign (e.g. `"\u-123"`) is an error instead of being parsed as another character
+Kondor-core: an invalid number in a `JsonNode` (e.g. `NumberNode.fromJsonString("\"a\"")`, quotes are used for `NaN` and
+`Infinity`) returns a parsing error instead of throwing a `NumberFormatException`
+Kondor-core: numbers are read as `BigDecimal` by `JDouble` and `JFloat` too, so the two parsing paths agree: numbers
+valid only for Java (e.g. `1d`, `0x1p3`, `" 12 "`) and exponents too big for a `BigDecimal` (e.g. `1e99999999999`, read
+as `Infinity` before) are now errors. The details of these errors come from `BigDecimal`
 Kondor-auto: `JDataClassAuto.registerAllProperties()` is deprecated and does nothing; calling it registered the
 properties twice
 Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`
