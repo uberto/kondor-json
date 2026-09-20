@@ -16,15 +16,26 @@ They need Docker and were never run on this machine, so the module is the least 
 - `TypedTableConversionTest` covers the `_id` field without a database: worth extending the same way for the numbers,
   so that part keeps running without Docker.
 
-## 2. Check the Android compatibility
+## 2. An Android version, ideally the vanilla one
 
-The library has no Android module and no Android build, so this is unverified territory.
+The goal is a version usable on Android: no reflection, and nothing from a package Android does not have. The good
+news is that kondor-core is almost there already.
 
-- The runtime target is Java 8 (`common-kotlin.gradle.kts`), but kondor-core uses `java.time` (`Instant`, `LocalDate`,
-  `LocalDateTime`) in about 17 places: on Android below API 26 it needs core library desugaring. Document the minimum
-  API level, or the desugaring the user has to enable.
-- Check the size and the method count of the artifacts, and whether anything pulls in a dependency Android dislikes.
-- Decide whether kondor-auto is usable at all on Android (see below) and say so in the README.
+- **Reflection is not in the core**: only kondor-auto depends on `kotlin-reflect` (`JDataClass`, `JDataClassAuto`,
+  `JDataClassWithNames`). kondor-core and kondor-outcome use none, and the converters are explicit by design.
+- **The only problematic package is `java.time`**, and it is confined to `json/datetime/JDateTime.kt` and
+  `json/datetime/ShortFunctions.kt` (`Instant`, `LocalDate`, `LocalDateTime`, `LocalTime`, `DateTimeFormatter`). On
+  Android it needs API 26, or core library desugaring on anything older.
+- Everything else core uses is safe on any Android version: `java.io` streams, `java.math.BigDecimal`/`BigInteger`,
+  `java.util` (`UUID`, `Currency`), `java.nio.charset.Charset` and `AtomicReference`.
+- So the decision is what to do with the datetime converters:
+  1. leave them in core and document the desugaring (no new artifact, simplest);
+  2. move them to a `kondor-datetime` module, leaving a core with no `java.time` at all — this is the "vanilla"
+     version, and it is a breaking change for whoever imports `com.ubertob.kondor.json.datetime`;
+  3. publish a separate Android artifact, which is the most work and probably not needed if 2 is done.
+  Option 2 looks the best fit for the goal, with the datetime module still published for everyone else.
+- Whatever is chosen: check the artifacts have no `kotlin-reflect` on the compile path, verify on a real Android
+  project (a small app parsing some Json), and state the minimum API level in the README.
 
 ## 3. Check the reflection in kondor-auto
 
