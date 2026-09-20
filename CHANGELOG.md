@@ -28,9 +28,14 @@ Kondor-core: an invalid number in a `JsonNode` (e.g. `NumberNode.fromJsonString(
 Kondor-core: numbers are read as `BigDecimal` by `JDouble` and `JFloat` too, so the two parsing paths agree: numbers
 valid only for Java (e.g. `1d`, `0x1p3`, `" 12 "`) and exponents too big for a `BigDecimal` (e.g. `1e99999999999`, read
 as `Infinity` before) are now errors. The details of these errors come from `BigDecimal`
+Kondor-core: `fromJson(InputStream)` closes the stream when the parsing is over, also when it fails or stops before
+reading it to the end (it was closed only when read to the end);
+`fromNdJsonStream` keeps its stream open, because its sequence is read lazily. `TokensStream` is `Closeable` and there
+are no more tokens after closing it
 Kondor-auto: `JDataClassAuto.registerAllProperties()` is deprecated and does nothing; calling it registered the
 properties twice
-Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`
+Kondor-mongo: the MongoDB driver is updated to 5.5.1 and the tests use the multi-arch `mongo:8.0.32` image (works on
+Apple Silicon), overridable with `MONGO_TEST_IMAGE`
 Docs: fixed error-handling examples in README (`fromJson` instead of the non-existent `parseJson`)
 Build: release script only updates the version declarations instead of every matching string in README
 

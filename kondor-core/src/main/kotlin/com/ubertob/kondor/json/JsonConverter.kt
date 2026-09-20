@@ -79,9 +79,22 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         KondorTokenizer.tokenize(json)
             .bind(::fromTokensExhaustive)
 
+    /**
+     * Reads a value from a stream of Json.
+     *
+     * The stream is closed when the parsing is over, also when it fails or it has not been read to the end.
+     * Use the `String` overload to keep the input open.
+     * An error reading the stream is thrown as an `IOException`, it is not part of the returned outcome.
+     */
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
         KondorTokenizer.tokenize(jsonStream)
-            .bind(::fromTokensExhaustive)
+            .bind { tokens ->
+                try {
+                    fromTokensExhaustive(tokens)
+                } finally {
+                    tokens.close()
+                }
+            }
 
     private fun fromTokensExhaustive(tokens: TokensStream): JsonOutcome<T> =
         fromTokens(tokens, NodePathRoot)

@@ -146,6 +146,10 @@ graph TD
 `tokenize(InputStream)` can only fail while the tokens are read: it stops the iteration and keeps the error in
 `TokensStream.lexerError()`. `fromJson` reports it, and `TokensStream.toList()` throws a `JsonParsingException`.
 
+`fromJson(InputStream)` closes the stream when the parsing is over, also when it fails or the stream has not been read
+to the end; using `KondorTokenizer.tokenize(InputStream)` directly, the returned `TokensStream` must be closed by the
+caller. `fromNdJsonStream` is the exception: its sequence is read lazily, so the caller keeps the stream.
+
 ### Optimization Features
 
 - **Direct token parsing**: `JObj` builds the domain object from the tokens, skipping the `JsonNode` tree

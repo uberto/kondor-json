@@ -19,6 +19,7 @@ fun <T : Any> toNdJson(converter: JConverter<T>): (Iterable<T>) -> Sequence<Stri
     }
 
 
+//note: the stream stays open, since the sequence is read lazily by the caller
 fun <T : Any> fromNdJsonStream(converter: JConverter<T>): (InputStream) -> Sequence<JsonOutcome<T>> =
     { stream ->
         stream.bufferedReader().lineSequence().map { converter.fromJson(it) }

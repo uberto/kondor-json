@@ -2,6 +2,7 @@ package com.ubertob.kondor.json.parser
 
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonParsingException
+import java.io.Closeable
 
 enum class KondorSeparator(val sign: Char) {
     Colon(':'), Comma(','), OpeningBracket('['), OpeningCurly('{'), OpeningQuotes('"'), ClosingBracket(']'), ClosingCurly(
@@ -33,17 +34,29 @@ data class Value(val text: String, val pos: Int) : KondorToken() {
 }
 
 /**
- * A lexer reading the input lazily can only fail while the tokens are read: it stops the iteration and keeps the error
- * here, so that [com.ubertob.kondor.json.JsonConverter.fromJson] reports it instead of the end of the input.
+ * Implemented by a lexer reading its input lazily: it exposes the error that stopped the iteration, if any, and lets
+ * the owner of the tokens release the input. [com.ubertob.kondor.json.JsonConverter.fromJson] does both when the
+ * parsing is over.
  */
-internal interface LexerErrorSource {
+internal interface LazyTokenSource {
     fun lexerError(): JsonError?
+    fun close()
 }
 
 data class TokensStream(private val iterator: PeekingIterator<KondorToken>) :
-    PeekingIterator<KondorToken> by iterator {
+    PeekingIterator<KondorToken> by iterator, Closeable {
 
-    fun lexerError(): JsonError? = (iterator as? LexerErrorSource)?.lexerError()
+    private val lazySource = iterator as? LazyTokenSource
+
+    fun lexerError(): JsonError? = lazySource?.lexerError()
+
+    /**
+     * Closes the input of a lexer reading it lazily, on the thread using the tokens; there are no more tokens after it.
+     * It does nothing when the Json is already in memory.
+     */
+    override fun close() {
+        lazySource?.close()
+    }
 
     /**
      * All the remaining tokens.

@@ -66,12 +66,13 @@ class JsonLexerLazy(val inputStream: InputStream) {
     fun tokenize(): JsonOutcome<TokensStream> =
         TokensStream(LazyTokenIterator()).asSuccess()
 
-    private inner class LazyTokenIterator : PeekingIterator<KondorToken>, LexerErrorSource {
+    private inner class LazyTokenIterator : PeekingIterator<KondorToken>, LazyTokenSource {
         private val reader: InputStreamReader = inputStream.reader(Charset.forName("UTF-8"))
         private val buffer: CharArray = CharArray(BUFFER_SIZE)
         private var charsRead: Int = 0
         private var bufferPos: Int = 0
         private var finished: Boolean = false
+        private var closed: Boolean = false
 
         private var state: LexerState = OutString
         private var unicodeCharacterPointString: String = ""
@@ -106,6 +107,13 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
         override fun lexerError(): JsonError? = lexerError
 
+        override fun close() {
+            closed = true
+            pending = null
+            queuedSeparator = null
+            closeReader()
+        }
+
         // after an invalid escape the string cannot be read: no more tokens are produced and the error is kept
         private fun stopWith(error: JsonError) {
             lexerError = error
@@ -116,7 +124,11 @@ class JsonLexerLazy(val inputStream: InputStream) {
         private fun closeReader() {
             if (!finished) {
                 finished = true
-                reader.close()
+                try {
+                    reader.close()
+                } catch (_: Exception) {
+                    //a failure closing the input is not a parsing error
+                }
             }
         }
 
@@ -162,7 +174,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
         }
 
         private fun advance() {
-            if (lexerError != null) return
+            if (closed || lexerError != null) return
             if (pending != null) return
             if (queuedSeparator != null) {
                 pending = queuedSeparator
@@ -384,6 +396,6 @@ object KondorTokenizer {
     //faster but putting all in memory
     fun tokenize(jsonString: CharSequence): JsonOutcome<TokensStream> = JsonLexerEager(jsonString).tokenize()
 
-    //a bit slower but consuming as little memory as possible
+    //a bit slower but consuming as little memory as possible. The returned TokensStream must be closed
     fun tokenize(jsonStream: InputStream): JsonOutcome<TokensStream> = JsonLexerLazy(jsonStream).tokenize()
 }
