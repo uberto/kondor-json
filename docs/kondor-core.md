@@ -142,6 +142,10 @@ graph TD
 - **JsonLexerEager**: Faster processing, higher memory usage (loads entire JSON)
 - **JsonLexerLazy**: Lower memory usage, streaming processing for large files
 
+`KondorTokenizer.tokenize(String)` reports an invalid string escape in its `JsonOutcome`, while the lazy
+`tokenize(InputStream)` can only fail while the tokens are read: it stops the iteration and keeps the error in
+`TokensStream.lexerError()`. `fromJson` reports it, and `TokensStream.toList()` throws a `JsonParsingException`.
+
 ### Optimization Features
 
 - **Direct token parsing**: `JObj` builds the domain object from the tokens, skipping the `JsonNode` tree

@@ -112,6 +112,20 @@ abstract class JsonLexerTestAbstract {
 
 
     @Test
+    fun `json strings with escaped form feed`() {
+        val json = """"abc \f def""""
+        val tokens = tokenize(json).expectSuccess()
+
+        expectThat(tokens.toList()).isEqualTo(
+            listOf(
+                OpeningQuotesSep,
+                Value("abc \u000C def", 3),
+                ClosingQuotesSep,
+            )
+        )
+    }
+
+    @Test
     fun `json strings with unicode`() {
         val json = """
             "abc \u263A"

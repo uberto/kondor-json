@@ -28,7 +28,7 @@ private fun endOfFileFailure(expected: String, tokens: TokensStream, path: NodeP
 fun TokensStream.lastToken(): KondorToken = this.last() ?: Value("Nothing", 0)
 
 
-private fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
+internal fun parsingError(expected: String, actual: String, position: Int, path: NodePath, details: String) =
     InvalidJsonError(
         path, "at position $position: expected $expected but found $actual - $details"
     )

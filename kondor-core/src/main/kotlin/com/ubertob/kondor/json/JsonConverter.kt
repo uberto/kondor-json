@@ -88,6 +88,7 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
             .failIf({ tokens.hasNext() }) {
                 parsingError("EOF", tokens.next(), tokens.lastPosRead(), NodePathRoot, "json continue after end")
             }
+            .let { outcome -> tokens.lexerError()?.asFailure() ?: outcome }
 
     fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter
     fun schema(): JsonNodeObject = valueSchema(_nodeType)

@@ -3,7 +3,7 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
-### v.4.0.2 - 19 September 2026
+### v.4.1.0 - 20 September 2026
 
 Kondor-core: fixed parsing of empty Json objects `{}` in JMap and JObj (e.g. empty maps and objects with only null fields)
 Kondor-core: a `JObj` missing a mandatory field reports `Not found key` with the field name, like `JAny`, instead of a
@@ -17,6 +17,12 @@ a `flatten` field declared before other fields no longer reads them when parsing
 Kondor-core: truncated Json (e.g. `[1, 2` or `{"a": "b`) returns a parsing error (`expected ... but found end of file`)
 instead of throwing an `EndOfCollection` exception; a missing field value (e.g. `{"a": }`) reports the token found
 instead of `nothing`
+Kondor-core: the `\f` escape is parsed as a form feed (`\u000C`) instead of a tab, so a form feed survives a round trip
+Kondor-core: an invalid escape (e.g. `"\x"`, `"\u00zz"` or `"\u-123"`) parsed from an `InputStream` returns a parsing
+error instead of throwing an `IllegalStateException`; when the parser reads as far as the escape, the error is the same
+as from a `String`. The new `TokensStream.lexerError()` exposes it, and `TokensStream.toList()` throws a
+`JsonParsingException` instead of silently returning the tokens read so far
+Kondor-core: a unicode escape with a sign (e.g. `"\u-123"`) is an error instead of being parsed as another character
 Kondor-auto: `JDataClassAuto.registerAllProperties()` is deprecated and does nothing; calling it registered the
 properties twice
 Kondor-mongo: tests use the multi-arch `mongo:6.0.14` image (works on Apple Silicon), overridable with `MONGO_TEST_IMAGE`

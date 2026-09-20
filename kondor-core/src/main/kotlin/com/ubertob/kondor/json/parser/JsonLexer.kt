@@ -2,9 +2,11 @@ package com.ubertob.kondor.json.parser
 
 import com.ubertob.kondor.json.ChunkedStringWriter
 import com.ubertob.kondor.json.ChunkedWriter
+import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonOutcome
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.json.parser.LexerState.*
+import com.ubertob.kondor.outcome.asFailure
 import com.ubertob.kondor.outcome.asSuccess
 import java.io.InputStream
 import java.io.InputStreamReader
@@ -14,6 +16,45 @@ import java.nio.charset.Charset
 enum class LexerState {
     OutString, InString, Escaping, Unicode
 }
+
+// the escape table and its errors are shared by the two lexers, so that they cannot diverge
+
+// the escaped char, or null if it cannot be escaped. 'u' is not here: it starts a unicode escape
+private fun escapedChar(char: Char): Char? = when (char) {
+    '\\' -> '\\'
+    '/' -> '/'
+    '"' -> '"'
+    'n' -> '\n'
+    'f' -> '\u000C'
+    't' -> '\t'
+    'r' -> '\r'
+    'b' -> '\b'
+    else -> null
+}
+
+// only the ASCII hex digits are valid in a Json unicode escape
+private fun unicodeChar(hexDigits: String): Char? =
+    hexDigits.fold(0) { code, digit ->
+        val value = when (digit) {
+            in '0'..'9' -> digit - '0'
+            in 'a'..'f' -> digit - 'a' + 10
+            in 'A'..'F' -> digit - 'A' + 10
+            else -> return null
+        }
+        code * 16 + value
+    }.toChar()
+
+private fun wrongEscapeError(char: Char, lastChars: String, pos: Int): JsonError =
+    parsingError(
+        "a valid Json", "wrongly escaped char '\\$char' inside a Json string after '$lastChars'",
+        pos, NodePathRoot, "Invalid Json"
+    )
+
+private fun invalidUnicodeError(hexDigits: String, lastChars: String, pos: Int): JsonError =
+    parsingError(
+        "a valid Json", "invalid unicode escape sequence '\\u$hexDigits' after '$lastChars'",
+        pos, NodePathRoot, "Invalid Json"
+    )
 
 
 class JsonLexerLazy(val inputStream: InputStream) {
@@ -25,7 +66,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
     fun tokenize(): JsonOutcome<TokensStream> =
         TokensStream(LazyTokenIterator()).asSuccess()
 
-    private inner class LazyTokenIterator : PeekingIterator<KondorToken> {
+    private inner class LazyTokenIterator : PeekingIterator<KondorToken>, LexerErrorSource {
         private val reader: InputStreamReader = inputStream.reader(Charset.forName("UTF-8"))
         private val buffer: CharArray = CharArray(BUFFER_SIZE)
         private var charsRead: Int = 0
@@ -38,6 +79,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
 
         private val charWriter: ChunkedWriter = ChunkedStringWriter(256)
 
+        private var lexerError: JsonError? = null
         private var pending: KondorToken? = null
         private var queuedSeparator: KondorToken? = null
         private var lastToken: KondorToken? = null
@@ -61,6 +103,15 @@ class JsonLexerLazy(val inputStream: InputStream) {
         }
 
         override fun last(): KondorToken? = pending ?: lastToken
+
+        override fun lexerError(): JsonError? = lexerError
+
+        // after an invalid escape the string cannot be read: no more tokens are produced and the error is kept
+        private fun stopWith(error: JsonError) {
+            lexerError = error
+            pending = null // no token is pending here: every branch setting it returns immediately
+            closeReader()
+        }
 
         private fun closeReader() {
             if (!finished) {
@@ -111,6 +162,7 @@ class JsonLexerLazy(val inputStream: InputStream) {
         }
 
         private fun advance() {
+            if (lexerError != null) return
             if (pending != null) return
             if (queuedSeparator != null) {
                 pending = queuedSeparator
@@ -176,27 +228,25 @@ class JsonLexerLazy(val inputStream: InputStream) {
                         else -> charWriter.write(char)
                     }
 
-                    Escaping -> when (char) {
-                        '\\' -> charWriter.write('\\').also { state = InString }
-                        '/' -> charWriter.write('/').also { state = InString }
-                        '"' -> charWriter.write('"').also { state = InString }
-                        'n' -> charWriter.write('\n').also { state = InString }
-                        'f' -> charWriter.write('\t').also { state = InString }
-                        't' -> charWriter.write('\t').also { state = InString }
-                        'r' -> charWriter.write('\r').also { state = InString }
-                        'b' -> charWriter.write('\b').also { state = InString }
-                        'u' -> {
-                            state = Unicode
-                        }
-
-                        else -> error("wrongly escaped char '\\$char' inside a Json string")
+                    Escaping -> if (char == 'u') state = Unicode
+                    else {
+                        val escaped = escapedChar(char)
+                            ?: return stopWith(
+                                wrongEscapeError(char, charWriter.takeLast(10), currPos - 1)
+                            )
+                        charWriter.write(escaped)
+                        state = InString
                     }
 
                     Unicode -> {
                         unicodeCharacterPointString += char
                         if (unicodeCharacterPointString.length == 4) {
-                            val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
-                                ?: error("invalid unicode escape sequence '\\u${unicodeCharacterPointString}'")
+                            val unicodeChar = unicodeChar(unicodeCharacterPointString)
+                                ?: return stopWith(
+                                    invalidUnicodeError(
+                                        unicodeCharacterPointString, charWriter.takeLast(10), currPos - 1
+                                    )
+                                )
                             charWriter.write(unicodeChar)
                             unicodeCharacterPointString = ""
                             state = InString
@@ -299,44 +349,21 @@ class JsonLexerEager(val jsonStr: CharSequence) {
                     else -> charWriter.write(char)
                 }
 
-                Escaping -> when (char) {
-                    '\\' -> charWriter.write('\\').also { state = InString }
-                    '"' -> charWriter.write('"').also { state = InString }
-                    '/' -> charWriter.write('/').also { state = InString }
-                    'n' -> charWriter.write('\n').also { state = InString }
-                    'f' -> charWriter.write('\t').also { state = InString }
-                    't' -> charWriter.write('\t').also { state = InString }
-                    'r' -> charWriter.write('\r').also { state = InString }
-                    'b' -> charWriter.write('\b').also { state = InString }
-                    'u' -> state = Unicode
-                    else -> return parsingFailure(
-                        "a valid Json",
-                        "wrongly escaped char '\\$char' inside a Json string after '${charWriter.takeLast(10)}'",
-                        pos,
-                        NodePathRoot,
-                        "Invalid Json"
-                    ).also { state = InString }
+                Escaping -> if (char == 'u') state = Unicode
+                else {
+                    val escaped = escapedChar(char)
+                        ?: return wrongEscapeError(char, charWriter.takeLast(10), pos).asFailure()
+                    charWriter.write(escaped)
+                    state = InString
                 }
 
                 Unicode -> {
                     unicodeCharacterPointString += char
 
                     if (unicodeCharacterPointString.length == 4) {
-                        val unicodeChar = unicodeCharacterPointString.toIntOrNull(16)?.toChar()
-
-                        if (unicodeChar == null) {
-                            return parsingFailure(
-                                "a valid Json",
-                                "invalid unicode escape sequence '\\u${unicodeCharacterPointString}' after '${
-                                    charWriter.takeLast(
-                                        10
-                                    )
-                                }'",
-                                pos,
-                                NodePathRoot,
-                                "Invalid Json"
-                            )
-                        }
+                        val unicodeChar = unicodeChar(unicodeCharacterPointString)
+                            ?: return invalidUnicodeError(unicodeCharacterPointString, charWriter.takeLast(10), pos)
+                                .asFailure()
 
                         charWriter.write(unicodeChar)
                         unicodeCharacterPointString = ""
