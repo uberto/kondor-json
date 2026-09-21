@@ -1,6 +1,8 @@
 package com.ubertob.kondor.json
 
+import com.ubertob.kondor.json.jsonnode.JsonNodeObject
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
+import com.ubertob.kondor.json.jsonnode.parseJsonNode
 import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.randomList
 import com.ubertob.kondortools.expectSuccess
@@ -47,6 +49,18 @@ class JDataClassTest {
         }
     }
 
+
+    @Test
+    fun `non finite numbers round trip on both paths`() {
+        val measure = AutoMeasure(Double.NaN, Float.NEGATIVE_INFINITY)
+        val json = AutoMeasure.Json.toJson(measure)
+
+        expectThat(AutoMeasure.Json.fromJson(json).expectSuccess()).isEqualTo(measure)
+        expectThat(
+            AutoMeasure.Json.fromJsonNode(parseJsonNode(json).expectSuccess() as JsonNodeObject, NodePathRoot)
+                .expectSuccess()
+        ).isEqualTo(measure)
+    }
 
     @Test
     fun `unknown fields are ignored`() {

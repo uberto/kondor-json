@@ -32,6 +32,10 @@ depend on.
 - **JMap**: Map converters for key-value structures
 - **JSealed**: Sealed class converters for polymorphic types
 
+`NaN`, `Infinity` and `-Infinity` are not valid Json numbers: the `JDoubleRepresentable` and `JFloatRepresentable`
+converters (`JDouble`, `JFloat` and the wrappers built on them) write them as text (`"NaN"`) and read them back from
+it, on both the token and the `JsonNode` path.
+
 ### Utilities
 
 - **JsonStyle**: Configurable JSON formatting (compact, pretty, with nulls)

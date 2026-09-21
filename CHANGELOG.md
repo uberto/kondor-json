@@ -3,6 +3,14 @@
 This list is not currently intended to be all-encompassing - it will document major and breaking API changes with their
 rationale when appropriate:
 
+### v.4.2.0 - unreleased
+
+Kondor-core: a non finite number (`NaN`, `Infinity`, `-Infinity`) is read back from its own rendering on the
+`JsonNode` path too: `JDouble` refused the unsigned `"Infinity"` it writes, and `JFloat` refused all of them, while
+the token path read them. Reading a text which is not a non finite number now fails with
+`expected a non finite Number (NaN, Infinity, -Infinity) but found '...'`, for `JFloat` too, and reading a `JFloat`
+from a wrong kind of node reports `expected a Number or NaN but found Boolean` instead of `... but found Boolean 'null'`
+
 ### v.4.1.0 - 20 September 2026
 
 Kondor-core: fixed parsing of empty Json objects `{}` in JMap and JObj (e.g. empty maps and objects with only null fields)

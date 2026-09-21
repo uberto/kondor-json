@@ -89,6 +89,9 @@ abstract class JFloatRepresentable<T : Any> : JNumRepresentable<Float, T>() {
             else
                 app.appendText(float.toString())
         }
+
+    override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
+        fromNumberOrNonFinite(node, path) { cons(it.toFloat()) }
 }
 
 object JFloat : JFloatRepresentable<Float>() {
@@ -112,27 +115,7 @@ abstract class JDoubleRepresentable<T : Any> : JNumRepresentable<Double, T>() {
         }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
-        when (node) {
-            is JsonNodeNumber -> fromJsonNode(node, path)
-            is JsonNodeString -> tryNanNode(node, path)
-            is JsonNodeNull -> null.asSuccess()
-            else -> ConverterJsonError(
-                path,
-                "expected a Number or NaN but found ${node.nodeKind.desc}"
-            ).asFailure()
-        }
-
-    private fun tryNanNode(node: JsonNodeString, path: NodePath): Outcome<JsonError, T?> =
-        when (node.text) {
-            "NaN" -> cons(Double.NaN).asSuccess()
-            "+Infinity" -> cons(Double.POSITIVE_INFINITY).asSuccess()
-            "-Infinity" -> cons(Double.NEGATIVE_INFINITY).asSuccess()
-            else -> ConverterJsonError(
-                path,
-                "expected a Number or NaN but found '${node.text}'"
-            ).asFailure()
-        }
-
+        fromNumberOrNonFinite(node, path, cons)
 }
 
 object JDouble : JDoubleRepresentable<Double>() {
@@ -217,12 +200,36 @@ abstract class JNumRepresentable<NUM : Number, T : Any>() : JsonConverter<T, Jso
     override fun fromJsonNode(node: JsonNodeNumber, path: NodePath): JsonOutcome<T> =
         tryFromNode(path) { cons(toNumberSubtype(node.num)) }
 
+    /**
+     * Reads a number, or a non finite one from its text: `NaN` and `Infinity` are not valid Json numbers, so the
+     * converters that can render them write them as text. Only those converters use this, the integer ones keep
+     * refusing a text.
+     */
+    protected fun fromNumberOrNonFinite(
+        node: JsonNode,
+        path: NodePath,
+        consNonFinite: (Double) -> T
+    ): JsonOutcome<T?> =
+        when (node) {
+            is JsonNodeNumber -> fromJsonNode(node, path)
+            is JsonNodeString -> nonFiniteFromText(node, path, consNonFinite)
+            is JsonNodeNull -> null.asSuccess()
+            else -> ConverterJsonError(path, "expected a Number or NaN but found ${node.nodeKind.desc}").asFailure()
+        }
+
     override fun toJsonNode(value: T): JsonNodeNumber =
         JsonNodeNumber(render(value))
 
     override val _nodeType = NumberNode
 
 }
+
+private fun <T : Any> nonFiniteFromText(node: JsonNodeString, path: NodePath, cons: (Double) -> T): JsonOutcome<T> =
+    nonFiniteNumbers[node.text]
+        ?.let { nonFinite -> tryFromNode(path) { cons(nonFinite) } }
+        ?: ConverterJsonError(
+            path, "expected a non finite Number (NaN, Infinity, -Infinity) but found '${node.text}'"
+        ).asFailure()
 
 abstract class JStringRepresentable<T>() : JsonConverter<T, JsonNodeString> {
     abstract val cons: (String) -> T

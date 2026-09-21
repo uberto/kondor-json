@@ -50,10 +50,17 @@ news is that kondor-core is almost there already.
 
 4.1.0 fixed several of these, and the reviews found more that are still open.
 
-- **Kondor cannot read back its own output for non-finite numbers on the `JAny` path**: `JDoubleRepresentable.tryNanNode`
-  accepts `"NaN"`, `"+Infinity"` and `"-Infinity"` but not `"Infinity"`, which is exactly what it writes.
-  `JFloatRepresentable` has no `tryNanNode` at all, so all three non-finite floats fail through `JAny`, while `JObj`
-  reads them. Move `tryNanNode` into `JNumRepresentable`.
+- ~~Kondor cannot read back its own output for non-finite numbers on the `JAny` path.~~ Done: `JDouble` and `JFloat`
+  share `fromNumberOrNonFinite`, which reads the same texts the token path accepts (`NonFiniteNumbersTest`).
+- **A quoted finite number is read by the token path and refused by the `JsonNode` path**, for every number converter:
+  `JDouble.fromJson("\"1.5\"")` succeeds, the same value in a `JsonNode` fails. Kondor never writes those, so it does
+  not break a round trip, but the two paths should agree.
+- **`toJsonNode` writes a non finite number as a bare `NaN`**, which is not valid Json, while `toJson` writes it as
+  text: `converter.toJson(v)` and `converter.toJsonNode(v).render()` differ for those values.
+- **`-0.0` does not round trip**: it is read back as `0.0`, on both paths, since `BigDecimal` has no signed zero
+  (a side effect of reading numbers as `BigDecimal` in 4.1.0).
+- **The schema says `{"type":"number"}`** for `JDouble` and `JFloat`, but a non finite value is written as a string, so
+  kondor's own output does not validate against its own schema.
 - **Deeply nested Json overflows the stack**: about 1000 levels of `[` throw a `StackOverflowError` out of
   `parseJsonNode`, which returns an `Outcome`. Needs a depth limit.
 - **Leniency the lexers still allow**, both paths agreeing: trailing commas (`[1,]`, and `{"id":1,}` for `JAny` but not

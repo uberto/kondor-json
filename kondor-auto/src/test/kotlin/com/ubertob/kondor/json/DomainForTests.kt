@@ -110,3 +110,10 @@ fun randomInvoice() = Invoice(
     created = LocalDate.now(),
     paid = randomNullable { Instant.now().truncatedTo(SECONDS) }
 )
+
+data class AutoMeasure(val amount: Double, val ratio: Float) {
+    object Json : JDataClass<AutoMeasure>(AutoMeasure::class) {
+        val amount by num(AutoMeasure::amount)
+        val ratio by num(JFloat, AutoMeasure::ratio)
+    }
+}
