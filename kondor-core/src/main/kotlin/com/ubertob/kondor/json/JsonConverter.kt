@@ -76,8 +76,10 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
         toJson(value, jsonStyle)
 
     override fun fromJson(json: String): JsonOutcome<T> =
-        KondorTokenizer.tokenize(json)
-            .bind(::fromTokensExhaustive)
+        catchingStackOverflow {
+            KondorTokenizer.tokenize(json)
+                .bind(::fromTokensExhaustive)
+        }
 
     /**
      * Reads a value from a stream of Json.
@@ -87,14 +89,16 @@ interface JsonConverter<T, JN : JsonNode> : Profunctor<T, T>,
      * An error reading the stream is thrown as an `IOException`, it is not part of the returned outcome.
      */
     fun fromJson(jsonStream: InputStream): JsonOutcome<T> =
-        KondorTokenizer.tokenize(jsonStream)
-            .bind { tokens ->
-                try {
-                    fromTokensExhaustive(tokens)
-                } finally {
-                    tokens.close()
+        catchingStackOverflow {
+            KondorTokenizer.tokenize(jsonStream)
+                .bind { tokens ->
+                    try {
+                        fromTokensExhaustive(tokens)
+                    } finally {
+                        tokens.close()
+                    }
                 }
-            }
+        }
 
     private fun fromTokensExhaustive(tokens: TokensStream): JsonOutcome<T> =
         fromTokens(tokens, NodePathRoot)

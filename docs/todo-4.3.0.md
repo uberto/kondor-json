@@ -61,8 +61,12 @@ news is that kondor-core is almost there already.
   (a side effect of reading numbers as `BigDecimal` in 4.1.0).
 - **The schema says `{"type":"number"}`** for `JDouble` and `JFloat`, but a non finite value is written as a string, so
   kondor's own output does not validate against its own schema.
-- **Deeply nested Json overflows the stack**: about 1000 levels of `[` throw a `StackOverflowError` out of
-  `parseJsonNode`, which returns an `Outcome`. Needs a depth limit.
+- ~~Deeply nested Json overflows the stack.~~ Done for the entry points parsing a `String` or a stream, which report
+  an `InvalidJsonError` (`DeeplyNestedJsonTest`). Still open, all only reachable with a `JsonNode` built by hand,
+  since a parsed one cannot be deep enough: rendering one (`render`, `toJson`), converting one (`fromJsonNode`) and
+  `fromTokens`, which is the recursive part and cannot be guarded without a cost at every level.
+- **`InvalidJsonError` now covers two different things**: a malformed Json and a valid one kondor cannot parse. A
+  separate error type would let callers tell them apart, but `JsonError` is sealed, so it breaks an exhaustive `when`.
 - **Leniency the lexers still allow**, both paths agreeing: trailing commas (`[1,]`, and `{"id":1,}` for `JAny` but not
   `JObj`), text after the end of a document in `parseJsonNode` (`{} x`), raw control characters inside strings, and a
   `\u` escape cut short before the end of the input. Decide which of them to reject.

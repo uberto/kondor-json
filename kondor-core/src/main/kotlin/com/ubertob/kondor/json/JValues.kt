@@ -144,11 +144,30 @@ object JBigInteger : JBigIntegerRepresentable<BigInteger>() {
 }
 
 
+/**
+ * Parsing a Json is recursive, so a Json nested deeper than the stack allows would kill it. The entry points parsing
+ * a `String` or an `InputStream`, and [com.ubertob.kondor.json.jsonnode.NodeKind.parse], use this to report it as an
+ * invalid Json; `fromTokens` does not, since it is the recursive part. The depth accepted is a few hundred levels,
+ * depending on the size of the stack and on how warm the JVM is.
+ *
+ * It catches any [StackOverflowError] of the block, so a converter recursing on itself is reported the same way.
+ */
+internal fun <T> catchingStackOverflow(block: () -> JsonOutcome<T>): JsonOutcome<T> =
+    try {
+        block()
+    } catch (_: StackOverflowError) {
+        //the path is lost together with the frames already unwound
+        InvalidJsonError(NodePathRoot, "the Json is nested too deeply to be parsed").asFailure()
+    }
+
 fun <T> tryWithPath(path: NodePath, f: () -> JsonOutcome<T>): JsonOutcome<T> =
     try {
         f()
     } catch (exception: Throwable) {
         when (exception) {
+            //let it reach catchingStackOverflow, so that there is one error for all of them
+            is StackOverflowError -> throw exception
+
             is NumberFormatException -> ConverterJsonError(path, "Wrong number format ${exception.message}")
             is ArithmeticException -> ConverterJsonError(path, "Wrong number format ${exception.message}")
             is JsonParsingException -> exception.error
@@ -162,6 +181,9 @@ fun <T> tryFromNode(path: NodePath, f: () -> T): JsonOutcome<T> =
     Outcome.tryOrFail { f() }
         .transformFailure { throwableError ->
             when (val exception = throwableError.throwable) {
+                //let it reach catchingStackOverflow, so that there is one error for all of them
+                is StackOverflowError -> throw exception
+
                 is ArithmeticException -> ConverterJsonError(path, "Wrong number format: ${exception.message}")
                 is JsonParsingException -> exception.error
                 is IllegalStateException -> ConverterJsonError(path, throwableError.msg)

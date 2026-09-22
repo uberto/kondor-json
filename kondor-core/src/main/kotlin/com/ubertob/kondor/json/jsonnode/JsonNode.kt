@@ -3,6 +3,7 @@ package com.ubertob.kondor.json.jsonnode
 import com.ubertob.kondor.json.JsonError
 import com.ubertob.kondor.json.JsonParsingException
 import com.ubertob.kondor.json.JsonProperty
+import com.ubertob.kondor.json.catchingStackOverflow
 import com.ubertob.kondor.json.parser.JsonLexerEager
 import com.ubertob.kondor.json.parser.parseNewNode
 import com.ubertob.kondor.json.parser.parsingFailure
@@ -73,6 +74,7 @@ fun parseJsonNode(jsonString: String): Outcome<JsonError, JsonNode> =
     if (jsonString.isEmpty())
         parsingFailure("some valid Json", "end of file", 0, NodePathRoot, "invalid Json")
     else
-        JsonLexerEager(jsonString).tokenize()
-//    JsonLexerLazy(ByteArrayInputStream(jsonString.toByteArray())).tokenize()
-            .bind { it.onRoot().parseNewNode() ?: JsonNodeNull.asSuccess() }
+        catchingStackOverflow {
+            JsonLexerEager(jsonString).tokenize()
+                .bind { it.onRoot().parseNewNode() ?: JsonNodeNull.asSuccess() }
+        }

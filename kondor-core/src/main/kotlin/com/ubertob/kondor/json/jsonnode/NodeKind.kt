@@ -1,13 +1,17 @@
 package com.ubertob.kondor.json.jsonnode
 
 import com.ubertob.kondor.json.JsonOutcome
+import com.ubertob.kondor.json.catchingStackOverflow
 import com.ubertob.kondor.json.parser.*
 import com.ubertob.kondor.outcome.bind
 
 sealed class NodeKind<JN : JsonNode>(
     val desc: String,
-    val parse: TokensPath.() -> JsonOutcome<JN>
+    parseNode: TokensPath.() -> JsonOutcome<JN>
 ) {
+    //a Json nested too deeply for the stack is an error here too, since this is called directly as well
+    val parse: TokensPath.() -> JsonOutcome<JN> = { catchingStackOverflow { parseNode() } }
+
     fun fromJsonString(json: String): JsonOutcome<JN> =
         KondorTokenizer.tokenize(json)
             .bind { parse(TokensPath(it, NodePathRoot)) }

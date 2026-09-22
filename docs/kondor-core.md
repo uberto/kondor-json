@@ -131,13 +131,17 @@ graph TD
     B -->|Success| C[Success<T>]
     B -->|Error| D[Failure<JsonError>]
     D --> E{Error Type}
-    E --> F[InvalidJsonError<br/>Malformed JSON]
+    E --> F[InvalidJsonError<br/>Malformed or too deeply nested JSON]
     E --> G[ConverterJsonError<br/>Type Mismatch]
     E --> H[JsonPropertyError<br/>Property Missing]
     F --> I[NodePath + Position]
     G --> J[NodePath + Expected vs Actual]
     H --> K[NodePath + Field Name]
 ```
+
+Parsing is recursive, so a Json nested deeper than the stack allows would kill it: `fromJson` (from a `String` and
+from an `InputStream`), `parseJsonNode` and the `NodeKind` functions report it as an `InvalidJsonError` instead.
+`fromTokens`, and converting or rendering a `JsonNode` built by hand, are not guarded.
 
 ## Performance Considerations
 
