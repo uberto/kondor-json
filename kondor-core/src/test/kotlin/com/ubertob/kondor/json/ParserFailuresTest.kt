@@ -315,8 +315,7 @@ class ParserFailuresTest {
 
         val error = JInvoice.fromJson(jsonWithDifferentField).expectFailure()
 
-        // the detail comes from BigDecimal and changes between Java versions
-        expectThat(error.msg).startsWith("Error converting node </items/[0]/price> Wrong number format ")
+        expectThat(error.msg).isEqualTo("Error parsing node </items/[0]/price> at position 263: expected a Number but found \"a string\" - a number between quotes is not valid Json, only NaN and Infinity are written as text")
     }
 
     object JPersonIncomplete : JAny<Person>() {
@@ -433,7 +432,7 @@ class ParserFailuresTest {
   ]"""
         val error = JList(JUserFile).fromJson(wrongjson).expectFailure()
 
-        expectThat(error.msg).isEqualTo("Error converting node </[1]/user/id> Wrong number format For input string: \"id-123\"")
+        expectThat(error.msg).isEqualTo("Error parsing node </[1]/user/id> at position 388: expected a Number but found \"id-123\" - a number between quotes is not valid Json, only NaN and Infinity are written as text")
     }
 
     @Test

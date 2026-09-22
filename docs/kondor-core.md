@@ -34,7 +34,9 @@ depend on.
 
 `NaN`, `Infinity` and `-Infinity` are not valid Json numbers: the `JDoubleRepresentable` and `JFloatRepresentable`
 converters (`JDouble`, `JFloat` and the wrappers built on them) write them as text (`"NaN"`) and read them back from
-it, on both the token and the `JsonNode` path. A `JsonNode` holding one renders it as text as well, so
+it, on both the token and the `JsonNode` path. They are the only numbers read from a text (`+Infinity` is accepted
+too, although it is never written): any other number between quotes, such as `"42"`, is an error, because a Json
+number is not quoted. A field holding a number as a string needs a converter reading a String. A `JsonNode` holding one renders it as text as well, so
 `converter.toJsonNode(value).render()` matches `converter.toJson(value)`; parsing that Json back gives a
 `JsonNodeString`, which the converters read.
 

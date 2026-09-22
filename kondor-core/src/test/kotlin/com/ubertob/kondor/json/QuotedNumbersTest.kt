@@ -5,6 +5,7 @@ import com.ubertob.kondor.json.parser.KondorTokenizer
 import com.ubertob.kondor.json.parser.parseNumber
 import com.ubertob.kondor.json.parser.TokensPath
 import com.ubertob.kondor.json.parser.parseJsonNodeNum
+import com.ubertob.kondor.outcome.Failure
 import com.ubertob.kondor.outcome.bind
 import com.ubertob.kondortools.expectFailure
 import com.ubertob.kondortools.expectSuccess
@@ -12,31 +13,32 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.fail
 import strikt.api.expectThat
 import strikt.assertions.contains
+import strikt.assertions.isA
 import strikt.assertions.isEqualTo
 import strikt.assertions.isTrue
 import strikt.assertions.startsWith
 import java.math.BigDecimal
 
-// numbers are accepted between quotes, for NaN and Infinity: an invalid one must be an error, not an exception
+// only NaN and Infinity are written, and read, between quotes: any other number between quotes is an error, and so
+// is a text which is not a number, which used to throw instead of failing
 class QuotedNumbersTest {
 
-    // the detail of the error comes from BigDecimal and changes between Java versions
-    private val quotedWordError = "Error parsing node <[root]> at position 0: expected a valid Number but found 'a' - NumberFormatException "
+    private fun quotedError(text: String, path: String = "[root]", position: Int = 0) =
+        """Error parsing node <$path> at position $position: expected a Number but found "$text" - """ +
+                "a number between quotes is not valid Json, only NaN and Infinity are written as text"
 
     @Test
     fun `a quoted word is not a number`() {
-        // the only case fixed here: the converters wrap the conversion themselves, the JsonNode path did not
-        expectThat(expectParsingError(NumberNode, """"a"""").msg).startsWith(quotedWordError)
+        expectThat(expectParsingError(NumberNode, """"a"""").msg).isEqualTo(quotedError("a"))
 
         val fromStream = KondorTokenizer.tokenize(""""a"""".byteInputStream())
             .bind { TokensPath(it, NodePathRoot).parseJsonNodeNum() }
-        expectThat(fromStream.expectFailure().msg).startsWith(quotedWordError)
+        expectThat(fromStream.expectFailure().msg).isEqualTo(quotedError("a"))
     }
 
     @Test
     fun `an empty quoted value is not a number`() {
-        expectThat(expectParsingError(NumberNode, "\"\"").msg)
-            .isEqualTo("Error parsing node <[root]> at position 0: expected a valid Number but found '' - NumberFormatException not a valid number")
+        expectThat(expectParsingError(NumberNode, "\"\"").msg).isEqualTo(quotedError(""))
     }
 
     @Test
@@ -54,7 +56,7 @@ class QuotedNumbersTest {
 
     @Test
     fun `a number Java accepts but Json does not is an error`() {
-        listOf(""""1d"""", """"0x1p3"""", """" 12 """", "1d", "0x1p3").forEach { json ->
+        listOf("1d", "0x1p3").forEach { json ->
             expectThat(expectParsingError(NumberNode, json).msg).contains("expected a valid Number")
         }
         expectThat(JDouble.fromJson("1d").expectFailure().msg).startsWith("Error converting node <[root]> Wrong number format ")
@@ -70,9 +72,46 @@ class QuotedNumbersTest {
 
     @Test
     fun `a quoted number in a converter is an error, not an exception`() {
-        expectThat(JInt.fromJson(""""a"""").expectFailure().msg)
-            .isEqualTo("Error converting node <[root]> Wrong number format For input string: \"a\"")
-        expectThat(JDouble.fromJson(""""a"""".byteInputStream()).expectFailure().msg)
+        expectThat(JInt.fromJson(""""a"""").expectFailure().msg).isEqualTo(quotedError("a"))
+        expectThat(JDouble.fromJson(""""a"""".byteInputStream()).expectFailure().msg).isEqualTo(quotedError("a"))
+        expectThat(JInt.fromJson("a").expectFailure().msg)
+            .startsWith("Error converting node <[root]> Wrong number format ")
+    }
+
+    @Test
+    fun `a quoted number is not read as a number, on either path`() {
+        val converters = listOf<Pair<String, JsonConverter<*, *>>>(
+            "JInt" to JInt, "JLong" to JLong, "JDouble" to JDouble, "JFloat" to JFloat,
+            "JBigDecimal" to JBigDecimal, "JBigInteger" to JBigInteger
+        )
+
+        listOf(""""42"""", """"1.5"""", """"-0.0"""").forEach { json ->
+            converters.forEach { (name, converter) ->
+                expectThat(converter.fromJson(json)).describedAs("$name reading $json").isA<Failure<*>>()
+                expectThat(converter.fromJson(json.byteInputStream())).describedAs("$name reading $json from a stream")
+                    .isA<Failure<*>>()
+                expectThat(converter.fromJsonNodeBase(parseJsonNode(json).expectSuccess(), NodePathRoot))
+                    .describedAs("$name reading $json from a node").isA<Failure<*>>()
+            }
+        }
+    }
+
+    @Test
+    fun `a quoted number says what is wrong`() {
+        expectThat(JInt.fromJson(""""42"""").expectFailure().msg).isEqualTo(quotedError("42"))
+        //the error names the field and where it is, as for any other value
+        expectThat(JProduct.fromJson("""{"id": 1, "short-desc": "s", "long_description": "l", "price": "12.5"}""")
+            .expectFailure().msg).isEqualTo(quotedError("12.5", "/price", 62))
+        expectThat(Product.Json.fromJson("""{"id": "1", "short-desc": "s", "long_description": "l", "price": 1.5}""")
+            .expectFailure().msg).isEqualTo("Error converting node </id> expected a Number but found String '1'")
+    }
+
+    @Test
+    fun `NaN and Infinity are read between quotes only by the converters having them`() {
+        //JInt and JBigDecimal have no NaN: the converter refuses it, as it does for a bare NaN
+        expectThat(JInt.fromJson(""""NaN"""").expectFailure().msg)
+            .startsWith("Error converting node <[root]> Wrong number format ")
+        expectThat(JBigDecimal.fromJson(""""Infinity"""").expectFailure().msg)
             .startsWith("Error converting node <[root]> Wrong number format ")
     }
 
@@ -106,8 +145,8 @@ class QuotedNumbersTest {
 
         expectThat(parseNumber(KondorTokenizer.tokenize("42").expectSuccess(), NodePathRoot, jThrowing::parser).expectFailure().msg)
             .isEqualTo("Error parsing node <[root]> at position 0: expected a Number or NaN but found '42' - IllegalStateException: bang 42")
-        expectThat(parseNumber(KondorTokenizer.tokenize(""""42"""").expectSuccess(), NodePathRoot, jThrowing::parser).expectFailure().msg)
-            .isEqualTo("Error parsing node <[root]> at position 0: expected a Number or NaN but found '42' - IllegalStateException: bang 42")
+        expectThat(parseNumber(KondorTokenizer.tokenize(""""NaN"""").expectSuccess(), NodePathRoot, jThrowing::parser).expectFailure().msg)
+            .isEqualTo("Error parsing node <[root]> at position 0: expected a Number or NaN but found 'NaN' - IllegalStateException: bang NaN")
     }
 
     @Test

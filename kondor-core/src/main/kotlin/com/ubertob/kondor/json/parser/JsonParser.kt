@@ -267,9 +267,17 @@ fun <T> parseNumber(
             convertNumber(token.text, position, path, converter)
         }
 
-        is OpeningQuotesSep -> //case NaN Infinity -> letting the converter try
+        is OpeningQuotesSep -> //only NaN and Infinity are written as text, a number between quotes is not valid Json
             parseString(tokens, path)
-                .bind { text -> convertNumber(text, position, path, converter) }
+                .bind { text ->
+                    if (text in nonFiniteNumbers) //the converter says if it can read them: only JDouble and JFloat can
+                        convertNumber(text, position, path, converter)
+                    else
+                        parsingFailure(
+                            "a Number", "\"$text\"", position, path,
+                            "a number between quotes is not valid Json, only NaN and Infinity are written as text"
+                        )
+                }
 
         else -> parsingFailure("a Number value", token, position, path, "not a valid number")
     }

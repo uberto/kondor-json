@@ -50,6 +50,9 @@ The converter fields are public so they can be used in filters.
 
 MongoDB adds an `_id` field to every document: both `JAny` and `JObj` converters ignore it, unless they declare it.
 
+A `Decimal128` field is read by the driver as `{"$numberDecimal": "9.99"}`, a number between quotes, which kondor
+refuses since 4.2.0: read that field with a converter reading a String, such as a `JStringRepresentable<BigDecimal>`.
+
 Documents are written with all numbers as doubles, so an `Int` field is stored as `7.0`. A `JAny` reads it back
 correctly, while a `JObj` fails on the integer fields: use `JAny` converters for tables with `Int` or `Long` fields.
 

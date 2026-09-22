@@ -5,6 +5,11 @@ rationale when appropriate:
 
 ### v.4.2.0 - unreleased
 
+Kondor-core (**breaking**): a number between quotes (e.g. `"42"`) is an error, as it already was when parsing a
+`JsonNode`: only `NaN`, `Infinity` and `-Infinity` (and `+Infinity`) are read as text, and only by `JDouble` and
+`JFloat`. Before, a `JObj` read any quoted number while the same converter as a `JAny` refused it. A Json sending
+numbers as strings (e.g. an id as `"1600000000000"`, or a MongoDB `Decimal128`, written as
+`{"$numberDecimal": "9.99"}`) needs a converter reading a String, such as a `JStringRepresentable`
 Kondor-core: a zero written with a minus (`-0.0`, `-0`, `-0e10`) keeps its sign: `JDouble` and `JFloat` read it as
 `-0.0` on both paths, where reading numbers as `BigDecimal` in 4.1.0 turned it into `0.0`. In a `JsonNode` it is a
 `NegativeZero`, a new `Number` holding the sign and the parsed number: the other converters read it as before, and

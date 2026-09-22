@@ -52,9 +52,8 @@ news is that kondor-core is almost there already.
 
 - ~~Kondor cannot read back its own output for non-finite numbers on the `JAny` path.~~ Done: `JDouble` and `JFloat`
   share `fromNumberOrNonFinite`, which reads the same texts the token path accepts (`NonFiniteNumbersTest`).
-- **A quoted finite number is read by the token path and refused by the `JsonNode` path**, for every number converter:
-  `JDouble.fromJson("\"1.5\"")` succeeds, the same value in a `JsonNode` fails. Kondor never writes those, so it does
-  not break a round trip, but the two paths should agree.
+- ~~A quoted finite number is read by the token path and refused by the `JsonNode` path.~~ Done: both refuse it, only
+  `NaN` and `Infinity` are read from text (`QuotedNumbersTest`).
 - ~~`toJsonNode` writes a non finite number as a bare `NaN`.~~ Done: a `JsonNode` renders it as text as well
   (`NonFiniteRenderingTest`). Reading it back gives a `JsonNodeString`, so a `JsonNode` holding a non finite number
   does not survive a render and parse as a `JsonNodeNumber`.
