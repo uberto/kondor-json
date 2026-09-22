@@ -38,9 +38,11 @@ it, on both the token and the `JsonNode` path. A `JsonNode` holding one renders 
 `converter.toJsonNode(value).render()` matches `converter.toJson(value)`; parsing that Json back gives a
 `JsonNodeString`, which the converters read.
 
-Numbers are read as `BigDecimal`, which has no negative zero: `-0.0` is read back as `0.0`. The two are the same
-number (`-0.0 == 0.0`), but not the same `Double` for `equals`, so a value holding one does not compare equal after a
-round trip.
+Numbers are read as `BigDecimal`, which has no negative zero: a zero written with a minus (`-0.0`, `-0`, `-0e10`) is
+read as a `NegativeZero`, which holds the sign together with the parsed number. `JDouble` and `JFloat` read it back as
+`-0.0`, the other converters read the number and its scale as usual, and rendering writes the zero with its sign.
+It is the only number in a `JsonNode` which is not a `BigDecimal`, so `asNumValue()` returns a `NegativeZero` for it:
+use `toDouble()`, or `zero` for the number without the sign.
 
 ### Utilities
 

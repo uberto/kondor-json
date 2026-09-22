@@ -120,9 +120,12 @@ internal val nonFiniteNumbers = mapOf(
     "-Infinity" to Double.NEGATIVE_INFINITY
 )
 
+internal fun numberOrNegativeZero(text: String): Number =
+    BigDecimal(text).let { if (it.signum() == 0 && text.startsWith('-')) NegativeZero(it) else it }
+
 fun bigDecimalParser(value: String): JsonOutcome<Number> =
     try {
-        BigDecimal(value).asSuccess()
+        numberOrNegativeZero(value).asSuccess()
     } catch (e: NumberFormatException) {
         nonFiniteNumbers[value]?.asSuccess()
             ?: throw e //the path and the position are known only by the caller, convertNumber

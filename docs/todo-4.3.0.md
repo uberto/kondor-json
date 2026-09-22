@@ -58,14 +58,14 @@ news is that kondor-core is almost there already.
 - ~~`toJsonNode` writes a non finite number as a bare `NaN`.~~ Done: a `JsonNode` renders it as text as well
   (`NonFiniteRenderingTest`). Reading it back gives a `JsonNodeString`, so a `JsonNode` holding a non finite number
   does not survive a render and parse as a `JsonNodeNumber`.
-- **`-0.0` does not round trip**: it is read back as `0.0`, on both paths, since `BigDecimal` has no signed zero
-  (a side effect of reading numbers as `BigDecimal` in 4.1.0). It matters only for `equals`: `-0.0 == 0.0` is true for
-  two `Double`, but `(-0.0).equals(0.0)` is false, so a data class holding one no longer equals itself after a round
-  trip. **Tried and reverted in 4.2.0**: reading such a zero as a `Double` keeps the sign, but a `JsonNodeNumber` then
-  holds a `Double` instead of a `BigDecimal`, which loses the text: `JBigInteger` fails on `-0` from a `JsonNode`
-  (`NumberFormatException: For input string: ".0"`), `JBigDecimal` loses the scale of `-0.000`, and `render()`
-  rewrites `-0` and `-0e10` as `-0.0`. A fix has to keep the text of the number: a `Number` subclass holding it, with
-  `toDouble()` returning `-0.0`, would work, at the price of a third kind of number in the nodes.
+- ~~`-0.0` does not round trip.~~ Done: a zero written with a minus is read as a `NegativeZero`, which keeps the sign
+  together with the parsed number (`NegativeZeroTest`). Reading it as a plain `Double` was tried first and reverted:
+  it loses the number, so `JBigInteger` failed on `-0` from a node, `JBigDecimal` lost the scale of `-0.000`, and
+  `render()` rewrote `-0` as `-0.0`.
+- **`JsonNodeDsl` and kondor-jackson drop the sign of a zero**: `"x" toNode -0.0` builds a `BigDecimal`, and
+  `NumericNode.toKondorJsonNode()` uses `decimalValue()`, so both give `0.0` while the converters keep `-0.0`.
+  Jackson cannot represent it at all, so that direction can only be documented; the DSL could keep it, but building a
+  node from a `Double` would then hold a `Double` instead of a `BigDecimal` for every value.
 - **kondor-jackson writes a non finite number bare**: `toJacksonJsonNode(value).toString()` gives `NaN` while
   `toJson(value)` gives `"NaN"`, unless Jackson's `QUOTE_NON_NUMERIC_NUMBERS` is on. A `JsonStyle` flag to write them
   bare (as Jackson has) was considered and left out, to keep `JsonStyle` small.

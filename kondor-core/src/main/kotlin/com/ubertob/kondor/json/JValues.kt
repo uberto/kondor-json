@@ -8,6 +8,7 @@ import com.ubertob.kondor.json.parser.TokensStream
 import com.ubertob.kondor.json.parser.parseBoolean
 import com.ubertob.kondor.json.parser.parseNumber
 import com.ubertob.kondor.json.parser.nonFiniteNumbers
+import com.ubertob.kondor.json.parser.numberOrNegativeZero
 import com.ubertob.kondor.json.parser.parseString
 import com.ubertob.kondor.outcome.*
 import java.math.BigDecimal
@@ -77,9 +78,9 @@ object JLong : JLongRepresentable<Long>() {
 }
 
 abstract class JFloatRepresentable<T : Any> : JNumRepresentable<Float, T>() {
-    //as BigDecimal, to read the same numbers as the JsonNode parser
+    //as the JsonNode parser, to read the same numbers
     override fun parser(value: String): JsonOutcome<Float> =
-        (nonFiniteNumbers[value]?.toFloat() ?: BigDecimal(value).toFloat()).asSuccess()
+        (nonFiniteNumbers[value]?.toFloat() ?: numberOrNegativeZero(value).toFloat()).asSuccess()
     override fun toNumberSubtype(number: Number): Float = number.toFloat()
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
@@ -93,9 +94,9 @@ object JFloat : JFloatRepresentable<Float>() {
 
 
 abstract class JDoubleRepresentable<T : Any> : JNumRepresentable<Double, T>() {
-    //as BigDecimal, to read the same numbers as the JsonNode parser
+    //as the JsonNode parser, to read the same numbers
     override fun parser(value: String): JsonOutcome<Double> =
-        (nonFiniteNumbers[value] ?: BigDecimal(value).toDouble()).asSuccess()
+        (nonFiniteNumbers[value] ?: numberOrNegativeZero(value).toDouble()).asSuccess()
     override fun toNumberSubtype(number: Number): Double = number.toDouble()
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =

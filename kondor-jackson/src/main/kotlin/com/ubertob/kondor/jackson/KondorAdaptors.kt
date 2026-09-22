@@ -75,7 +75,8 @@ private fun Number.toNumericNode(json: JsonNodeFactory): ValueNode {
         is Float -> json.numberNode(this)
         is Double -> json.numberNode(this)
         is BigDecimal -> json.numberNode(this)
-        else -> throw IllegalArgumentException("Unknown number type: $this")
+        is NegativeZero -> json.numberNode(zero) //Jackson has no negative zero, the sign is lost here
+        else -> json.numberNode(BigDecimal(toString()))
     }
 }
 

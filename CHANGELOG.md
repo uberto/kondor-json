@@ -5,6 +5,11 @@ rationale when appropriate:
 
 ### v.4.2.0 - unreleased
 
+Kondor-core: a zero written with a minus (`-0.0`, `-0`, `-0e10`) keeps its sign: `JDouble` and `JFloat` read it as
+`-0.0` on both paths, where reading numbers as `BigDecimal` in 4.1.0 turned it into `0.0`. In a `JsonNode` it is a
+`NegativeZero`, a new `Number` holding the sign and the parsed number: the other converters read it as before, and
+rendering keeps the sign (`-0` was rendered as `0`). It is the only number in a node which is not a `BigDecimal`, so
+`asNumValue() as BigDecimal` fails for it
 Kondor-core: rendering a Json is about twice as fast: a `Regex` was compiled for every string written and never used
 Kondor-core: a Json nested too deeply for the stack (a few hundred levels, depending on the stack and on how warm the
 JVM is) is reported as `the Json is nested too deeply to be parsed` instead of throwing a `StackOverflowError`:

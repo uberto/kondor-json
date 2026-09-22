@@ -30,6 +30,15 @@ class KondorAdaptorsTests {
         expectThat(actualJacksonNode).isEqualTo(expectedJacksonNode)
     }
 
+    @Test
+    fun `a negative zero becomes a jackson node, losing only its sign`() {
+        val kondorNode = parseJsonNode("""{"a": -0.0, "b": -0}""").expectSuccess()
+
+        val jacksonNode = kondorNode.toJacksonJsonNode()
+
+        expectThat(jacksonNode.toString()).isEqualTo("""{"a":0.0,"b":0}""")
+    }
+
     @ParameterizedTest
     @MethodSource("kondorToJackson")
     fun `jackson JsonNode to kondor JsonNode`(expectedKondorNode: KJsonNode, jacksonNode: JJsonNode) {
