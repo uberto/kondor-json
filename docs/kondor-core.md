@@ -38,6 +38,10 @@ it, on both the token and the `JsonNode` path. A `JsonNode` holding one renders 
 `converter.toJsonNode(value).render()` matches `converter.toJson(value)`; parsing that Json back gives a
 `JsonNodeString`, which the converters read.
 
+Numbers are read as `BigDecimal`, which has no negative zero: `-0.0` is read back as `0.0`. The two are the same
+number (`-0.0 == 0.0`), but not the same `Double` for `equals`, so a value holding one does not compare equal after a
+round trip.
+
 ### Utilities
 
 - **JsonStyle**: Configurable JSON formatting (compact, pretty, with nulls)

@@ -59,7 +59,13 @@ news is that kondor-core is almost there already.
   (`NonFiniteRenderingTest`). Reading it back gives a `JsonNodeString`, so a `JsonNode` holding a non finite number
   does not survive a render and parse as a `JsonNodeNumber`.
 - **`-0.0` does not round trip**: it is read back as `0.0`, on both paths, since `BigDecimal` has no signed zero
-  (a side effect of reading numbers as `BigDecimal` in 4.1.0).
+  (a side effect of reading numbers as `BigDecimal` in 4.1.0). It matters only for `equals`: `-0.0 == 0.0` is true for
+  two `Double`, but `(-0.0).equals(0.0)` is false, so a data class holding one no longer equals itself after a round
+  trip. **Tried and reverted in 4.2.0**: reading such a zero as a `Double` keeps the sign, but a `JsonNodeNumber` then
+  holds a `Double` instead of a `BigDecimal`, which loses the text: `JBigInteger` fails on `-0` from a `JsonNode`
+  (`NumberFormatException: For input string: ".0"`), `JBigDecimal` loses the scale of `-0.000`, and `render()`
+  rewrites `-0` and `-0e10` as `-0.0`. A fix has to keep the text of the number: a `Number` subclass holding it, with
+  `toDouble()` returning `-0.0`, would work, at the price of a third kind of number in the nodes.
 - **kondor-jackson writes a non finite number bare**: `toJacksonJsonNode(value).toString()` gives `NaN` while
   `toJson(value)` gives `"NaN"`, unless Jackson's `QUOTE_NON_NUMERIC_NUMBERS` is on. A `JsonStyle` flag to write them
   bare (as Jackson has) was considered and left out, to keep `JsonStyle` small.
