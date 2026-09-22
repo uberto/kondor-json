@@ -54,7 +54,8 @@ class JsonRenderTest {
 
         val jsonString = JsonNodeNumber(value).render()
 
-        expectThat(jsonString).isEqualTo("NaN")
+        //NaN is not a valid Json number, so it is rendered as text, as the converters do
+        expectThat(jsonString).isEqualTo(""""NaN"""")
     }
 
     @Test

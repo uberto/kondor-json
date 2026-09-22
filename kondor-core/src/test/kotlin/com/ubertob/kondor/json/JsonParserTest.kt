@@ -114,16 +114,17 @@ class JsonParserTest {
     @Test
     fun `parse NaN Double`() {
 
-        val value = Double.NaN
+        //written between quotes, but a bare one is read as well
+        listOf(""""NaN"""" to Double.NaN, "NaN" to Double.NaN, "Infinity" to Double.POSITIVE_INFINITY,
+            """"-Infinity"""" to Double.NEGATIVE_INFINITY).forEach { (jsonString, value) ->
 
-        val jsonString = JsonNodeNumber(value).render()
+            val tokens = tokenize(jsonString).expectSuccess()
 
-        val tokens = tokenize(jsonString).expectSuccess()
+            val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
 
-        val node = tokens.onRoot().parseJsonNodeNum().expectSuccess()
-
-        expectThat(node.num).isEqualTo(value)
-        expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
+            expectThat(node.num).isEqualTo(value)
+            expectThat(lastPosRead(tokens)).isEqualTo(jsonString.length)
+        }
     }
 
 

@@ -82,14 +82,6 @@ abstract class JFloatRepresentable<T : Any> : JNumRepresentable<Float, T>() {
         (nonFiniteNumbers[value]?.toFloat() ?: BigDecimal(value).toFloat()).asSuccess()
     override fun toNumberSubtype(number: Number): Float = number.toFloat()
 
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
-        render(value).let { float ->
-            if (float.isFinite())
-                app.appendNumber(float)
-            else
-                app.appendText(float.toString())
-        }
-
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         fromNumberOrNonFinite(node, path) { cons(it.toFloat()) }
 }
@@ -105,14 +97,6 @@ abstract class JDoubleRepresentable<T : Any> : JNumRepresentable<Double, T>() {
     override fun parser(value: String): JsonOutcome<Double> =
         (nonFiniteNumbers[value] ?: BigDecimal(value).toDouble()).asSuccess()
     override fun toNumberSubtype(number: Number): Double = number.toDouble()
-
-    override fun appendValue(app: CharWriter, style: JsonStyle, offset: Int, value: T): CharWriter =
-        render(value).let { double ->
-            if (double.isFinite())
-                app.appendNumber(double)
-            else
-                app.appendText(double.toString())
-        }
 
     override fun fromJsonNodeBase(node: JsonNode, path: NodePath): JsonOutcome<T?> =
         fromNumberOrNonFinite(node, path, cons)

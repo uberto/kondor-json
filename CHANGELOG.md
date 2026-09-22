@@ -7,13 +7,16 @@ rationale when appropriate:
 
 Kondor-core: rendering a Json is about twice as fast: a `Regex` was compiled for every string written and never used
 Kondor-core: a Json nested too deeply for the stack (a few hundred levels, depending on the stack and on how warm the
-JVM is) is reported
-as `the Json is nested too deeply to be parsed` instead of throwing a `StackOverflowError`: from `fromJson` (`String`
-and `InputStream`), `parseJsonNode` and the `NodeKind` functions, and the same for a converter recursing on itself.
+JVM is) is reported as `the Json is nested too deeply to be parsed` instead of throwing a `StackOverflowError`:
+from `fromJson` (`String` and `InputStream`), `parseJsonNode` and the `NodeKind` functions, and the same for a converter recursing on itself.
 Converting or rendering a `JsonNode` built by hand can still overflow, and so can `fromTokens`, the recursive part of
 the parsing. `tryWithPath` and `tryFromNode` do not convert a `StackOverflowError` into a `ConverterJsonError` any
 more: it reaches the guarded entry points, or the caller for `fromJsonNode`
 
+Kondor-core: a `JsonNode` holding a non finite number (`NaN`, `Infinity`, `-Infinity`) renders it as text, like the
+converters do, instead of writing it bare, which was not valid Json: `converter.toJsonNode(value).render()` and
+`converter.toJson(value)` now agree. Reading such a Json back gives a `JsonNodeString`, and the converters read the
+value as before
 Kondor-core: a non finite number (`NaN`, `Infinity`, `-Infinity`) is read back from its own rendering on the
 `JsonNode` path too: `JDouble` refused the unsigned `"Infinity"` it writes, and `JFloat` refused all of them, while
 the token path read them. Reading a text which is not a non finite number now fails with

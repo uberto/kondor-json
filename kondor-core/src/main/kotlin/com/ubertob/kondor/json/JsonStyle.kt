@@ -247,7 +247,14 @@ data class JsonStyle(
             write("null")
 
 
-        fun CharWriter.appendNumber(num: Number) = write(num.toString())
+        //NaN and Infinity are not valid Json numbers: they are written as text, which the converters read back
+        //(a JsonNode gets a JsonNodeString). Only Double and Float have them: a BigDecimal is always finite
+        fun CharWriter.appendNumber(num: Number) =
+            when {
+                num is Double && !num.isFinite() -> appendText(num.toString())
+                num is Float && !num.isFinite() -> appendText(num.toString())
+                else -> write(num.toString())
+            }
 
 
         fun CharWriter.appendBoolean(bool: Boolean) = write(bool.toString())

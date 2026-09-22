@@ -55,11 +55,15 @@ news is that kondor-core is almost there already.
 - **A quoted finite number is read by the token path and refused by the `JsonNode` path**, for every number converter:
   `JDouble.fromJson("\"1.5\"")` succeeds, the same value in a `JsonNode` fails. Kondor never writes those, so it does
   not break a round trip, but the two paths should agree.
-- **`toJsonNode` writes a non finite number as a bare `NaN`**, which is not valid Json, while `toJson` writes it as
-  text: `converter.toJson(v)` and `converter.toJsonNode(v).render()` differ for those values.
+- ~~`toJsonNode` writes a non finite number as a bare `NaN`.~~ Done: a `JsonNode` renders it as text as well
+  (`NonFiniteRenderingTest`). Reading it back gives a `JsonNodeString`, so a `JsonNode` holding a non finite number
+  does not survive a render and parse as a `JsonNodeNumber`.
 - **`-0.0` does not round trip**: it is read back as `0.0`, on both paths, since `BigDecimal` has no signed zero
   (a side effect of reading numbers as `BigDecimal` in 4.1.0).
-- **The schema says `{"type":"number"}`** for `JDouble` and `JFloat`, but a non finite value is written as a string, so
+- **kondor-jackson writes a non finite number bare**: `toJacksonJsonNode(value).toString()` gives `NaN` while
+  `toJson(value)` gives `"NaN"`, unless Jackson's `QUOTE_NON_NUMERIC_NUMBERS` is on. A `JsonStyle` flag to write them
+  bare (as Jackson has) was considered and left out, to keep `JsonStyle` small.
+- **The schema says `{"type":"number"}` for `JDouble` and `JFloat`, but a non finite value is written as a string, so
   kondor's own output does not validate against its own schema.
 - ~~Deeply nested Json overflows the stack.~~ Done for the entry points parsing a `String` or a stream, which report
   an `InvalidJsonError` (`DeeplyNestedJsonTest`). Still open, all only reachable with a `JsonNode` built by hand,
