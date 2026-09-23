@@ -72,7 +72,7 @@ class JObjUnknownFieldsTest {
         val json = """{"zeta": 1, "alpha": {"id": 3}}"""
 
         val objError = JPerson.fromJson(json).expectFailure()
-        val anyError = JGraphNode.fromJson(json).expectFailure()
+        val anyError = JGraphNodeAny.fromJson(json).expectFailure()
 
         expectThat(objError.msg).isEqualTo("Error reading property <id> of node <[root]> Not found key 'id'. Keys found: [alpha, zeta]")
         expectThat(anyError.msg).isEqualTo("Error reading property <name> of node <[root]> Not found key 'name'. Keys found: [alpha, zeta]")
@@ -124,7 +124,7 @@ class JObjUnknownFieldsTest {
         val value = SelectedFile(true, FileInfo("f.txt", Instant.ofEpochMilli(1234), false, 99, "/a/b"))
 
         checkRoundTrip(JSelectedFileFlat, value)
-        (JSelectedFileFlat.toJson(value) isEquivalentJson JSelectedFile.toJson(value)).expectSuccess()
+        (JSelectedFileFlat.toJson(value) isEquivalentJson JSelectedFileAny.toJson(value)).expectSuccess()
     }
 
     @Test
@@ -141,7 +141,7 @@ class JObjUnknownFieldsTest {
         val expected = SelectedFile(true, FileInfo("f", Instant.EPOCH, false, 1, "/a"))
         expectThat(JSelectedFileFlat.fromJson(json).expectSuccess()).isEqualTo(expected)
         expectThat(JSelectedFileFlatObj.fromJson(json).expectSuccess()).isEqualTo(expected)
-        expectThat(JSelectedFile.fromJson(json).expectSuccess()).isEqualTo(expected)
+        expectThat(JSelectedFileAny.fromJson(json).expectSuccess()).isEqualTo(expected)
     }
 
     @Test
@@ -149,7 +149,7 @@ class JObjUnknownFieldsTest {
         val json = """{"selected": true, "creation_date": 0, "folder_path": "/a", "is_dir": false, "size": 1}"""
 
         val objError = JSelectedFileFlat.fromJson(json).expectFailure()
-        val anyError = JSelectedFile.fromJson(json).expectFailure()
+        val anyError = JSelectedFileAny.fromJson(json).expectFailure()
 
         expectThat(objError.msg).isEqualTo("Error reading property <file_name> of node <[root]> Not found key 'file_name'. Keys found: [creation_date, folder_path, is_dir, size]")
         expectThat(objError.msg).isEqualTo(anyError.msg)
@@ -179,7 +179,7 @@ class JObjUnknownFieldsTest {
 
         val expected = MetadataFile("f", mapOf("a" to "first", "z" to "last"))
         expectThat(JMetadataFileObj.fromJson(json).expectSuccess()).isEqualTo(expected)
-        expectThat(JMetadataFile.fromJson(json).expectSuccess()).isEqualTo(expected)
+        expectThat(JMetadataFileAny.fromJson(json).expectSuccess()).isEqualTo(expected)
     }
 
     @Test
@@ -189,7 +189,7 @@ class JObjUnknownFieldsTest {
         val value = DynamicAttr(1, "dyn", attributes)
 
         checkRoundTrip(JDynamicAttrObj, value)
-        (JDynamicAttrObj.toJson(value) isEquivalentJson JDynamicAttr.toJson(value)).expectSuccess()
+        (JDynamicAttrObj.toJson(value) isEquivalentJson JDynamicAttrAny.toJson(value)).expectSuccess()
     }
 
     @Test
@@ -209,7 +209,7 @@ class JObjUnknownFieldsTest {
         val json = """{"fileName": "f", "k": null}"""
 
         val objError = JMetadataFileObj.fromJson(json).expectFailure()
-        val anyError = JMetadataFile.fromJson(json).expectFailure()
+        val anyError = JMetadataFileAny.fromJson(json).expectFailure()
 
         expectThat(objError.msg).isEqualTo("Error reading property <k> of node </k> Found null for non-nullable")
         expectThat(objError.msg).isEqualTo(anyError.msg)
@@ -220,7 +220,7 @@ class JObjUnknownFieldsTest {
         val json = """{"selected": true, "file_name": "f", "creation_date": 0, "folder_path": "/a", "is_dir": false, "size": "big"}"""
 
         val objError = JSelectedFileFlat.fromJson(json).expectFailure()
-        val anyError = JSelectedFile.fromJson(json).expectFailure()
+        val anyError = JSelectedFileAny.fromJson(json).expectFailure()
 
         expectThat(objError.msg).contains("</size>")
         expectThat(objError.msg).isEqualTo(anyError.msg)
@@ -258,7 +258,7 @@ class JObjUnknownFieldsTest {
 
 object JSelectedFileFlat : JObj<SelectedFile>() {
     val selected by bool(SelectedFile::selected)
-    val file_info by flatten(JFileInfo, SelectedFile::file)
+    val file_info by flatten(JFileInfoAny, SelectedFile::file)
 
     override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         SelectedFile(
@@ -314,7 +314,7 @@ object JMetadataFileFlattenFirst : JObj<MetadataFile>() {
 
 // only for reading: rendering it would write the FileInfo fields twice, as they are also in the attributes
 object JTwoFlattens : JObj<Pair<FileInfo, JsonNodeObject>>() {
-    val file by flatten(JFileInfo, Pair<FileInfo, JsonNodeObject>::first)
+    val file by flatten(JFileInfoAny, Pair<FileInfo, JsonNodeObject>::first)
     val attributes by flatten(Pair<FileInfo, JsonNodeObject>::second)
 
     override fun FieldsValues.deserializeOrThrow(path: NodePath) = +file to +attributes

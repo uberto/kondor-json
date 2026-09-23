@@ -321,7 +321,7 @@ class JsonParserTest {
           }
         """.trimIndent()
 
-        val objWithDynamicAttr = JDynamicAttr.fromJson(jsonString).expectSuccess()
+        val objWithDynamicAttr = JDynamicAttrAny.fromJson(jsonString).expectSuccess()
 
         expectThat(objWithDynamicAttr) {
             get { id }.isEqualTo(123)
@@ -352,8 +352,8 @@ class JsonParserTest {
                 metadata = bigMetadata
             )
 
-            val json = JMetadataFile.toJson(expected)
-            val actual = JMetadataFile.fromJson(json).expectSuccess()
+            val json = JMetadataFileAny.toJson(expected)
+            val actual = JMetadataFileAny.fromJson(json).expectSuccess()
 
             expectThat(actual).isEqualTo(expected)
         }

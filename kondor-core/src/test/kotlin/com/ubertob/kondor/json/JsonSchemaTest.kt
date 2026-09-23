@@ -169,7 +169,7 @@ class JsonSchemaTest {
     @Test
     fun `schema for a flattened object`() {
 
-        val schema = JSelectedFile.schema().render(pretty)
+        val schema = JSelectedFileAny.schema().render(pretty)
 
         expectThat(schema).isEqualTo(
             """{

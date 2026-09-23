@@ -247,7 +247,7 @@ class JValuesExtraTest {
             )
         )
 
-        val json = JSelectedFile.toJson(selectedFile, pretty)
+        val json = JSelectedFileAny.toJson(selectedFile, pretty)
 
         expectThat(json).isEqualTo(
             """{
@@ -270,7 +270,7 @@ class JValuesExtraTest {
             metadata = mapOf("type" to "picture", "owner" to "uberto")
         )
 
-        val json = JMetadataFile.toJson(metadataFile, pretty)
+        val json = JMetadataFileAny.toJson(metadataFile, pretty)
 
         expectThat(json).isEqualTo(
             """{
@@ -289,15 +289,15 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
-            val json = JSelectedFile.toJsonNode(value)
+            val json = JSelectedFileAny.toJsonNode(value)
 
-            val actual = JSelectedFile.fromJsonNode(json, NodePathRoot).expectSuccess()
+            val actual = JSelectedFileAny.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JSelectedFile.toJson(value)
+            val jsonStr = JSelectedFileAny.toJson(value)
 
-            expectThat(JSelectedFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(JSelectedFileAny.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
@@ -305,8 +305,8 @@ class JValuesExtraTest {
     fun `Json SelectedFile old format`() {
         repeat(10) {
             val value = SelectedFile(Random.nextBoolean(), randomFileInfo())
-            val jsonStr = JSelectedFile.toJson(value)
-            val result = JSelectedFile.fromJson(jsonStr).expectSuccess()
+            val jsonStr = JSelectedFileAny.toJson(value)
+            val result = JSelectedFileAny.fromJson(jsonStr).expectSuccess()
             expectThat(result).isEqualTo(value)
         }
     }
@@ -345,15 +345,15 @@ class JValuesExtraTest {
         repeat(10) {
 
             val value = MetadataFile(randomString(lowercase, 3, 20), randomMetadata())
-            val json = JMetadataFile.toJsonNode(value)
+            val json = JMetadataFileAny.toJsonNode(value)
 
-            val actual = JMetadataFile.fromJsonNode(json, NodePathRoot).expectSuccess()
+            val actual = JMetadataFileAny.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JMetadataFile.toJson(value)
+            val jsonStr = JMetadataFileAny.toJson(value)
 
-            expectThat(JMetadataFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(JMetadataFileAny.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
         }
     }
 
@@ -361,7 +361,7 @@ class JValuesExtraTest {
     fun `Json with flatten map is pretty rendered correctly`() {
 
         val value = MetadataFile("myfile", mapOf("canWrite" to "N", "canRead" to "Y", "owner" to "adam"))
-        val json = JMetadataFile.toJson(value, pretty)
+        val json = JMetadataFileAny.toJson(value, pretty)
 
         val expected = """{
               |  "canRead": "Y",
@@ -372,7 +372,7 @@ class JValuesExtraTest {
 
         expectThat(json).isEqualTo(expected)
 
-        val actual = JMetadataFile.fromJson(json).expectSuccess()
+        val actual = JMetadataFileAny.fromJson(json).expectSuccess()
 
         expectThat(actual).isEqualTo(value)
 
@@ -430,15 +430,15 @@ class JValuesExtraTest {
                 randomString(lowercase, 5, 5), randomString(lowercase, 5, 5), randomString(lowercase, 5, 5)
             )
 
-            val json = JGraphNode.toJsonNode(value)
+            val json = JGraphNodeAny.toJsonNode(value)
 
-            val actual = JGraphNode.fromJsonNode(json, NodePathRoot).expectSuccess()
+            val actual = JGraphNodeAny.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(value)
 
-            val jsonStr = JGraphNode.toJson(value)
+            val jsonStr = JGraphNodeAny.toJson(value)
 
-            expectThat(JGraphNode.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+            expectThat(JGraphNodeAny.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
 
         }
     }
@@ -450,15 +450,15 @@ class JValuesExtraTest {
         repeat(10) {
             val objWithDynamicAttr = randomObjectWithDynamicAttr()
 
-            val json = JDynamicAttr.toJsonNode(objWithDynamicAttr)
+            val json = JDynamicAttrAny.toJsonNode(objWithDynamicAttr)
 
-            val actual = JDynamicAttr.fromJsonNode(json, NodePathRoot).expectSuccess()
+            val actual = JDynamicAttrAny.fromJsonNode(json, NodePathRoot).expectSuccess()
 
             expectThat(actual).isEqualTo(objWithDynamicAttr)
 
-            val jsonStr = JDynamicAttr.toJson(objWithDynamicAttr)
+            val jsonStr = JDynamicAttrAny.toJson(objWithDynamicAttr)
 
-            expectThat(JDynamicAttr.fromJson(jsonStr).expectSuccess()).isEqualTo(objWithDynamicAttr)
+            expectThat(JDynamicAttrAny.fromJson(jsonStr).expectSuccess()).isEqualTo(objWithDynamicAttr)
         }
     }
 }

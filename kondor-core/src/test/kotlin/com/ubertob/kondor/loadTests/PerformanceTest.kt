@@ -28,7 +28,7 @@ toJsonNode 524 ms
 marshalling 224 ms
 
 
-JFileInfo 100k 15MB
+JFileInfoAny 100k 15MB
 serialization 282 ms
 serialization compact 220 ms
 total parsing 470 ms
@@ -74,7 +74,7 @@ marshalling 3 ms
 lazy parsing 46 ms
 
 On my laptop: 17/10/2023
-JFileInfo 100k 15MB
+JFileInfoAny 100k 15MB
 serialization 174 ms
 serialization compact 168 ms
 total parsing 417 ms
@@ -102,7 +102,7 @@ lazy parsing 2947 ms
 
 On my laptop: 28/01/2025
 
-JFileInfo
+JFileInfoAny
 serialization 89 ms
 serialization compact 74 ms
 total parsing 278 ms
@@ -132,7 +132,7 @@ lazy parsing 4569 ms
 
 On My Laptop: 09/07/2025
 
-JFileInfo
+JFileInfoAny
 serialization 73 ms
 serialization compact 83 ms
 total parsing 242 ms
@@ -198,7 +198,7 @@ lazy parsing 3961 ms
   - Strings: 4248-4305ms → 1240-1392ms (3.1-3.4x speedup)
 
 15 Oct 2025
-JFileInfo
+JFileInfoAny
 serialization 140 ms
 serialization compact 135 ms
 total parsing 293 ms
@@ -283,7 +283,7 @@ class PerformanceTest {
     @Test
     fun `serialize and parse FileInfo`() {
 
-        val jFileInfos = JList(JFileInfo)
+        val jFileInfos = JList(JFileInfoAny)
         val jFileInfosNew = JList(JFileInfoNew)
 
         val fileInfos = generateSequence(0) { it + 1 }.take(100_000).map {

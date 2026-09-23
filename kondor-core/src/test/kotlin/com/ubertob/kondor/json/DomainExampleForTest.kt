@@ -123,7 +123,7 @@ data class GraphNode(val name: String, val nodeType: String, val path: String)
 
 object JStringList : JArrayConverter<List<String>> by JList(JString)
 
-object JGraphNode : JAny<GraphNode>() {
+object JGraphNodeAny : JAny<GraphNode>() {
 
     private val name by str(GraphNode::name)
     private val nodeType by str(GraphNode::nodeType)
@@ -363,7 +363,7 @@ object JProducts : JArray<Product, Products> {
 
 data class FileInfo(val name: String, val date: Instant, val isDir: Boolean, val size: Long, val folderPath: String)
 
-object JFileInfo : JAny<FileInfo>() {
+object JFileInfoAny : JAny<FileInfo>() {
     val file_name by str(FileInfo::name)
     val creation_date by num(FileInfo::date)
     val is_dir by bool(FileInfo::isDir)
@@ -400,7 +400,7 @@ object JFileInfoNew : JObj<FileInfo>() {
 
 data class MetadataFile(val filename: String, val metadata: Map<String, String>)
 
-object JMetadataFile : JAny<MetadataFile>() {
+object JMetadataFileAny : JAny<MetadataFile>() {
 
     val fileName by str(MetadataFile::filename)
     val metadata by flatten(JMap(), MetadataFile::metadata)
@@ -414,10 +414,10 @@ object JMetadataFile : JAny<MetadataFile>() {
 
 data class SelectedFile(val selected: Boolean, val file: FileInfo)
 
-object JSelectedFile : JAny<SelectedFile>() {
+object JSelectedFileAny : JAny<SelectedFile>() {
 
     val selected by bool(SelectedFile::selected)
-    val file_info by flatten(JFileInfo, SelectedFile::file)
+    val file_info by flatten(JFileInfoAny, SelectedFile::file)
 
     override fun JsonNodeObject.deserializeOrThrow() =
         SelectedFile(
@@ -444,7 +444,7 @@ data class UserFile(val user: Person, val file: SelectedFile)
 object JUserFile : JObj<UserFile>() {
 
     val user by obj(JPerson, UserFile::user)
-    val file by obj(JSelectedFile, UserFile::file)
+    val file by obj(JSelectedFileAny, UserFile::file)
 
     override fun FieldsValues.deserializeOrThrow(path: NodePath) =
         UserFile(
@@ -569,7 +569,7 @@ data class DynamicAttr(
     val attributes: JsonNodeObject
 )
 
-object JDynamicAttr : JAny<DynamicAttr>() {
+object JDynamicAttrAny : JAny<DynamicAttr>() {
     private val id by num(DynamicAttr::id)
     private val name by str(DynamicAttr::name)
     private val attributes by flatten(DynamicAttr::attributes)

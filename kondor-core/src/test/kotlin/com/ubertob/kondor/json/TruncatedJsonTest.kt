@@ -47,7 +47,7 @@ class TruncatedJsonTest {
         checkTruncations(JPerson, person)
         checkTruncations(Person.Json, person)
         checkTruncations(JOptionalAddress, OptionalAddress(null, "street", null))
-        checkTruncations(JSelectedFile, SelectedFile(true, FileInfo("f", Instant.EPOCH, false, 1, "/a")))
+        checkTruncations(JSelectedFileAny, SelectedFile(true, FileInfo("f", Instant.EPOCH, false, 1, "/a")))
         checkTruncations(JCustomer, person)
         checkTruncations(JCustomer, Company("ACME", TaxType.Domestic))
     }
