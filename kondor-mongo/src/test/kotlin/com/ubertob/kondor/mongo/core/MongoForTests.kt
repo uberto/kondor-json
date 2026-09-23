@@ -1,6 +1,6 @@
 package com.ubertob.kondor.mongo.core
 
-import org.testcontainers.containers.MongoDBContainer
+import org.testcontainers.mongodb.MongoDBContainer
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 

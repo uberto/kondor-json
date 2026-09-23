@@ -5,6 +5,9 @@ rationale when appropriate:
 
 ### v.4.2.0 - unreleased
 
+Kondor-mongo: the tests use Testcontainers 2.0.5 (was 1.19.6), whose modules are now `testcontainers-mongodb` and
+`testcontainers-junit-jupiter`, and its `org.testcontainers.mongodb.MongoDBContainer`
+
 Kondor-core (**breaking**): a number between quotes (e.g. `"42"`) is an error, as it already was when parsing a
 `JsonNode`: only `NaN`, `Infinity` and `-Infinity` (and `+Infinity`) are read as text, and only by `JDouble` and
 `JFloat`. Before, a `JObj` read any quoted number while the same converter as a `JAny` refused it. A Json sending

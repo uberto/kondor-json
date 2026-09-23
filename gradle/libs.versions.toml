@@ -11,7 +11,7 @@ jackson = "2.13.0"
 jUnit = "5.11.0"
 jUnitLauncher = "1.11.0"
 striKt = "0.34.1"
-testContainers = "1.19.6"
+testContainers = "2.0.5"
 jmh = "0.7.1"
 justify = "3.1.0"
 joy = "2.0.0"
@@ -27,8 +27,8 @@ http4k = { module = "org.http4k:http4k-core", version.ref = "http4k" }
 jackson = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
 
 testContainers = { module = "org.testcontainers:testcontainers", version.ref = "testContainers" }
-testContainers-jupiter = { module = "org.testcontainers:junit-jupiter", version.ref = "testContainers" }
-testContainers-mongo = { module = "org.testcontainers:mongodb", version.ref = "testContainers" }
+testContainers-jupiter = { module = "org.testcontainers:testcontainers-junit-jupiter", version.ref = "testContainers" }
+testContainers-mongo = { module = "org.testcontainers:testcontainers-mongodb", version.ref = "testContainers" }
 
 kotlinPlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 
