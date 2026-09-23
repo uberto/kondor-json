@@ -65,9 +65,12 @@ news is that kondor-core is almost there already.
   `NumericNode.toKondorJsonNode()` uses `decimalValue()`, so both give `0.0` while the converters keep `-0.0`.
   Jackson cannot represent it at all, so that direction can only be documented; the DSL could keep it, but building a
   node from a `Double` would then hold a `Double` instead of a `BigDecimal` for every value.
-- **kondor-jackson writes a non finite number bare**: `toJacksonJsonNode(value).toString()` gives `NaN` while
-  `toJson(value)` gives `"NaN"`, unless Jackson's `QUOTE_NON_NUMERIC_NUMBERS` is on. A `JsonStyle` flag to write them
-  bare (as Jackson has) was considered and left out, to keep `JsonStyle` small.
+- ~~kondor-jackson writes a non finite number bare.~~ Wrong: Jackson (2.18) writes `"NaN"` quoted by default, as
+  kondor does, and refuses a bare `NaN` unless `ALLOW_NON_NUMERIC_NUMBERS` is on. A `JsonStyle` option to write them
+  bare was built in 4.2.0 and dropped: no common consumer needs it, and adding a property to `JsonStyle` breaks
+  `copy` for code compiled against an older version.
+- **`NumericNode.toKondorJsonNode()` throws on a Jackson `NaN` node**: it calls `decimalValue()`, which fails with a
+  `NumberFormatException` for a non finite double.
 - **The schema says `{"type":"number"}` for `JDouble` and `JFloat`, but a non finite value is written as a string, so
   kondor's own output does not validate against its own schema.
 - ~~Deeply nested Json overflows the stack.~~ Done for the entry points parsing a `String` or a stream, which report
@@ -79,9 +82,10 @@ news is that kondor-core is almost there already.
 - **Leniency the lexers still allow**, both paths agreeing: trailing commas (`[1,]`, and `{"id":1,}` for `JAny` but not
   `JObj`), text after the end of a document in `parseJsonNode` (`{} x`), raw control characters inside strings, and a
   `\u` escape cut short before the end of the input. Decide which of them to reject.
-- **Bare `NaN` and `Infinity` without quotes** are accepted as valid Json numbers.
+- **Bare `NaN` and `Infinity` without quotes** are accepted as valid Json numbers. Kept on purpose: Python's
+  `json.dumps` writes them that way by default, and reading them costs nothing.
 - **An `IOException` while reading a stream** is thrown out of `fromJson` instead of being returned as a `Failure`.
-- `JsonStyle.kt` has a dead `Regex` and a `CharRange` written with raw control characters in the source.
+- ~~`JsonStyle.kt` has a dead `Regex` and a `CharRange` written with raw control characters.~~ Done in 4.2.0.
 - The positions in the parsing errors are the last position read, not the position of the token: they can point a
   character or two before the problem.
 
