@@ -5,40 +5,55 @@ rationale when appropriate:
 
 ### v.4.2.0 - unreleased
 
-Kondor-core, Kondor-outcome: they run on Android 13 (API 33) and later. `./gradlew check`, and so the release, fails
-if their main code calls a Java API Android 13 does not have, with an Animal Sniffer check against
-`gradle/android-api-33.signature`, rebuilt with `scripts/generate-android-signature.sh`
+Breaking changes:
 
-Kondor-mongo: the tests use Testcontainers 2.0.5 (was 1.19.6), whose modules are now `testcontainers-mongodb` and
-`testcontainers-junit-jupiter`, and its `org.testcontainers.mongodb.MongoDBContainer`
-
-Kondor-core (**breaking**): a number between quotes (e.g. `"42"`) is an error, as it already was when parsing a
-`JsonNode`: only `NaN`, `Infinity` and `-Infinity` (and `+Infinity`) are read as text, and only by `JDouble` and
-`JFloat`. Before, a `JObj` read any quoted number while the same converter as a `JAny` refused it. A Json sending
-numbers as strings (e.g. an id as `"1600000000000"`, or a MongoDB `Decimal128`, written as
-`{"$numberDecimal": "9.99"}`) needs a converter reading a String, such as a `JStringRepresentable`
-Kondor-core: a zero written with a minus (`-0.0`, `-0`, `-0e10`) keeps its sign: `JDouble` and `JFloat` read it as
-`-0.0` on both paths, where reading numbers as `BigDecimal` in 4.1.0 turned it into `0.0`. In a `JsonNode` it is a
-`NegativeZero`, a new `Number` holding the sign and the parsed number: the other converters read it as before, and
-rendering keeps the sign (`-0` was rendered as `0`). It is the only number in a node which is not a `BigDecimal`, so
-`asNumValue() as BigDecimal` fails for it
-Kondor-core: rendering a Json is about twice as fast: a `Regex` was compiled for every string written and never used
-Kondor-core: a Json nested too deeply for the stack (a few hundred levels, depending on the stack and on how warm the
-JVM is) is reported as `the Json is nested too deeply to be parsed` instead of throwing a `StackOverflowError`:
-from `fromJson` (`String` and `InputStream`), `parseJsonNode` and the `NodeKind` functions, and the same for a converter recursing on itself.
-Converting or rendering a `JsonNode` built by hand can still overflow, and so can `fromTokens`, the recursive part of
-the parsing. `tryWithPath` and `tryFromNode` do not convert a `StackOverflowError` into a `ConverterJsonError` any
-more: it reaches the guarded entry points, or the caller for `fromJsonNode`
-
+Kondor-core: a number between quotes (e.g. `"42"`) is an error, as it already was when parsing a `JsonNode`: only
+`NaN`, `Infinity` and `-Infinity` (and `+Infinity`) are read as text, and only by `JDouble` and `JFloat`. Before, a
+`JObj` read any quoted number while the same converter as a `JAny` refused it. A Json sending numbers as strings (e.g.
+an id as `"1600000000000"`, or a MongoDB `Decimal128`, written as `{"$numberDecimal": "9.99"}`) needs a converter
+reading a String, such as a `JStringRepresentable`
 Kondor-core: a `JsonNode` holding a non finite number (`NaN`, `Infinity`, `-Infinity`) renders it as text, like the
 converters do, instead of writing it bare, which was not valid Json: `converter.toJsonNode(value).render()` and
 `converter.toJson(value)` now agree. Reading such a Json back gives a `JsonNodeString`, and the converters read the
 value as before
-Kondor-core: a non finite number (`NaN`, `Infinity`, `-Infinity`) is read back from its own rendering on the
-`JsonNode` path too: `JDouble` refused the unsigned `"Infinity"` it writes, and `JFloat` refused all of them, while
-the token path read them. Reading a text which is not a non finite number now fails with
-`expected a non finite Number (NaN, Infinity, -Infinity) but found '...'`, for `JFloat` too, and reading a `JFloat`
-from a wrong kind of node reports `expected a Number or NaN but found Boolean` instead of `... but found Boolean 'null'`
+Kondor-core: a zero written with a minus is a `NegativeZero` in a `JsonNode` (see below), the only number in a node
+which is not a `BigDecimal`, so `asNumValue() as BigDecimal` fails for it
+Kondor-core: `tryWithPath` and `tryFromNode` do not convert a `StackOverflowError` into a `ConverterJsonError` any
+more: it reaches the guarded entry points (see below), or the caller for `fromJsonNode`
+
+New:
+
+Kondor-core, Kondor-outcome: they run on Android 13 (API 33) and later. `./gradlew check`, and so the release, fails
+if their main code calls a Java API Android 13 does not have, with an Animal Sniffer check against
+`gradle/android-api-33.signature`, rebuilt with `scripts/generate-android-signature.sh`
+
+Fixes:
+
+Kondor-core: a non finite number (`NaN`, `Infinity`, `-Infinity`) is read back from its own rendering on the `JsonNode`
+path too: `JDouble` refused the unsigned `"Infinity"` it writes, and `JFloat` refused all of them, while the token path
+read them. Reading a text which is not a non finite number now fails with
+`expected a non finite Number (NaN, Infinity, -Infinity) but found '...'`, for `JFloat` too, and reading a `JFloat` from
+a wrong kind of node reports `expected a Number or NaN but found Boolean` instead of `... but found Boolean 'null'`
+Kondor-core: a zero written with a minus (`-0.0`, `-0`, `-0e10`) keeps its sign: `JDouble` and `JFloat` read it as
+`-0.0` on both paths, where reading numbers as `BigDecimal` in 4.1.0 turned it into `0.0`. In a `JsonNode` it is a
+`NegativeZero`, a new `Number` holding the sign and the parsed number: the other converters read it as before, and
+rendering keeps the sign (`-0` was rendered as `0`)
+Kondor-core: a Json nested too deeply for the stack (a few hundred levels, depending on the stack and on how warm the
+JVM is) is reported as `the Json is nested too deeply to be parsed` instead of throwing a `StackOverflowError`: from
+`fromJson` (`String` and `InputStream`), `parseJsonNode` and the `NodeKind` functions, and the same for a converter
+recursing on itself. Converting or rendering a `JsonNode` built by hand can still overflow, and so can `fromTokens`,
+the recursive part of the parsing
+
+Performance:
+
+Kondor-core: rendering a Json is about twice as fast: a `Regex` was compiled for every string written and never used
+
+Build and tests:
+
+Kondor-mongo: the tests use Testcontainers 2.0.5 (was 1.19.6), whose modules are now `testcontainers-mongodb` and
+`testcontainers-junit-jupiter`, and its `org.testcontainers.mongodb.MongoDBContainer`
+All modules: most tests use `JObj`, the converter to use; a few high level tests, and the ones comparing the two, keep
+`JAny`
 
 ### v.4.1.0 - 20 September 2026
 
