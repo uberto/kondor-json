@@ -88,6 +88,12 @@ export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
 
 # Check version
 ./gradlew printVersion
+
+# Check kondor-core and kondor-outcome against the Java API of Android 13 (also part of `check`)
+./gradlew :kondor-core:animalsnifferMain :kondor-outcome:animalsnifferMain
+
+# Rebuild gradle/android-api-33.signature from the Android SDK platform (downloads it if not in $ANDROID_HOME)
+scripts/generate-android-signature.sh
 ```
 
 ### Project Structure

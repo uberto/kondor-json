@@ -13,6 +13,7 @@ jUnitLauncher = "1.11.0"
 striKt = "0.34.1"
 testContainers = "2.0.5"
 jmh = "0.7.1"
+animalSniffer = "2.0.1"
 justify = "3.1.0"
 joy = "2.0.0"
 
@@ -40,3 +41,4 @@ jUnit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jUn
 [plugins]
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 jmh = { id = "me.champeau.jmh", version.ref = "jmh" }
+animalSniffer = { id = "ru.vyarus.animalsniffer", version.ref = "animalSniffer" }

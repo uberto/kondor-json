@@ -4,7 +4,8 @@
 
 The `kondor-outcome` module provides `Outcome<E, T>`, a small Either type for error handling without exceptions. Every
 Kondor operation that can fail (parsing, conversion, database access) returns an `Outcome`. The module has no
-dependencies and can be used on its own.
+dependencies and can be used on its own, also on Android 13 (API 33) and later: `./gradlew check` verifies it against
+the Java API of Android 13, as for kondor-core.
 
 ## Key Components
 

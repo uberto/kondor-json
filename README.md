@@ -33,6 +33,17 @@ Gradle
 implementation 'com.ubertob.kondor:kondor-core:4.1.0'
 ```
 
+### Android
+
+kondor-core and kondor-outcome run on Android 13 (API 33) and later, with no setup: they use no reflection library and
+only the Java API Android 13 has, including `java.time` for the date converters. R8 needs no rules beyond the default
+ones of the Android Gradle plugin (which keep the enum values `JEnumClass` reads). kondor-auto works too, but it
+depends on `kotlin-reflect`, which adds a few MB to the app and needs R8 rules to keep the Kotlin metadata.
+
+`./gradlew check` verifies this against the Java API of Android 13: it proves every class and method used exists there,
+not that each behaves as on the JVM, and it checks nothing older. On an app with a lower `minSdk` nothing warns, and
+older versions may miss what kondor calls (e.g. `java.time` needs API 26).
+
 ## The Video Presentation
 
 A live code presentation to see how to use Kondor and some insights on how it works internally:

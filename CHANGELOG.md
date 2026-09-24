@@ -5,6 +5,10 @@ rationale when appropriate:
 
 ### v.4.2.0 - unreleased
 
+Kondor-core, Kondor-outcome: they run on Android 13 (API 33) and later. `./gradlew check`, and so the release, fails
+if their main code calls a Java API Android 13 does not have, with an Animal Sniffer check against
+`gradle/android-api-33.signature`, rebuilt with `scripts/generate-android-signature.sh`
+
 Kondor-mongo: the tests use Testcontainers 2.0.5 (was 1.19.6), whose modules are now `testcontainers-mongodb` and
 `testcontainers-junit-jupiter`, and its `org.testcontainers.mongodb.MongoDBContainer`
 

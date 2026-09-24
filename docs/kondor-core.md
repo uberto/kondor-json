@@ -96,6 +96,19 @@ graph TB
 - **kondor-outcome**: Uses `Outcome` types for functional error handling
 - No other internal dependencies (foundation module)
 
+### Android
+
+kondor-core runs on Android 13 (API 33) and later. It depends only on kondor-outcome and the Kotlin stdlib, uses no
+reflection library (the Json name of a field comes from `KProperty.name`, which the compiler writes as a string, so R8
+cannot change it), and calls only the Java API of Android 13, `java.time` included.
+
+`./gradlew check` (so also `build` and the release) runs an Animal Sniffer check of the main code against
+`gradle/android-api-33.signature`, the Java API of Android 13, and fails if the code calls anything outside it; `test`
+alone does not run it. It checks that the classes and methods exist, not that they behave as on the JVM. Calls into the
+Kotlin stdlib are trusted, not checked, since the stdlib supports Android, while the stdlib functions inlined into
+kondor are checked with the rest of its code. `scripts/generate-android-signature.sh` rebuilds the signature from the
+`android.jar` of the Android SDK platform, for example to move to a newer Android version.
+
 ### Used By
 
 - **kondor-auto**: Extends core converters with automatic data class support

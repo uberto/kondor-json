@@ -68,7 +68,9 @@ graph TB
 
 - **kondor-core**: Uses `JsonConverter`, `ObjectNodeConverter`, and `JsonProperty`
 - **kondor-outcome**: Uses `Outcome` types for error handling
-- **Kotlin Reflection**: Uses `KClass` for runtime type information
+- **Kotlin Reflection**: Uses `KClass` for runtime type information, through the `kotlin-reflect` library. On Android
+  it works, but it adds a few MB to the app and R8 needs rules to keep the Kotlin metadata of the converted classes;
+  kondor-core alone needs neither
 
 ### Used By
 

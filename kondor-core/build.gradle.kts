@@ -6,6 +6,15 @@ plugins {
     id("java-test-fixtures")
     id("maven-publish")
     id("signing")
+    alias(libs.plugins.animalSniffer)
+}
+
+// kondor-core and kondor-outcome run on Android 13 (API 33) and later: `check` fails if the main code calls a JDK API
+// Android 13 does not have. The signature is made by scripts/generate-android-signature.sh, with the same Animal Sniffer
+// version. It does not check the bootstrap of the lambdas (LambdaMetafactory, which Android lacks): D8 rewrites them.
+animalsniffer {
+    toolVersion = "1.28"
+    sourceSets = listOf(project.sourceSets.main.get())
 }
 
 tasks.withType<GenerateModuleMetadata> {
@@ -23,6 +32,8 @@ dependencies {
 
     testFixturesImplementation(libs.kotlin.jdk8)
     testFixturesImplementation(libs.justify)
+
+    signature(files(rootProject.file("gradle/android-api-33.signature")))
 }
 
 @Suppress("UnstableApiUsage")
