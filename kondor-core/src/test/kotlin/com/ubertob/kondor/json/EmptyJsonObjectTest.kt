@@ -48,6 +48,7 @@ class EmptyJsonObjectTest {
         val empty = emptyMap<TaskId, Task>()
 
         expectThat(JTasks.fromJson(JTasks.toJson(empty)).expectSuccess()).isEqualTo(empty)
+        expectThat(JTasksAny.fromJson(JTasksAny.toJson(empty)).expectSuccess()).isEqualTo(empty)
     }
 
     @Test
@@ -137,10 +138,10 @@ class EmptyJsonObjectTest {
     fun `empty flattened JMap round-trips`() {
         val value = MetadataFile("file.txt", emptyMap())
 
-        val jsonStr = JMetadataFileAny.toJson(value)
+        val jsonStr = JMetadataFile.toJson(value)
         jsonStr.isEquivalentJson("""{"fileName": "file.txt"}""").expectSuccess()
-        expectThat(JMetadataFileAny.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
-        expectThat(JMetadataFileAny.fromJsonNode(JMetadataFileAny.toJsonNode(value), NodePathRoot).expectSuccess())
+        expectThat(JMetadataFile.fromJson(jsonStr).expectSuccess()).isEqualTo(value)
+        expectThat(JMetadataFile.fromJsonNode(JMetadataFile.toJsonNode(value), NodePathRoot).expectSuccess())
             .isEqualTo(value)
     }
 

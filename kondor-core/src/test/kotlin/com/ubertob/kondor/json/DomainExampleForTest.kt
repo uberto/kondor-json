@@ -324,7 +324,21 @@ object JTaskId : JStringRepresentable<TaskId>() {
 }
 
 data class Task(val name: String, val description: String)
-object JTask : JAny<Task>() {
+object JTask : JObj<Task>() {
+    private val name by str(Task::name)
+    private val description by str(Task::description)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        Task(
+            name = +name,
+            description = +description
+        )
+}
+
+val JTasks: JMap<TaskId, Task> = JMap(JTaskId, JTask)
+
+// a map of JAny values, for the tests comparing it with a map of JObj values
+object JTaskAny : JAny<Task>() {
     private val name by str(Task::name)
     private val description by str(Task::description)
 
@@ -335,7 +349,7 @@ object JTask : JAny<Task>() {
         )
 }
 
-val JTasks: JMap<TaskId, Task> = JMap(JTaskId, JTask)
+val JTasksAny: JMap<TaskId, Task> = JMap(JTaskId, JTaskAny)
 
 
 class Products : ArrayList<Product>() {
@@ -380,7 +394,7 @@ object JFileInfoAny : JAny<FileInfo>() {
         )
 }
 
-object JFileInfoNew : JObj<FileInfo>() {
+object JFileInfo : JObj<FileInfo>() {
     val file_name by str(FileInfo::name)
     val creation_date by num(FileInfo::date)
     val is_dir by bool(FileInfo::isDir)
@@ -426,10 +440,10 @@ object JSelectedFileAny : JAny<SelectedFile>() {
         )
 }
 
-object JSelectedFileNew : JObj<SelectedFile>() {
+object JSelectedFileNested : JObj<SelectedFile>() {
 
     private val selected by bool(SelectedFile::selected)
-    private val file by obj(JFileInfoNew, SelectedFile::file)
+    private val file by obj(JFileInfo, SelectedFile::file)
 
     override fun FieldsValues.deserializeOrThrow(path: NodePath): SelectedFile =
         SelectedFile(
@@ -441,6 +455,7 @@ object JSelectedFileNew : JObj<SelectedFile>() {
 
 data class UserFile(val user: Person, val file: SelectedFile)
 
+// a JObj holding a JAny: the error tests using it check the paths across the two
 object JUserFile : JObj<UserFile>() {
 
     val user by obj(JPerson, UserFile::user)
@@ -483,14 +498,14 @@ object JTitleType : JStringRepresentable<TitleType?>() {
     override val render: (TitleType?) -> String = { it?.label.orEmpty() }
 }
 
-object JTitleRequest : JAny<TitleRequest>() {
+object JTitleRequest : JObj<TitleRequest>() {
     private val id by str(TitleRequest::id)
 
     private val type by str(JTitleType, TitleRequest::type)
 
     private val yesOrNo by bool(JYesOrNo, TitleRequest::yesOrNo)
 
-    override fun JsonNodeObject.deserializeOrThrow(): TitleRequest =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): TitleRequest =
         TitleRequest(
             id = +id,
             type = +type,
@@ -583,7 +598,23 @@ object JDynamicAttrAny : JAny<DynamicAttr>() {
 
 data class OptionalAddress(val name: String?, val street: String?, val city: String?)
 
-object JOptionalAddress : JAny<OptionalAddress>() {
+object JOptionalAddress : JObj<OptionalAddress>() {
+
+    override val jsonStyle = prettyWithNulls
+
+    val name by str(OptionalAddress::name)
+    val street by str(OptionalAddress::street)
+    val city by str(OptionalAddress::city)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) = OptionalAddress(
+        +name,
+        +street,
+        +city
+    )
+}
+
+// the JAny version, writing the null fields too, for the tests comparing the two
+object JOptionalAddressAny : JAny<OptionalAddress>() {
 
     override val jsonStyle = prettyWithNulls
 
@@ -600,11 +631,60 @@ object JOptionalAddress : JAny<OptionalAddress>() {
 
 data class TagsContainer(val tastes: List<String>, val colors: List<String>)
 
-object JTagsContainer : JAny<TagsContainer>() {
+object JTagsContainer : JObj<TagsContainer>() {
     val taste_tags by array(JString, TagsContainer::tastes)
     val color_tags by array(JString, TagsContainer::colors)
-    override fun JsonNodeObject.deserializeOrThrow() = TagsContainer(
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) = TagsContainer(
         +taste_tags,
         +color_tags
+    )
+}
+
+// the JObj versions of the fixtures above whose JAny version is kept for the tests comparing the two
+
+object JGraphNode : JObj<GraphNode>() {
+    private val name by str(GraphNode::name)
+    private val nodeType by str(GraphNode::nodeType)
+    private val path by str(GraphNode::path)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        GraphNode(
+            name = +name,
+            nodeType = +nodeType,
+            path = +this@JGraphNode.path
+        )
+}
+
+object JSelectedFile : JObj<SelectedFile>() {
+    val selected by bool(SelectedFile::selected)
+    val file_info by flatten(JFileInfo, SelectedFile::file)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        SelectedFile(
+            selected = +selected,
+            file = +file_info,
+        )
+}
+
+object JMetadataFile : JObj<MetadataFile>() {
+    val fileName by str(MetadataFile::filename)
+    val metadata by flatten(JMap(), MetadataFile::metadata)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
+        MetadataFile(
+            filename = +fileName,
+            metadata = +metadata
+        )
+}
+
+object JDynamicAttr : JObj<DynamicAttr>() {
+    private val id by num(DynamicAttr::id)
+    private val name by str(DynamicAttr::name)
+    private val attributes by flatten(DynamicAttr::attributes)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath) = DynamicAttr(
+        id = +id,
+        name = +name,
+        attributes = +attributes
     )
 }

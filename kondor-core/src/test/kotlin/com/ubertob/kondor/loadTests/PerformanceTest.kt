@@ -284,7 +284,7 @@ class PerformanceTest {
     fun `serialize and parse FileInfo`() {
 
         val jFileInfos = JList(JFileInfoAny)
-        val jFileInfosNew = JList(JFileInfoNew)
+        val jFileInfosNew = JList(JFileInfo)
 
         val fileInfos = generateSequence(0) { it + 1 }.take(100_000).map {
             randomFileInfo().copy(name = it.toString())

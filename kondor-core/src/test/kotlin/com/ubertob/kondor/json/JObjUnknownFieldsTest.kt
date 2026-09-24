@@ -131,7 +131,7 @@ class JObjUnknownFieldsTest {
     fun `JObj with a flatten JObj field round-trips`() {
         val value = SelectedFile(false, FileInfo("g", Instant.ofEpochMilli(-5), true, 0, ""))
 
-        checkRoundTrip(JSelectedFileFlatObj, value)
+        checkRoundTrip(JSelectedFile, value)
     }
 
     @Test
@@ -140,7 +140,7 @@ class JObjUnknownFieldsTest {
 
         val expected = SelectedFile(true, FileInfo("f", Instant.EPOCH, false, 1, "/a"))
         expectThat(JSelectedFileFlat.fromJson(json).expectSuccess()).isEqualTo(expected)
-        expectThat(JSelectedFileFlatObj.fromJson(json).expectSuccess()).isEqualTo(expected)
+        expectThat(JSelectedFile.fromJson(json).expectSuccess()).isEqualTo(expected)
         expectThat(JSelectedFileAny.fromJson(json).expectSuccess()).isEqualTo(expected)
     }
 
@@ -167,10 +167,10 @@ class JObjUnknownFieldsTest {
     @Test
     fun `JObj with a flatten JMap field round-trips`() {
         val value = MetadataFile("f.txt", mapOf("author" to "me", "tag" to "x", "empty" to ""))
-        checkRoundTrip(JMetadataFileObj, value)
+        checkRoundTrip(JMetadataFile, value)
 
         val empty = MetadataFile("f.txt", emptyMap())
-        checkRoundTrip(JMetadataFileObj, empty)
+        checkRoundTrip(JMetadataFile, empty)
     }
 
     @Test
@@ -178,7 +178,7 @@ class JObjUnknownFieldsTest {
         val json = """{"z": "last", "fileName": "f", "a": "first"}"""
 
         val expected = MetadataFile("f", mapOf("a" to "first", "z" to "last"))
-        expectThat(JMetadataFileObj.fromJson(json).expectSuccess()).isEqualTo(expected)
+        expectThat(JMetadataFile.fromJson(json).expectSuccess()).isEqualTo(expected)
         expectThat(JMetadataFileAny.fromJson(json).expectSuccess()).isEqualTo(expected)
     }
 
@@ -188,8 +188,8 @@ class JObjUnknownFieldsTest {
             .expectSuccess() as JsonNodeObject
         val value = DynamicAttr(1, "dyn", attributes)
 
-        checkRoundTrip(JDynamicAttrObj, value)
-        (JDynamicAttrObj.toJson(value) isEquivalentJson JDynamicAttrAny.toJson(value)).expectSuccess()
+        checkRoundTrip(JDynamicAttr, value)
+        (JDynamicAttr.toJson(value) isEquivalentJson JDynamicAttrAny.toJson(value)).expectSuccess()
     }
 
     @Test
@@ -208,7 +208,7 @@ class JObjUnknownFieldsTest {
     fun `JObj and JAny report a null unknown field read by a flatten JMap`() {
         val json = """{"fileName": "f", "k": null}"""
 
-        val objError = JMetadataFileObj.fromJson(json).expectFailure()
+        val objError = JMetadataFile.fromJson(json).expectFailure()
         val anyError = JMetadataFileAny.fromJson(json).expectFailure()
 
         expectThat(objError.msg).isEqualTo("Error reading property <k> of node </k> Found null for non-nullable")
@@ -265,40 +265,6 @@ object JSelectedFileFlat : JObj<SelectedFile>() {
             selected = +selected,
             file = +file_info,
         )
-}
-
-object JSelectedFileFlatObj : JObj<SelectedFile>() {
-    val selected by bool(SelectedFile::selected)
-    val file_info by flatten(JFileInfoNew, SelectedFile::file)
-
-    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
-        SelectedFile(
-            selected = +selected,
-            file = +file_info,
-        )
-}
-
-object JMetadataFileObj : JObj<MetadataFile>() {
-    val fileName by str(MetadataFile::filename)
-    val metadata by flatten(JMap(), MetadataFile::metadata)
-
-    override fun FieldsValues.deserializeOrThrow(path: NodePath) =
-        MetadataFile(
-            filename = +fileName,
-            metadata = +metadata
-        )
-}
-
-object JDynamicAttrObj : JObj<DynamicAttr>() {
-    private val id by num(DynamicAttr::id)
-    private val name by str(DynamicAttr::name)
-    private val attributes by flatten(DynamicAttr::attributes)
-
-    override fun FieldsValues.deserializeOrThrow(path: NodePath) = DynamicAttr(
-        id = +id,
-        name = +name,
-        attributes = +attributes
-    )
 }
 
 object JMetadataFileFlattenFirst : JObj<MetadataFile>() {
