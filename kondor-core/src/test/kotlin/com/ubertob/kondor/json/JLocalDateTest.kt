@@ -2,8 +2,9 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.datetime.JLocalDate
 import com.ubertob.kondor.json.datetime.str
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
@@ -102,11 +103,11 @@ class JLocalDateTest {
 
     data class Transaction(val id: String, val date: LocalDate)
 
-    object JTransaction : JAny<Transaction>() {
+    object JTransaction : JObj<Transaction>() {
         private val id by str(Transaction::id)
         private val date by str("dd/MM/yyyy", Transaction::date)
 
-        override fun JsonNodeObject.deserializeOrThrow(): Transaction =
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): Transaction =
             Transaction(
                 id = +id,
                 date = +date,
@@ -115,11 +116,11 @@ class JLocalDateTest {
 
     data class TransactionWithOptionalDate(val id: String, val date: LocalDate?)
 
-    object JTransactionWithOptionalDate : JAny<TransactionWithOptionalDate>() {
+    object JTransactionWithOptionalDate : JObj<TransactionWithOptionalDate>() {
         private val id by str(TransactionWithOptionalDate::id)
         private val date by str("dd-MM-yyyy", TransactionWithOptionalDate::date)
 
-        override fun JsonNodeObject.deserializeOrThrow(): TransactionWithOptionalDate =
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): TransactionWithOptionalDate =
             TransactionWithOptionalDate(
                 id = +id,
                 date = +date,

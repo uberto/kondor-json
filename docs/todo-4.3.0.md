@@ -91,12 +91,14 @@ news is that kondor-core is almost there already.
 
 ## 5. Move almost all the tests to JObj
 
-`JObj` is the recommended converter, but most fixtures in `DomainExampleForTest.kt` and most tests still use `JAny`.
+Done in 4.2.0. The general tests use `JObj` fixtures; `JAnyTest` covers `JAny` end to end, including what only a
+`JAny` can do (reading a field it does not declare from its `JsonNode`, the missing-node error, a `null` from
+`deserializeOrThrow`). The tests comparing the two converters keep a real `JAny`, with fixtures named for it
+(`JSelectedFileAny`, `JTaskAny`, `JOptionalAddressAny`, ...), and `MappingAndJsonNodeConsistencyTest` checks both kinds.
+The kondor-core coverage (JaCoCo) was unchanged by the move, apart from one more `JAny` branch.
 
-- Convert the fixtures and the tests to `JObj`, **adding** the `JObj` variant instead of replacing the `JAny` one
-  wherever the test is about a behaviour the two share: both must keep working, and a test that silently swaps
-  converter hides a difference (this is how the `flatten` and unknown-fields bugs stayed hidden until 4.1.0).
-- Keep a small, explicit set of `JAny` tests for what only `JAny` does: `JSealed`, `JJsonNode`, and the `JsonNode` path
-  in general.
-- Check `MappingAndJsonNodeConsistencyTest` covers the two paths for every converter kind, so that a difference
-  between them fails a test instead of being found by a review.
+Still on `JAny`, on purpose:
+- the kondor-mongo fixtures: a `JObj` cannot read back a document a `TypedTable` wrote (see item 1);
+- kondor-tools: `ConverterGenerator` generates a `JAny`, so its tests expect one. Generating a `JObj` instead is a
+  change of the tool, still to decide;
+- `JSealed` subtypes in the shared fixtures (`JVariantString`, `JVariantInt`).

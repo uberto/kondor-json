@@ -244,14 +244,14 @@ data class Example(
     val favoriteChild: Example? = null,
 )
 
-object JExample : JAny<Example>() {
+object JExample : JObj<Example>() {
     private val name by str(Example::name)
     private val age by num(Example::age)
     private val salary by num(Example::salary)
     private val children by array(JExample, Example::children)
     private val favoriteChild by obj(JExample, Example::favoriteChild)
 
-    override fun JsonNodeObject.deserializeOrThrow(): Example =
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Example =
         Example(
             name = +name,
             age = +age,

@@ -1,7 +1,9 @@
 package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.JsonStyle.Companion.compactSorted
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondor.randomText
 import com.ubertob.kondortools.expectFailure
@@ -17,7 +19,28 @@ private data class Example(
     val s: String
 )
 
-private object V1Format : JAny<Example>() {
+private object V1Format : JObj<Example>() {
+    val i by num(Example::i)
+    val s by str(Example::s)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Example =
+        Example(i = +i, s = +s)
+}
+
+private object V2Format : JObj<Example>() {
+    val int by num(Example::i)
+    val str by str(Example::s)
+
+    override fun FieldsValues.deserializeOrThrow(path: NodePath): Example =
+        Example(i = +int, s = +str)
+}
+
+private val converterWithMandatoryVersionField = VersionMapConverter(
+    versionConverters = mapOf("1" to V1Format, "2" to V2Format)
+)
+
+// the historical case: VersionedConverter predates JObj, and a chain can mix the two kinds of converter
+private object V1FormatAny : JAny<Example>() {
     val i by num(Example::i)
     val s by str(Example::s)
 
@@ -25,16 +48,8 @@ private object V1Format : JAny<Example>() {
         Example(i = +i, s = +s)
 }
 
-private object V2Format : JAny<Example>() {
-    val int by num(Example::i)
-    val str by str(Example::s)
-
-    override fun JsonNodeObject.deserializeOrThrow(): Example =
-        Example(i = +int, s = +str)
-}
-
-private val converterWithMandatoryVersionField = VersionMapConverter(
-    versionConverters = mapOf("1" to V1Format, "2" to V2Format)
+private val converterWithMixedKinds = VersionMapConverter(
+    unversionedConverters = listOf(V2Format, V1FormatAny),
 )
 
 private val converterWithDefaultVersion = VersionMapConverter(
@@ -122,6 +137,14 @@ class VersionedConverterTest {
 
         val generatedJson = converter.toJson(original, compactSorted)
         expectThat(badV2Json).isEqualTo(generatedJson)
+    }
+
+    @Test
+    fun `a stack of versions can mix JObj and JAny converters`() {
+        val original = Example(4, "mixed")
+
+        expectThat(converterWithMixedKinds.fromJson("""{"i":4,"s":"mixed"}""").expectSuccess()).isEqualTo(original)
+        expectThat(converterWithMixedKinds.fromJson("""{"int":4,"str":"mixed"}""").expectSuccess()).isEqualTo(original)
     }
 
     @Test

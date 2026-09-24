@@ -326,12 +326,26 @@ class ParserFailuresTest {
         override fun JsonNodeObject.deserializeOrThrow() = error("not finished yet!")
     }
 
+    object JPersonIncompleteObj : JObj<Person>() {
+
+        private val id by JField(Person::id, JInt)
+        private val name by JField(Person::name, JString)
+
+        override fun FieldsValues.deserializeOrThrow(path: NodePath) = error("not finished yet!")
+    }
+
     @Test
     fun `error in parsing Json is returned correctly`() {
 
-        val error = JPersonIncomplete.fromJson(JPerson.toJson(randomPerson())).expectFailure()
+        //the two converters wrap the deserialization in different places, with the same error
+        listOf(JPersonIncomplete, JPersonIncompleteObj).forEach { converter ->
+            val person = randomPerson()
 
-        expectThat(error.msg).isEqualTo("Error converting node <[root]> not finished yet!")
+            expectThat(converter.fromJson(JPerson.toJson(person)).expectFailure().msg)
+                .isEqualTo("Error converting node <[root]> not finished yet!")
+            expectThat(converter.fromJsonNode(JPerson.toJsonNode(person), NodePathRoot).expectFailure().msg)
+                .isEqualTo("Error converting node <[root]> not finished yet!")
+        }
     }
 
     @Test

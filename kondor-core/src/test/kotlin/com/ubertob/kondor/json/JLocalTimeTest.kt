@@ -2,8 +2,9 @@ package com.ubertob.kondor.json
 
 import com.ubertob.kondor.json.datetime.JLocalTime
 import com.ubertob.kondor.json.datetime.str
-import com.ubertob.kondor.json.jsonnode.JsonNodeObject
+import com.ubertob.kondor.json.jsonnode.FieldsValues
 import com.ubertob.kondor.json.jsonnode.JsonNodeString
+import com.ubertob.kondor.json.jsonnode.NodePath
 import com.ubertob.kondor.json.jsonnode.NodePathRoot
 import com.ubertob.kondortools.expectSuccess
 import org.junit.jupiter.api.DisplayName
@@ -103,11 +104,11 @@ class JLocalTimeTest {
 
     data class Transaction(val id: String, val time: LocalTime)
 
-    object JTransaction : JAny<Transaction>() {
+    object JTransaction : JObj<Transaction>() {
         private val id by str(Transaction::id)
         private val time by str("hh:mm:ss a", Transaction::time)
 
-        override fun JsonNodeObject.deserializeOrThrow(): Transaction =
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): Transaction =
             Transaction(
                 id = +id,
                 time = +time,
@@ -116,11 +117,11 @@ class JLocalTimeTest {
 
     data class TransactionWithOptionalTime(val id: String, val time: LocalTime?)
 
-    object JTransactionWithOptionalTime : JAny<TransactionWithOptionalTime>() {
+    object JTransactionWithOptionalTime : JObj<TransactionWithOptionalTime>() {
         private val id by str(TransactionWithOptionalTime::id)
         private val time by str("hh:mm:ss a", TransactionWithOptionalTime::time)
 
-        override fun JsonNodeObject.deserializeOrThrow(): TransactionWithOptionalTime =
+        override fun FieldsValues.deserializeOrThrow(path: NodePath): TransactionWithOptionalTime =
             TransactionWithOptionalTime(
                 id = +id,
                 time = +time,
